@@ -1,0 +1,14 @@
+//------------------------------------TailwindCss-----------------------------------------
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+//------------------------------------Global style-----------------------------------------
+@import './globals.scss';
+
+//------------------------------------Components-----------------------------------------
+@import '../components/Swiper/SwiperStyle.scss';
+
+
+//------------------------------------Static Components-----------------------------------------
+@import '../components/static/Account/AccPurchased.scss'
