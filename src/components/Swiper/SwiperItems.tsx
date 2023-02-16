@@ -18,8 +18,10 @@ const SwiperItems: React.FC<SwiperItemsProps> = ({
 }) => {
 
   const Default =
-    <div className='relative flex flex-col justify-between items-center aspect-3/4' onClick={onClick}>
-      <Image className='' alt='' src={imageUrl} fill priority={true} />
+    <div className='flex flex-col justify-between items-center rounded-3xl' onClick={onClick}>
+      <div className='relative w-full h-full aspect-3/4 '>
+        <Image className='rounded-3xl' alt='' src={imageUrl} fill priority={true} />
+      </div>
       <div className='text-deskText1 font-semibold mt-2'>{category}</div>
     </div>
 

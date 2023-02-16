@@ -145,8 +145,8 @@ const DailyDiscover = () => {
             <div className='grid gap-5 grid-cols-4 my-5'>
                 {Products.map((item, idx) => (
                     idx < loadMore &&
-                    <div key={item.id} className='h-auto relative rounded-[20px] aspect-3/4'>
-                        <Image className='rounded-[20px]' alt='' src={typeof (item.imageUrl) === "string" ? item.imageUrl : item.imageUrl[0]} fill priority={true} />
+                    <div key={item.id} className='h-auto relative rounded-3xl aspect-3/4'>
+                        <Image className='rounded-3xl' alt='' src={typeof (item.imageUrl) === "string" ? item.imageUrl : item.imageUrl[0]} fill priority={true} />
                     </div>
                 ))}
             </div>
