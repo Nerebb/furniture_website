@@ -3,12 +3,13 @@ import Image from 'next/image'
 import React from 'react'
 import classNames from 'classnames'
 import ProductCard from '@/components/ProductCard'
+import Modal from '@/components/Modal'
 
 type Props = {}
 
 export default function AccOrder({ }: Props) {
     return (
-        <article className='space-y-3'>
+        <article className='space-y-6'>
             <ProductCard productStatus={true} />
             <ProductCard productStatus={true} />
             <ProductCard productStatus={true} />

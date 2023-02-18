@@ -1,21 +1,42 @@
 
-
 export interface Image {
     id: number | string
     url: string
 }
 
+export enum Role {
+    admin = "admin",
+    creator = "creator",
+    customer = "customer"
+}
+
+export enum Gender {
+    male = 'male',
+    female = 'female',
+    others = 'others',
+}
+
 export interface IUser {
-    id?: number | string
+    id?: number
     name: string
+    password: string
     nickName: string
     address: string
     email: string
-    gender: 'male' | 'female' | 'others'
+    gender: Gender
     phoneNumber: number
-    birthDay: string
+    birthDay?: string
     wishList?: IProduct[]
     purchased?: IProduct[]
+
+    role?: Role,
+}
+
+export interface IRegiser {
+    name: IUser['name']
+    password: IUser['password']
+    email: IUser['email']
+    phoneNumber: IUser['phoneNumber']
 }
 
 export interface IProduct {

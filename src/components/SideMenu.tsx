@@ -5,7 +5,7 @@ import React from 'react'
 import classNames from 'classnames'
 import { useRouter } from 'next/router'
 import AccProfile from './static/Account/AccProfile'
-import { IUser } from 'type'
+import { Gender, IUser } from '@types'
 import AccWishlist from './static/Account/AccWishlist'
 import AccOrder from './static/Account/AccOrder'
 import AccPurchased from './static/Account/AccPurchased'
@@ -20,10 +20,11 @@ const iconStyle = {
 export const fakeUser: IUser = {
     id: 0,
     name: "Nereb",
+    password: "test12345",
     nickName: "render",
     address: "test distric 2 loreisum",
     email: "test@gmail.com",
-    gender: 'others',
+    gender: Gender.others,
     phoneNumber: 1032423,
     birthDay: "27/04/1996",
 }
@@ -79,7 +80,7 @@ export default function SideMenu({ }: Props) {
                         href={nav.href}
                         key={nav.id}
                         className={classNames(
-                            'flex rounded-xl space-x-3 group px-5 py-7 transition-all ease-in-out duration-300 hover:bg-priBlack-100/50',
+                            'flex rounded-xl space-x-3 group px-5 py-7 transition-all ease-out duration-700 hover:bg-priBlack-100/50',
                             { 'bg-priBlack-100/50': router.asPath === nav.href }
                         )}>
                         {nav.navIcon}

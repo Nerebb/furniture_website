@@ -14,7 +14,7 @@ const SideMenuLayout = ({ sideMenuType, children }: Props) => {
     return (
         <Container >
             <Header />
-            <section className='flex-grow flex w-full h-full'>
+            <section className='flex-grow flex '>
                 <article className='min-w-[420px] pt-5 pr-5 border-r border-priBlack-100'>
                     <SideMenu />
                 </article>

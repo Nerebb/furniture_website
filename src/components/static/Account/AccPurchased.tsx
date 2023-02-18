@@ -10,7 +10,7 @@ import {
     RowSelectedEvent,
     ValueFormatterParams,
 } from 'ag-grid-community';
-import { IProduct } from 'type';
+import { IProduct } from '@types';
 
 interface IProductTable extends IProduct {
 

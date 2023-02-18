@@ -1,5 +1,5 @@
 import React from 'react'
-import { IProduct } from 'type'
+import { IProduct } from '@types'
 import Section from '../layouts/Section'
 import SwiperContainer from './Swiper/SwiperContainer'
 

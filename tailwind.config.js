@@ -58,6 +58,9 @@ module.exports = {
       borderWidth: {
         0.5: "0.5px",
       },
+      borderRadius: {
+        "4xl": "2.5rem",
+      },
       strokeWidth: {
         5: "5px",
       },
@@ -75,6 +78,7 @@ module.exports = {
       },
       aspectRatio: {
         "3/4": "3/4",
+        "4/3": "5/3",
       },
       backdropBlur: {
         1: "1px",

@@ -9,7 +9,7 @@ interface ButtonProps {
     | 'outline'
     | 'disable',
     children?: React.ReactNode,
-    modifier?: string,
+    modifier?: React.HTMLProps<HTMLElement>["className"],
     glowEffect?: boolean,
     glowModify?:
     | "noOffset"
@@ -35,8 +35,8 @@ const Button: React.FC<ButtonProps> = ({ type, text, modifier, children, variant
             }
             disabled={variant === 'disable' ? true : false}
             onClick={onClick}>
-            {text}
             {children}
+            {text}
             {glowEffect &&
                 // outline outline-black outline-3
                 <svg className='glow-container'>

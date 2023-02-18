@@ -3,7 +3,7 @@ import React from 'react'
 import Button from './Button'
 import Card from './Card'
 import classNames from 'classnames'
-import { IProduct } from 'type'
+import { IProduct } from '@types'
 
 type Props = {
     product?: IProduct

@@ -1,4 +1,4 @@
-import { IUser } from 'type'
+import { Gender, IUser } from '@types'
 import Button from '../../Button'
 import Card from '../../Card'
 import React, { useState } from 'react'
@@ -78,9 +78,10 @@ export default function AccProfile({ userData }: Props) {
                 initialValues={{
                     name: "Nereb",
                     nickName: "render",
+                    password: "test12345",
                     address: "test distric 2 loreisum",
                     email: "test@gmail.com",
-                    gender: 'others',
+                    gender: Gender.others,
                     phoneNumber: 1032423,
                     birthDay: "27/04/1996",
                 }}
@@ -115,8 +116,6 @@ export default function AccProfile({ userData }: Props) {
                     </article>
                 </Form>)}
             </Formik>
-
-
         </Card>
     )
 }

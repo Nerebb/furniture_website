@@ -1,11 +1,13 @@
-import ModalProvider from '@/contexts/ModalProvider'
+import ToastAlert from '@/components/ToastAlert'
+import { SessionProvider } from "next-auth/react"
 import '@/styles/app.scss'
 import type { AppProps } from 'next/app'
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <ModalProvider>
+    <SessionProvider session={pageProps.session}>
+      <ToastAlert />
       <Component {...pageProps} />
-    </ModalProvider>
+    </SessionProvider>
   )
 }
