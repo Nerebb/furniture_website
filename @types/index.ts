@@ -16,6 +16,15 @@ export enum Gender {
     others = 'others',
 }
 
+export interface IRegister {
+    loginId: IUser['name']
+    password: IUser['password']
+    confirmPassword?: IUser['password']
+    email?: IUser['email']
+    gender?: Gender
+}
+
+
 export interface IUser {
     id?: number
     name: string
@@ -30,13 +39,6 @@ export interface IUser {
     purchased?: IProduct[]
 
     role?: Role,
-}
-
-export interface IRegiser {
-    name: IUser['name']
-    password: IUser['password']
-    email: IUser['email']
-    phoneNumber: IUser['phoneNumber']
 }
 
 export interface IProduct {

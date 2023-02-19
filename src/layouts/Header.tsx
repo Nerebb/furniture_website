@@ -31,8 +31,8 @@ const Header = () => {
                     </>
                 ) : (
                     <>
-                        <Link className='SignUp tracking-tight mr-3' href={'/cart'}>Sign Up</Link>
-                        <Modal btnText='Login' />
+                        <Link className='SignUp tracking-tight mr-3' href={'/login'}>Sign Up</Link>
+                        <Modal btnProps={{ text: 'Login' }} formType='login' />
                     </>
                 )}
             </nav>

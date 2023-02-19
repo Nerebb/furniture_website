@@ -75,6 +75,7 @@ module.exports = {
       },
       transitionDuration: {
         2000: "2000",
+        5000: "5000",
       },
       aspectRatio: {
         "3/4": "3/4",

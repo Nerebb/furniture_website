@@ -1,9 +1,9 @@
 import classNames from 'classnames'
 import React, { useEffect, useMemo, useRef } from 'react'
 
-interface ButtonProps {
+export interface ButtonProps {
     text?: string,
-    type?: "button" | "submit" | "reset" | undefined,
+    type?: "button" | "submit" | "reset" | undefined, //HTML buttons types
     variant?:
     "fill"
     | 'outline'
@@ -17,7 +17,7 @@ interface ButtonProps {
     onClick?: () => void,
 }
 
-const Button: React.FC<ButtonProps> = ({ type, text, modifier, children, variant = 'fill', glowEffect = true, glowModify, onClick }) => {
+const Button: React.FC<ButtonProps> = ({ type = 'button', text, modifier, children, variant = 'fill', glowEffect = true, glowModify, onClick }) => {
 
     return (
         <button
