@@ -87,8 +87,6 @@ const FormikForm = ({ formData, type = 'profile' }: TFormProps) => {
     }
 
     async function handleSubmit(values: IRegister, { setSubmitting, resetForm }: FormikHelpers<IRegister>) {
-        console.log("🚀 ~ file: FormikForm.tsx:88 ~ onSubmit={ ~ values", values)
-
         toast.info("Submit create account inprogress", { autoClose: false, toastId: 'submit' })
 
         await new Promise(r => setTimeout(r, 5000)); // Debounce
@@ -125,7 +123,6 @@ const FormikForm = ({ formData, type = 'profile' }: TFormProps) => {
                     validationSchema={Yup.object(UserSchemaValidate)}
                     onSubmit={async (values, { setSubmitting }: FormikHelpers<IUser>) => {
                         await new Promise(r => setTimeout(r, 500));
-                        console.log("🚀 ~ file: AccProfile.tsx:120 ~ AccProfile ~ values", values)
                         setSubmitting(false);
                     }}
                 >

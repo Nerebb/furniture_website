@@ -73,79 +73,93 @@ $ yarn dev
 
 -Schema Table: https://drawsql.app/teams/personal-821/diagrams/fundamental
 
+```js script
+<iframe
+  width="100%"
+  height="500px"
+  style="box-shadow: 0 2px 8px 0 rgba(63,69,81,0.16); border-radius:15px;"
+  allowtransparency="true"
+  allowfullscreen="true"
+  scrolling="no"
+  title="Embedded DrawSQL IFrame"
+  frameborder="0"
+  src="https://drawsql.app/teams/personal-821/diagrams/fundamental/embed"
+></iframe>
+```
+
 ### User
 
-[] Create User: LoginId and password.
-[] Login User: Credential(LoginID - password) - SignOn: Github - Google.
-[] User can have many Account: each Account is a SignIn options: Credential, Github or Google.
-[] Available Role : admin, creator, shipper, customer.
-[] Update owned profile.
-[] Delete - deactivate own's account.
-[] Product purchased History / on delivery / shipper info.
-[] Follows others User.
+[ ] Create User: LoginId and password.\
+[ ] Login User: Credential(LoginID - password) - SignOn: Github - Google.\
+[ ] User can have many Account: each Account is a SignIn options: Credential, Github or Google.\
+[ ] Available Role : admin, creator, shipper, customer.\
+[ ] Update owned profile.\
+[ ] Delete - deactivate own's account.\
+[ ] Product purchased History / on delivery / shipper info.\
+[ ] Follows others User.
 
-> Role : admin./
->
-> > [] Dashboard info: total sale, product, etc...
-> > [] Set User Role
-> > [] Re-write any products, account, description, ...
-> > [] Delete - deactivate others account - products
+- Role : admin.\
 
-> Role : creator/
->
-> > [] Re-write on product description, image
-> > [] Post new product - (pending)
+[ ] Dashboard info: total sale, product, etc...\
+ [ ] Set User Role\
+ [ ] Re-write any products, account, description, ...\
+ [ ] Delete - deactivate others account - products\
 
-> Role : shipper/
->
-> > [] Product that purchased
-> > [] User's purchased info : Name - Nickname - phoneNumber - address - email
-> > [] Estimate deliverytime : Google API
+- Role : creator\
+
+[ ] Re-write on product description, image\
+ [ ] Post new product - (pending)
+
+- Role : shipper\
+
+[ ] Product that purchased\
+ [ ] User's purchased info : Name - Nickname - phoneNumber - address - email\
+ [ ] Estimate deliverytime : Google API
 
 ### Product
 
-> Hompage
->
-> > [] TopCategory: Top sale products
-> > [] Featured : New products
+Hompage\
 
-> Search
->
-> > [] Filter by search Input: category, name, color
-> > [] Filter by color - checkboxes
-> > [] Filter by category - checkboxes
-> > [] Filter by price - checkboxes or input type select
+[ ] TopCategory: Top sale products\
+ [ ] Featured : New products
 
-> Product detail
->
-> > [] Product infomation: Images, description, available, price, etc...
-> > [] Route history - viewed last product
-> > [] View products that have same category - color
+Search
+
+[ ] Filter by search Input: category, name, color\
+ [ ] Filter by color - checkboxes\
+ [ ] Filter by category - checkboxes\
+ [ ] Filter by price - checkboxes or input type select
+
+Product detail\
+
+[ ] Product infomation: Images, description, available, price, etc...\
+ [ ] Route history - viewed last product\
+ [ ] View products that have same category - color
 
 ### Category
 
-> [] GET - all category
-> [] CREATE/POST/DELTE - Admin only
+[ ] GET - all category\
+ [ ] CREATE/POST/DELTE - Admin only
 
 ### Reviews
 
-> [] List of product's reviews.
-> [] Auth User: CREATE - POST - DELETE owned reviews
-> [] Admin : DELETE any reviews
+[ ] List of product's reviews.\
+ [ ] Auth User: CREATE - POST - DELETE owned reviews\
+ [ ] Admin : DELETE any reviews
 
 ### WishList
 
-> [] CRUD by all users
-> [] Expired: 90days
+[ ] CRUD by all users\
+ [ ] Expired: 90days
 
 ### PurchasedProduct
 
-> [] CRUD - Admin only
-> [] Auth User: GET - owned purchased products
-> [] purchasedPrice
-> [] status - purchased Product status: 'Pending', 'On delivery', etc...
+[ ] CRUD - Admin only\
+ [ ] Auth User: GET - owned purchased products\
+ [ ] purchasedPrice\
+ [ ] status - purchased Product status: 'Pending', 'On delivery', etc...
 
 ## Core feature
 
-> [] Template for creator to write content for each products
-> [] Google API: connect shipper and customer
+[ ] Template for creator to write content for each products\
+ [ ] Google API: connect shipper and customer
