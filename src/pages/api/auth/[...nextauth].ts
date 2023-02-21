@@ -37,7 +37,7 @@ export default NextAuth({
                 })
 
                 return user
-            }
+            },
         }),
         GoogleProvider({
             clientId: process.env.GOOGLE_ID,
@@ -61,7 +61,7 @@ export default NextAuth({
         // Use JSON Web Tokens for session instead of database sessions.
         // This option can be used with or without a database for users/accounts.
         // Note: `strategy` should be set to 'jwt' if no database is used.
-        strategy: 'jwt',
+        strategy: 'database',
 
         // Seconds - How long until an idle session expires and is no longer valid.
         // maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -72,7 +72,6 @@ export default NextAuth({
         // Note: This option is ignored if using JSON Web Tokens
         // updateAge: 24 * 60 * 60, // 24 hours
     },
-
     jwt: {
         secret: process.env.SECRET,
     },

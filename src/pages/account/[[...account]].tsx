@@ -7,9 +7,12 @@ import { getSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-type Props = {}
+type Props = {
+    session: any
+}
 
-export default function AccountPage({ }: Props) {
+export default function AccountPage({ session }: Props) {
+    console.log("🚀 ~ file: [[...account]].tsx:15 ~ AccountPage ~ session:", session)
     const router = useRouter()
     const render = AccPage.find(i => i.href === router.asPath)?.element
     return (

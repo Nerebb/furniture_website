@@ -81,6 +81,7 @@ const FormikForm = ({ formData, type = 'profile' }: TFormProps) => {
         ? loginSchemaValidate
         : type === 'register' ? registerSchemaValidate
             : {}
+
     function handleSignIn(auth: string) {
         signIn(auth, { callbackUrl: BASE_URL })
     }
