@@ -75,14 +75,14 @@ $ yarn dev
 
 ### User
 
-[] Create User: LoginId and password/
+[] Create User: LoginId and password.
 [] Login User: Credential(LoginID - password) - SignOn: Github - Google/
-[] User can have many Account: each Account is a SignIn options: Credential, Github or Google/
-[] Available Role : admin, creator, shipper, customer/
-[] Update owned profile/
-[] Delete - deactivate own's account/
+[] User can have many Account: each Account is a SignIn options: Credential, Github or Google.
+[] Available Role : admin, creator, shipper, customer.
+[] Update owned profile.
+[] Delete - deactivate own's account.
 [] Product purchased History / on delivery / shipper info
-[] Follows others User
+[] Follows others User.
 
 - Role : admin/
   [] Dashboard info: total sale, product, etc...
