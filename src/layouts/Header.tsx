@@ -1,11 +1,10 @@
+import Button from '@/components/Button'
+import Modal from '@/components/Modal'
+import SearchBox from '@/components/SearchBox'
+import { ShoppingCartIcon } from '@heroicons/react/24/outline'
+import { signOut, useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import React from 'react'
-import { ShoppingCartIcon } from '@heroicons/react/24/outline'
-import Button from '@/components/Button'
-import SearchBox from '@/components/SearchBox'
-import Modal from '@/components/Modal'
-import { signOut, useSession } from 'next-auth/react'
 
 const Header = () => {
     const router = useRouter()

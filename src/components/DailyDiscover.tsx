@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import React, { useContext, useState } from 'react'
+import { useState } from 'react'
 import Section from '../layouts/Section'
 import Button from './Button'
 

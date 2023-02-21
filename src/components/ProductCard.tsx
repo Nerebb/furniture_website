@@ -1,9 +1,8 @@
+import { IProduct } from '@types'
+import classNames from 'classnames'
 import Image from 'next/image'
-import React from 'react'
 import Button from './Button'
 import Card from './Card'
-import classNames from 'classnames'
-import { IProduct } from '@types'
 
 type Props = {
     product?: IProduct

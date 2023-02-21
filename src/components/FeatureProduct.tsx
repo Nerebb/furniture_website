@@ -1,6 +1,4 @@
-import React from 'react'
 import Section from '../layouts/Section'
-import { GetServerSideProps } from 'next'
 import Button from './Button'
 import SwiperContainer from './Swiper/SwiperContainer'
 

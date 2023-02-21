@@ -1,58 +1,24 @@
+import { BASE_URL } from '@/utils/envVariables';
+import { loginSchemaValidate, registerSchemaValidate } from '@/utils/schemaValitdate';
+import { Gender, IRegister, UserProfile } from '@types';
 import classNames from 'classnames';
 import { Form, Formik, FormikHelpers } from 'formik';
-import React, { HTMLInputTypeAttribute, useState } from 'react'
-import { Gender, IRegister, IUser } from '@types';
-import * as Yup from 'yup'
+import { signIn } from 'next-auth/react';
+import { toast } from 'react-toastify';
+import * as Yup from 'yup';
 import Button from '../Button';
 import NotFoundPage from '../NotFoundPage';
 import FormikField from './FormikField';
-import { signIn } from 'next-auth/react';
-import { BASE_URL } from '@/utils/envVariables';
-import { toast } from 'react-toastify';
-
-export type IUserProfile = {
-    id: number,
-    label: string,
-    name: string,
-
-    inputType?: HTMLInputTypeAttribute,
-    content?: string | number | string[],
-}
 
 export type TFormProps = {
     type:
     | 'register'
     | 'profile'
     | 'login'
-    formData?: IUserProfile[]
+    formData?: UserProfile[]
 }
 
-const phoneRegExp = /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/
-
-const UserSchemaValidate = {
-    name: Yup.string().lowercase().max(10, 'Must lesser than 10 characters'),
-    nickName: Yup.string().lowercase().max(10, "Must lesser than 10 characters"),
-    address: Yup.string().lowercase().max(50, "Must lesser than 10 characters"),
-    email: Yup.string().email().typeError("Invalid email"),
-    gender: Yup.string().lowercase().oneOf(['male', 'female', 'others'], "Allowed field: male, female, others"),
-    phoneNumber: Yup.string().matches(phoneRegExp, "Invalid phone number"),
-    birthDay: Yup.string().typeError("Invalid date"),
-}
-
-const registerSchemaValidate = {
-    loginId: UserSchemaValidate.name.required("Login ID field missing"),
-    password: Yup.string().max(20, 'Must lesser than 20 characters').required('Password field missing'),
-    confirmPassword: Yup.string().oneOf([Yup.ref('password')], 'Passwords dont match').required('Password field missing'),
-    email: Yup.string().email().typeError("Invalid email").required("Email field missing"),
-    gender: Yup.string().lowercase().oneOf(Object.values(Gender), "Invalid gender")
-}
-
-const loginSchemaValidate = {
-    loginId: registerSchemaValidate.loginId,
-    password: registerSchemaValidate.password,
-}
-
-const registerUser: IUserProfile[] = [
+const registerUser: UserProfile[] = [
     { id: 0, label: "Login ID", name: 'loginId', inputType: 'text', content: 'Account ID' },
     { id: 1, label: "Password", name: 'password', inputType: 'password', content: 'Account password' },
     { id: 2, label: "Confirm password", name: 'confirmPassword', inputType: 'password', content: 'Confirm password' },
@@ -60,14 +26,13 @@ const registerUser: IUserProfile[] = [
     { id: 4, label: "Gender", name: 'gender', inputType: 'select', content: Object.values(Gender) },
 ]
 
-const loginUser: IUserProfile[] = [
+const loginUser: UserProfile[] = [
     { id: 0, label: "Login ID", name: 'loginId', inputType: 'text', content: 'Account ID' },
     { id: 1, label: "Password", name: 'password', inputType: 'password', content: 'Account password' },
 ]
 
 
 const FormikForm = ({ formData, type = 'profile' }: TFormProps) => {
-    const [isEdit, setIsEdit] = useState(false)
 
     let initValues: IRegister = {
         loginId: "",
@@ -107,52 +72,8 @@ const FormikForm = ({ formData, type = 'profile' }: TFormProps) => {
             }
             formData = loginUser
             break;
-        case "profile":
-            return (
-                <Formik
-                    initialValues={{
-                        name: "Nereb",
-                        nickName: "render",
-                        password: "test12345",
-                        address: "test distric 2 loreisum",
-                        email: "test@gmail.com",
-                        gender: Gender.others,
-                        phoneNumber: 1032423,
-                        birthDay: "27/04/1996",
-                    }}
-                    validationSchema={Yup.object(UserSchemaValidate)}
-                    onSubmit={async (values, { setSubmitting }: FormikHelpers<IUser>) => {
-                        await new Promise(r => setTimeout(r, 500));
-                        setSubmitting(false);
-                    }}
-                >
-                    {({ handleReset }) => (<Form className={classNames(
-                        "border-t border-gray-200",
-                        { "divide-y": isEdit }
-                    )}>
-                        {formData?.map(row => (
-                            <FormikField key={row.id} type='userForm' isEdit={isEdit} id={row.id} label={row.label} content={row.content} name={row.name} />
-                        ))}
-
-                        {/* Button */}
-                        <div className={classNames(
-                            'flex justify-end items-center px-4 py-5 space-x-5 rounded-b-3xl',
-                            { 'bg-priBlue-100': formData && formData.length % 2 === 0 }
-                        )}>
-                            {isEdit ?
-                                <>
-                                    <Button text='Close edit' variant='outline' modifier='h-9 w-[125px]' onClick={() => { setIsEdit(false); handleReset() }} />
-                                    <Button type='submit' text='Submit' modifier='h-9 w-[125px]' >
-                                    </Button>
-                                </>
-                                :
-                                <Button text="Edit profile" modifier='h-9 w-[125px]' onClick={() => setIsEdit(true)} />}
-                        </div>
-                    </Form>)}
-                </Formik>
-            )
         default:
-            break;
+            return <NotFoundPage />
     }
 
     return (
@@ -195,18 +116,6 @@ const FormikForm = ({ formData, type = 'profile' }: TFormProps) => {
                                 <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="25px" height="24px" viewBox="0 0 24 24" version="1.1">
                                     <g id="surface1">
                                         <path style={{ stroke: "none", fillRule: "evenodd", fill: "rgb(14.117647%,16.078431%,18.431373%)", fillOpacity: "1", }} d="M 11.964844 0 C 5.347656 0 0 5.5 0 12.304688 C 0 17.742188 3.425781 22.347656 8.179688 23.976562 C 8.773438 24.097656 8.992188 23.710938 8.992188 23.386719 C 8.992188 23.101562 8.972656 22.125 8.972656 21.105469 C 5.644531 21.839844 4.953125 19.636719 4.953125 19.636719 C 4.417969 18.210938 3.625 17.84375 3.625 17.84375 C 2.535156 17.089844 3.703125 17.089844 3.703125 17.089844 C 4.914062 17.171875 5.546875 18.355469 5.546875 18.355469 C 6.617188 20.226562 8.339844 19.699219 9.03125 19.371094 C 9.132812 18.578125 9.449219 18.027344 9.785156 17.722656 C 7.132812 17.4375 4.339844 16.378906 4.339844 11.652344 C 4.339844 10.308594 4.8125 9.207031 5.566406 8.351562 C 5.445312 8.046875 5.03125 6.785156 5.683594 5.09375 C 5.683594 5.09375 6.695312 4.765625 8.972656 6.355469 C 9.949219 6.085938 10.953125 5.949219 11.964844 5.949219 C 12.972656 5.949219 14.003906 6.089844 14.957031 6.355469 C 17.234375 4.765625 18.242188 5.09375 18.242188 5.09375 C 18.898438 6.785156 18.480469 8.046875 18.363281 8.351562 C 19.136719 9.207031 19.589844 10.308594 19.589844 11.652344 C 19.589844 16.378906 16.796875 17.417969 14.125 17.722656 C 14.558594 18.109375 14.933594 18.84375 14.933594 20.003906 C 14.933594 21.65625 14.914062 22.980469 14.914062 23.386719 C 14.914062 23.710938 15.132812 24.097656 15.726562 23.976562 C 20.480469 22.347656 23.910156 17.742188 23.910156 12.304688 C 23.929688 5.5 18.558594 0 11.964844 0 Z M 11.964844 0 " />
-                                    </g>
-                                </svg>
-                            </div>
-                        </Button>
-                        <Button text='Sign in with facebook' modifier='w-full flex justify-center py-4 gap-2 text-xl' variant='outline'
-                            onClick={() => handleSignIn('facebook')}
-                        >
-                            {/* FacebookSVG */}
-                            <div className='flex justify-center items-center bg-priBlue-600 rounded-sm w-8 h-8 p-1'>
-                                <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" fill="#fff" height="24" width="24" version="1.1" viewBox="0 0 310 310" xmlSpace="preserve">
-                                    <g id="XMLID_834_">
-                                        <path id="XMLID_835_" d="M81.703,165.106h33.981V305c0,2.762,2.238,5,5,5h57.616c2.762,0,5-2.238,5-5V165.765h39.064   c2.54,0,4.677-1.906,4.967-4.429l5.933-51.502c0.163-1.417-0.286-2.836-1.234-3.899c-0.949-1.064-2.307-1.673-3.732-1.673h-44.996   V71.978c0-9.732,5.24-14.667,15.576-14.667c1.473,0,29.42,0,29.42,0c2.762,0,5-2.239,5-5V5.037c0-2.762-2.238-5-5-5h-40.545   C187.467,0.023,186.832,0,185.896,0c-7.035,0-31.488,1.381-50.804,19.151c-21.402,19.692-18.427,43.27-17.716,47.358v37.752H81.703   c-2.762,0-5,2.238-5,5v50.844C76.703,162.867,78.941,165.106,81.703,165.106z" />
                                     </g>
                                 </svg>
                             </div>

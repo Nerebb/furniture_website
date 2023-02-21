@@ -7,7 +7,7 @@ import DailyDiscover from '@/components/DailyDiscover'
 import Banner from '@/components/Banner'
 
 import { signIn } from 'next-auth/react'
-import FormikForm from '@/components/form/FormikForm'
+import FormikForm from '@/components/form/AssignForm'
 
 const inter = Inter({ subsets: ['latin'] })
 

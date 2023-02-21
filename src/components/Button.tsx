@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import React, { useEffect, useMemo, useRef } from 'react'
+import React from 'react'
 
 export interface ButtonProps {
     text?: string,

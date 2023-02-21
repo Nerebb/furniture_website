@@ -1,5 +1,4 @@
 import BaseLayout from '@/layouts/BaseLayout'
-import React from 'react'
 
 type Props = {}
 

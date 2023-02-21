@@ -1,27 +1,12 @@
-import { IUser } from '@types'
-import Card from '../../Card'
-import React, { useState } from 'react'
-import * as Yup from 'yup';
-import FormikForm, { IUserProfile } from '@/components/form/FormikForm'
+import ProfileForm from '@/components/form/ProfileForm';
+import { IUser } from '@types';
+import Card from '../../Card';
 
 type Props = {
     userData: IUser
 }
 
-const phoneRegExp = /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/
-
-const validationSchema = {
-    name: Yup.string().lowercase().max(20, 'Must lesser than 10 characters'),
-    nickName: Yup.string().lowercase().max(10, "Must lesser than 10 characters"),
-    address: Yup.string().lowercase().max(50, "Must lesser than 10 characters"),
-    email: Yup.string().email().typeError("Invalid email"),
-    gender: Yup.string().lowercase().oneOf(['male', 'female', 'others'], "Allowed field: male, female, others"),
-    phoneNumber: Yup.string().matches(phoneRegExp, "Invalid phone number"),
-    birthDay: Yup.string().typeError("Invalid date"),
-}
-
 export default function AccProfile({ userData }: Props) {
-    const [isEdit, setIsEdit] = useState<boolean>(false)
 
     const userProfile = [
         { id: 0, label: "Full name", name: 'name', content: userData?.name },
@@ -40,8 +25,8 @@ export default function AccProfile({ userData }: Props) {
                 <p className="mt-1 max-w-2xl text-sm text-gray-500">Personal details and application.</p>
             </article>
 
-            {/* Main */}
-            <FormikForm type='profile' formData={userProfile} />
+            {/* FormikForm */}
+            <ProfileForm formData={userProfile} />
 
         </Card>
     )

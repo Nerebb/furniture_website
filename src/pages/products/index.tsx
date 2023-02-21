@@ -1,5 +1,4 @@
-import BaseLayout from '@/layouts/BaseLayout'
-import React from 'react'
+import BaseLayout from '@/layouts/BaseLayout';
 import { BeakerIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 import Image from 'next/image';
 
@@ -15,7 +14,7 @@ export default function index({ }: Props) {
                     <div className='flex pt-6'>
                         <div className="flex flex-col w-4/5">
                             <div className="w-full aspect-square bg-red-100 relative mb-8">
-                                <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill/>
+                                <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill />
                             </div>
 
                             <div className="flex justify-between items-center mb-5">
@@ -33,7 +32,7 @@ export default function index({ }: Props) {
                             <div className="flex gap-6">
                                 <div className="flex-1">
                                     <div className="w-full aspect-square bg-red-100 relative mb-2">
-                                        <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill/>
+                                        <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill />
                                     </div>
                                     <div className="flex justify-between">
                                         <p>Lottie</p>
@@ -45,7 +44,7 @@ export default function index({ }: Props) {
                                 </div>
                                 <div className="flex-1">
                                     <div className="w-full aspect-square bg-red-100 relative mb-2">
-                                        <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill/>
+                                        <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill />
                                     </div>
                                     <div className="flex justify-between">
                                         <p>Lottie</p>
@@ -57,7 +56,7 @@ export default function index({ }: Props) {
                                 </div>
                                 <div className="flex-1">
                                     <div className="w-full aspect-square bg-red-100 relative mb-2">
-                                        <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill/>
+                                        <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill />
                                     </div>
                                     <div className="flex justify-between">
                                         <p>Lottie</p>
@@ -71,16 +70,16 @@ export default function index({ }: Props) {
                         </div>
                         <div className="w-1/5 px-5 py-10">
                             <div className="bg-blue-400 w-full aspect-square relative mb-7">
-                                <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill/>
+                                <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill />
                             </div>
                             <div className="bg-blue-400 w-full aspect-square relative mb-7">
-                                <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill/>
+                                <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill />
                             </div>
                             <div className="bg-blue-400 w-full aspect-square relative mb-7">
-                                <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill/>
+                                <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill />
                             </div>
                             <div className="bg-blue-400 w-full aspect-square relative">
-                                <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill/>
+                                <Image alt='' src='/images/OliverSofa_RS.jpg' className='object-cover' fill />
                             </div>
                         </div>
                     </div>
@@ -88,7 +87,7 @@ export default function index({ }: Props) {
                 <div className='flex flex-col w-1/2 pl-10 pt-6 border-l-2'>
                     <div className='flex items-center justify-between mb-5'>
                         <h1 className="text-[32px] font-bold">Ilana</h1>
-                        <BeakerIcon className="h-6 w-6 text-blue-500"/>
+                        <BeakerIcon className="h-6 w-6 text-blue-500" />
                     </div>
 
                     <p className='mb-6'> Lorem ipsum dolor sit amet consectetur, adipisicing elit. In temporibus eum praesentium ut, accusantium vero veritatis officia porro voluptatem consequuntur nobis sit necessitatibus enim debitis voluptates, distinctio quos id? Debitis!</p>
@@ -100,15 +99,15 @@ export default function index({ }: Props) {
 
                     <div className="flex mb-7">
                         <div className="flex mr-3">
-                            <BeakerIcon className="h-6 w-6 text-blue-500 mr-1"/>
-                            <BeakerIcon className="h-6 w-6 text-blue-500 mr-1"/>
-                            <BeakerIcon className="h-6 w-6 text-blue-500 mr-1"/>
-                            <BeakerIcon className="h-6 w-6 text-blue-500 mr-1"/>
-                            <BeakerIcon className="h-6 w-6 text-blue-500 mr-1"/>
+                            <BeakerIcon className="h-6 w-6 text-blue-500 mr-1" />
+                            <BeakerIcon className="h-6 w-6 text-blue-500 mr-1" />
+                            <BeakerIcon className="h-6 w-6 text-blue-500 mr-1" />
+                            <BeakerIcon className="h-6 w-6 text-blue-500 mr-1" />
+                            <BeakerIcon className="h-6 w-6 text-blue-500 mr-1" />
                         </div>
                         <span className='underline'>441 reviews</span>
                     </div>
-                    
+
                     <div className="mb-20">
                         <p className="font-semibold mb-2">Colour</p>
                         <div className="flex">

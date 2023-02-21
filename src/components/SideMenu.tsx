@@ -1,14 +1,13 @@
-import { ChartBarSquareIcon, ClipboardDocumentIcon, ClipboardDocumentListIcon, HeartIcon, UserCircleIcon } from '@heroicons/react/24/outline'
+import { ChartBarSquareIcon, ClipboardDocumentListIcon, HeartIcon, UserCircleIcon } from '@heroicons/react/24/outline'
+import { Gender, IUser } from '@types'
+import classNames from 'classnames'
 import Image from 'next/image'
 import Link from 'next/link'
-import React from 'react'
-import classNames from 'classnames'
 import { useRouter } from 'next/router'
-import AccProfile from './static/Account/AccProfile'
-import { Gender, IUser } from '@types'
-import AccWishlist from './static/Account/AccWishlist'
 import AccOrder from './static/Account/AccOrder'
+import AccProfile from './static/Account/AccProfile'
 import AccPurchased from './static/Account/AccPurchased'
+import AccWishlist from './static/Account/AccWishlist'
 
 
 type Props = {}

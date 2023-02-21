@@ -1,10 +1,9 @@
-import React, { forwardRef, useMemo } from 'react'
-import Button, { ButtonProps } from './Button'
 import { Dialog, Transition } from '@headlessui/react'
-import { Fragment, useState } from 'react'
-import Image from 'next/image'
 import { CubeIcon } from '@heroicons/react/24/outline'
-import FormikForm, { TFormProps } from './form/FormikForm'
+import Image from 'next/image'
+import { Fragment, useState } from 'react'
+import Button, { ButtonProps } from './Button'
+import AssignForm, { TFormProps } from './form/AssignForm'
 
 
 type Props = {
@@ -46,7 +45,7 @@ const Modal = ({ btnProps, keepOpen = false, formType, type = 'default' }: Props
                                 <p className='text-xl font-normal whitespace-nowrap'>Let{"\'"}s get started with your 30 day free trial.</p>
                             </div>
                             {/* Formik */}
-                            <FormikForm type={formType ? formType : 'register'} />
+                            <AssignForm type={formType ? formType : 'register'} />
 
                             {/* Other methods */}
                         </Dialog.Title>

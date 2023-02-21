@@ -1,11 +1,10 @@
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { UserProfile } from '@types';
 import classNames from 'classnames';
 import { useField } from 'formik';
-import React, { HTMLInputTypeAttribute, useState } from 'react'
-import NotFoundPage from '../NotFoundPage';
-import { IUserProfile } from './FormikForm';
+import { HTMLInputTypeAttribute, useState } from 'react';
 
-interface Props extends IUserProfile {
+interface Props extends UserProfile {
     type?:
     | HTMLInputTypeAttribute
     | 'userForm'
@@ -14,8 +13,6 @@ interface Props extends IUserProfile {
     modifyLabel?: string,
     modifyInput?: string,
 }
-
-
 
 export default function FormikField({ type, modifyLabel, modifyInput, isEdit, ...props }: Props) {
     const [field, meta] = useField(props.name);

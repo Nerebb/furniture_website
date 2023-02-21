@@ -5,7 +5,6 @@ import { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
-import React from 'react'
 
 type Props = {
     session: any

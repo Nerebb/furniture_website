@@ -1,4 +1,4 @@
-import FormikForm from '@/components/form/FormikForm'
+import FormikForm from '@/components/form/AssignForm'
 import Modal from '@/components/Modal'
 import BlankLayout from '@/layouts/BlankLayout'
 import React from 'react'

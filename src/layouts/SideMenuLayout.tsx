@@ -1,5 +1,5 @@
 import SideMenu from '@/components/SideMenu'
-import React, { useContext } from 'react'
+import React from 'react'
 import Container from './Container'
 import Footer from './Footer'
 import Header from './Header'

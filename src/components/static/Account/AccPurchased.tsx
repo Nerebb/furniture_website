@@ -1,16 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { AgGridReact } from 'ag-grid-react';
-import {
-    ColDef,
-    ColGroupDef,
-    GetRowIdFunc,
-    GetRowIdParams,
-    Grid,
-    GridOptions,
-    RowSelectedEvent,
-    ValueFormatterParams,
-} from 'ag-grid-community';
 import { IProduct } from '@types';
+import {
+    ColDef, GetRowIdFunc,
+    GetRowIdParams, ValueFormatterParams
+} from 'ag-grid-community';
+import { AgGridReact } from 'ag-grid-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 interface IProductTable extends IProduct {
 

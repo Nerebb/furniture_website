@@ -1,3 +1,4 @@
+import { HTMLInputTypeAttribute } from "react"
 
 export interface Image {
     id: number | string
@@ -60,4 +61,13 @@ export interface Category {
     name: string
     description: string
     totalSale: number
+}
+
+export interface UserProfile {
+    id: number,
+    label: string,
+    name: string,
+
+    inputType?: HTMLInputTypeAttribute,
+    content?: string | number | string[],
 }
