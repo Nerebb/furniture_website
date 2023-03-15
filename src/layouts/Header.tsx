@@ -1,6 +1,6 @@
 import Button from '@/components/Button'
 import Modal from '@/components/Modal'
-import SearchBox from '@/components/SearchBox'
+import SearchBox from '@/components/static/SearchBox'
 import { ShoppingCartIcon } from '@heroicons/react/24/outline'
 import { signOut, useSession } from 'next-auth/react'
 import Link from 'next/link'
@@ -26,13 +26,13 @@ const Header = () => {
                 <p className="stash mr-3">|</p>
                 {session ? (
                     <>
-                        <Button text='Sign out' onClick={() => signOut()} />
+                        <Button text='Sign out' onClick={() => signOut({ callbackUrl: process.env.NEXT_PUBLIC_BASE_URL })} />
                     </>
                 ) : (
-                    <>
-                        <Link className='SignUp tracking-tight mr-3' href={'/login'}>Sign Up</Link>
-                        <Modal btnProps={{ text: 'Login' }} formType='login' />
-                    </>
+                    <div className='space-x-3 flex'>
+                        <Modal btnProps={{ text: 'Login', variant: 'outline', glowModify: 'noAnimation' }} formType='login' />
+                        <Modal btnProps={{ text: 'Sign up', glowModify: 'noAnimation' }} formType='register' />
+                    </div>
                 )}
             </nav>
         </header>

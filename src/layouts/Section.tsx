@@ -13,13 +13,13 @@ const Section = ({ type = "Default", title = type, children }: SectionProps) => 
   switch (type) {
     case "CustomTitle":
       return (
-        <section className='mt-16'>
+        <section className='py-8'>
           <>{children}</>
         </section>
       )
   }
   return (
-    <section className='mt-16'>
+    <section className='py-8'>
       <h1 className='w-full text-center text-2xl text-priBlack-500 font-bold underline underline-offset-8 mb-8'>{title}</h1>
       <>{children}</>
     </section>

@@ -6,32 +6,32 @@ import {
 import { AgGridReact } from 'ag-grid-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-interface IProductTable extends IProduct {
+interface IAccPurchased extends IProduct {
 
 }
 
-export default function ProductTable() {
-    const gridRef = useRef<AgGridReact<IProductTable>>(null);
+export default function AccPurchased() {
+    const gridRef = useRef<AgGridReact<IAccPurchased>>(null);
 
-    const [rowData, setRowData] = useState<IProductTable[]>([
-        { id: "0", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "1", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "2", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "3", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "4", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "5", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "6", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "7", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "8", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "9", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "10", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "11", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "12", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "13", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "14", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "15", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "16", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
-        { id: "17", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: 1, imageUrl: [""], updatedDate: "12/12/23" },
+    const [rowData, setRowData] = useState<IAccPurchased[]>([
+        { id: "0", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "1", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "2", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "3", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "4", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "5", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "6", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "7", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "8", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "9", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "10", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "11", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "12", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "13", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "14", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "15", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "16", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
+        { id: "17", category: ["sofa"], name: 'test', color: "Grey", price: 5000, available: 10, createdDate: "12/12/21", description: "", shiper: "1", imageUrl: [""], updatedDate: "12/12/23" },
     ]);
 
     const [columnDefs, setColumnDefs] = useState<ColDef[]>([
@@ -41,7 +41,7 @@ export default function ProductTable() {
         {
             headerName: 'Price',
             field: 'price',
-            valueFormatter: (params: ValueFormatterParams<IProductTable, number>) => {
+            valueFormatter: (params: ValueFormatterParams<IAccPurchased, number>) => {
                 // params.value: number
                 return params.value + " ₫";
             },
@@ -64,8 +64,8 @@ export default function ProductTable() {
         };
     }, []);
     const getRowId = useMemo<GetRowIdFunc>(() => {
-        return (params: GetRowIdParams<IProductTable>) => {
-            // params.data : IProductTable
+        return (params: GetRowIdParams<IAccPurchased>) => {
+            // params.data : IAccPurchased
             return params.data.id + params.data.name;
         };
     }, []);
@@ -80,7 +80,7 @@ export default function ProductTable() {
     return (
         <div className='h-full w-full'>
             <div className="ag-theme-material w-full border rounded-lg shadow-lg">
-                <AgGridReact<IProductTable>
+                <AgGridReact<IAccPurchased>
                     ref={gridRef}
                     rowData={rowData}
                     columnDefs={columnDefs}

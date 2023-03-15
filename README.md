@@ -8,8 +8,6 @@
 
 ## General Info
 
----
-
 This is a furniture e-commerce website using NextJs - a SSR to increase speed, improving user expericence
 
 - Variety of templates for content writer to improve products
@@ -18,8 +16,6 @@ This is a furniture e-commerce website using NextJs - a SSR to increase speed, i
 - Dashboard - which an overview for admin
 
 ## Technologies
-
----
 
 Project is created with YARN:
 
@@ -38,19 +34,17 @@ Others packages:
 
 ## Setup
 
----
-
 1. Enviroment schema
 
 ```console
 # Connect prisma to database: https://www.prisma.io/docs/guides/development-environment/environment-variables#expanding-variables
 
-DATABASE_URL=
+DATANEXT_PUBLIC_BASE_URL=
 
 # Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-BASE_URL="http://localhost:3000"
+NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 
 # NextAuth Sign-on
 # See the documentation for more detail:
@@ -83,16 +77,14 @@ yarn dev
 
 ## Fundamental feature
 
----
-
 - Schema Table: https://drawsql.app/teams/personal-821/diagrams/fundamental
 
 ### User
 
-> [ ] Create User: LoginId and password.\
-> [ ] Login User: Credential(LoginID - password) - SignOn: Github - Google.\
-> [ ] User can have many Account: each Account is a SignIn options: Credential, Github or Google.\
-> [ ] Available Role : admin, creator, shipper, customer.\
+> [x] Create User: LoginId and password.\
+> [x] Login User: Credential(LoginID - password) - SignOn: Github - Google.\
+> [x] User can have many Account: each Account is a SignIn options: Credential, Github or Google.\
+> [x] Available Role : admin, creator, shipper, customer.\
 > [ ] Update owned profile.\
 > [ ] Delete - deactivate own's account.\
 > [ ] Product purchased History / on delivery / shipper info.\
@@ -162,7 +154,7 @@ yarn dev
 > [ ] CRUD by all users\
 > [ ] Expired: 90days
 
-### PurchasedProduct
+### OrderItem
 
 > [ ] CRUD - Admin only\
 > [ ] Auth User: GET - owned purchased products\
@@ -170,8 +162,6 @@ yarn dev
 > [ ] status - purchased Product status: 'Pending', 'On delivery', etc...
 
 ## Core feature
-
----
 
 ### ProductTemplate
 

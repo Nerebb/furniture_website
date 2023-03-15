@@ -5,6 +5,10 @@ type Data = {
   name: string
 }
 
+export async function test() {
+  return console.log("testRunning")
+}
+
 export default function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>

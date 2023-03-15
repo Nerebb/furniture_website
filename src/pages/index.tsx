@@ -1,13 +1,10 @@
-import Head from 'next/head'
-import { Inter } from '@next/font/google'
+import Banner from '@/components/static/Banner'
 import BaseLayout from '@/layouts/BaseLayout'
-import TopCategory from '@/components/TopCategory'
-import FeatureProduct from '@/components/FeatureProduct'
-import DailyDiscover from '@/components/DailyDiscover'
-import Banner from '@/components/Banner'
-
-import { signIn } from 'next-auth/react'
-import FormikForm from '@/components/form/AssignForm'
+import { Inter } from '@next/font/google'
+import Head from 'next/head'
+import DailyDiscover from '@/components/static/DailyDiscover'
+import FeatureProduct from '@/components/static/FeatureProduct'
+import TopCategory from '@/components/static/TopCategory'
 
 const inter = Inter({ subsets: ['latin'] })
 

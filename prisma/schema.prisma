@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  // previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -20,13 +21,51 @@ enum Role {
   admin
   creator
   customer
+  shiper
+}
+
+enum Status {
+  pendingPayment
+  processingOrder
+  shipping
+  completed
+}
+
+model Color {
+  hex  String @id @db.VarChar(6)
+  name String
+}
+
+model Category {
+  id      Int       @id @default(autoincrement())
+  name    String    @unique @db.VarChar(20)
+  product Product[]
+}
+
+model Room {
+  id      Int       @id @default(autoincrement())
+  name    String    @unique @db.VarChar(20)
+  product Product[]
+}
+
+model MediaGallery {
+  id       Int       @id @default(autoincrement())
+  imageUrl String    @unique @db.VarChar(255)
+  product  Product[]
 }
 
 model Account {
-  id String @id @default(uuid())
+  id     String @id @default(uuid())
+  userId String
 
-  userId            String
-  type              String
+  //LoginType: Credentials - Oauth
+  type String
+
+  //Credentials
+  loginId  String? @unique
+  password String?
+
+  //Sign-On
   provider          String
   providerAccountId String
   refresh_token     String? @db.Text
@@ -46,15 +85,29 @@ model User {
   id String @id @default(uuid())
 
   //Data assign after access OAuth
-  loginId     String?
-  password    String?
   address     String?
   nickName    String?   @unique
+  role        Role      @default(customer)
   gender      Gender    @default(others)
-  phoneNumber Int?      @unique
-  birthDay    DateTime?
+  phoneNumber String?   @unique
+  birthDay    DateTime? @db.Date
   createdDate DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  //MiddleWare confirmation
+  userVerified DateTime?
+  deleted      DateTime?
+
+  //UserInteractions
+  comments      ProductComment[] @relation("userComments")
+  commentsliked ProductComment[] @relation("userLiked")
+  productsRated ProductRating[]  @relation("userRated")
+
+  //Products Manage
+  writedContent Product[]
+  wishList      Wishlist[]
+  cart          Order[]
+  // shiped        Order[]    @relation("shiped")
 
   //Data received from OAuth
   name          String?
@@ -79,4 +132,96 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id          String @id @default(uuid())
+  name        String @db.VarChar(20)
+  description String @db.Text
+  price       Int
+  available   Int    @db.Int
+
+  //Database queries
+  JsonColor Json?
+  category  Category[]
+  room      Room[]
+  image     MediaGallery[]
+
+  //User
+  creator   User   @relation(fields: [creatorId], references: [id])
+  creatorId String
+
+  rating   ProductRating[]  @relation("productRated")
+  comments ProductComment[] @relation("productComment")
+
+  //Softdelete
+  deleted DateTime?
+
+  //Time
+  createdDate DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  OrderItem   OrderItem[]
+  wishlist    Wishlist[]
+}
+
+model ProductComment {
+  id      String @id @default(uuid())
+  content String @db.Text
+
+  //relation
+  owner     User    @relation("userComments", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   String
+  userLiked User[]  @relation("userLiked")
+  product   Product @relation("productComment", fields: [productId], references: [id])
+  productId String
+}
+
+model ProductRating {
+  id        String  @id @default(uuid())
+  rating    Int     @db.UnsignedTinyInt
+  product   Product @relation("productRated", fields: [productId], references: [id])
+  productId String
+  owner     User    @relation("userRated", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   String
+}
+
+model Wishlist {
+  id String @id @default(uuid())
+
+  //relation
+  ownerId  String
+  user     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  products Product[]
+}
+
+model Order {
+  id              String @id @default(uuid())
+  subTotal        BigInt
+  shippingFee     Int
+  total           BigInt
+  billingAddress  String @db.VarChar(255)
+  shippingAddress String @db.VarChar(255)
+  status          Status @default(pendingPayment)
+
+  //Relation
+  owner   User        @relation(fields: [ownerId], references: [id])
+  ownerId String
+  product OrderItem[] @relation()
+  // shiper   User?       @relation("shiped", fields: [shiperId], references: [id], onDelete: SetNull)
+  // shiperId String?
+}
+
+model OrderItem {
+  id String @id @default(uuid())
+
+  //Stored to kept info
+  salePrice  Int
+  quantities Int   @db.SmallInt
+  color      Json? //{hex,quantities}[]
+
+  //relation
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
 }

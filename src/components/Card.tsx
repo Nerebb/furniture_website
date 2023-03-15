@@ -2,14 +2,20 @@ import classNames from 'classnames'
 import React from 'react'
 
 type Props = {
-    modify: string,
+    modify?: string,
+    type?:
+    | 'default'
+    | 'SearchCard'
     children: React.ReactNode
 }
 
-function Card({ modify, children }: Props) {
+function Card({ type = 'default', modify, children }: Props) {
     return (
         <div className={classNames(
-            'rounded-3xl shadow-lg border-0.5 border-priBlack-100/50',
+            {
+                'rounded-3xl shadow-lg border-0.5 border-priBlack-100/50': type === 'default',
+                'pb-2 shadow-sm border-0.5 rounded-2xl p-5 pt-3 group hover:border-priBlue-500': type === 'SearchCard',
+            },
             modify
         )}>
             {children}

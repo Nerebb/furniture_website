@@ -1,27 +1,27 @@
 import classNames from 'classnames'
-import React from 'react'
+import React, { ButtonHTMLAttributes } from 'react'
 
-export interface ButtonProps {
+export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'> & {
+    type?: 'submit' | 'reset' | 'button' | undefined
     text?: string,
-    type?: "button" | "submit" | "reset" | undefined, //HTML buttons types
     variant?:
     "fill"
     | 'outline'
-    | 'disable',
+    | 'disable'
     children?: React.ReactNode,
     modifier?: React.HTMLProps<HTMLElement>["className"],
     glowEffect?: boolean,
     glowModify?:
-    | "noOffset"
-    | "noOutLine",
-    onClick?: () => void,
+    | 'noBg'
+    | "noAnimation"
+    | "offset",
 }
 
-const Button: React.FC<ButtonProps> = ({ type = 'button', text, modifier, children, variant = 'fill', glowEffect = true, glowModify, onClick }) => {
+const Button: React.FC<ButtonProps> = ({ type = 'button', text, modifier, children, variant = 'fill', glowEffect = true, glowModify, ...buttonAtt }) => {
 
     return (
         <button
-            // role={glowModify ? glowModify : ""}
+            {...buttonAtt}
             type={type}
             className={
                 classNames(`rounded-lg`,
@@ -30,14 +30,18 @@ const Button: React.FC<ButtonProps> = ({ type = 'button', text, modifier, childr
                         "noBg border border-priBlue-600": variant === 'outline',
                         'glow-effect': glowEffect,
                     },
+                    glowEffect && glowModify ? glowModify : 'offset',
                     modifier ? modifier : 'px-9 py-1',
                 )
             }
-            disabled={variant === 'disable' ? true : false}
-            onClick={onClick}>
+        >
+
             {children}
+
             {text}
-            {glowEffect &&
+
+            {
+                glowEffect &&
                 // outline outline-black outline-3
                 <svg className='glow-container'>
                     {/* Line-Blur */}
@@ -45,7 +49,8 @@ const Button: React.FC<ButtonProps> = ({ type = 'button', text, modifier, childr
 
                     {/* line */}
                     <rect rx={8} pathLength="100" strokeLinecap='round' className='glow-line'></rect>
-                </svg>}
+                </svg>
+            }
         </button>
     )
 }

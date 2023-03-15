@@ -1,30 +1,28 @@
 //root config
-$color-primary: red;
-
 * {
-  user-select: none;
+  // user-select: none;
 }
 
 // config VScode Usersetting to eliminate Unknow at rule @apply
 // "scss.lint.unknownAtRules": "ignore"
 
 .glow-effect {
-  $glow-line-color: #94B8D7;
-  $glow-line-color2: #E1F4DC;
-  $glow-line-width: 1px;
-  $glow-blur-color: #94B8D7;
-  $glow-blur-color2: #3A832A;
-  $glow-blur-width: 3px;
-  $glow-duration: 2000ms;
-  $glow-line-length: 20px;
-  $glow-offset: 5px;
+  --glow-line-color: #94B8D7;
+  --glow-line-color2: #E1F4DC;
+  --glow-line-width: 1px;
+  --glow-blur-color: #94B8D7;
+  --glow-blur-color2: #3A832A;
+  --glow-blur-width: 3px;
+  --glow-duration: 2000ms;
+  --glow-line-length: 20px;
+  --glow-offset: 0px;
   // just for calc same variable
-  $container-offset: 50px;
+  --container-offset: 50px;
   position: relative;
 
   font-weight: 500;
   color: white;
-  background-image: linear-gradient(to bottom right, $glow-line-color, $glow-line-color2);
+  background-image: linear-gradient(to bottom right, var(--glow-line-color), var(--glow-line-color2));
 
   &.noBg {
     color: black;
@@ -33,30 +31,30 @@ $color-primary: red;
 
   .glow-container {
     pointer-events: none;
-    width: calc(100% + $container-offset);
-    height: calc(100% + $container-offset);
+    width: calc(100% + var(--container-offset));
+    height: calc(100% + var(--container-offset));
     opacity: 0;
 
     position: absolute;
-    inset: calc($container-offset / -2);
+    inset: calc(var(--container-offset) / -2);
 
     .glow-blur,
     .glow-line {
-      width: calc(100% - $container-offset + $glow-offset);
-      height: calc(100% - $container-offset + $glow-offset);
-      x: calc(($container-offset / 2) + calc($glow-offset / -2));
-      y: calc(($container-offset / 2) + calc($glow-offset / -2));
+      width: calc(100% - var(--container-offset) + var(--glow-offset));
+      height: calc(100% - var(--container-offset) + var(--glow-offset));
+      x: calc((var(--container-offset) / 2) + calc(var(--glow-offset) / -2));
+      y: calc((var(--container-offset) / 2) + calc(var(--glow-offset) / -2));
       fill: transparent;
-      stroke-dasharray: $glow-line-length calc(50px - $glow-line-length);
+      stroke-dasharray: var(--glow-line-length) calc(50px - var(--glow-line-length));
     }
 
     .glow-line {
-      stroke-width: $glow-line-width;
+      stroke-width: var(--glow-line-width);
     }
 
     .glow-blur {
-      stroke-width: $glow-blur-width;
-      filter: blur($glow-blur-width);
+      stroke-width: var(--glow-blur-width);
+      filter: blur(var(--glow-blur-width));
     }
   }
 
@@ -65,63 +63,21 @@ $color-primary: red;
     .glow-blur,
     .glow-line {
       stroke-dashoffset: -90px;
-      transition: stroke-dashoffset $glow-duration ease-in;
-      animation: glow-stroke $glow-duration;
+      transition: stroke-dashoffset var(--glow-duration) ease-in;
+      animation: glow-stroke var(--glow-duration);
     }
   }
 
   &:is(:hover, :focus) .glow-container {
-    animation: glow-effect $glow-duration;
+    animation: glow-effect var(--glow-duration);
   }
 
-  // &.noOffset {
-  //   $glow-offset: 0px;
-  // }
-
-  // &.noOutline {
-  //   $glow-offset: 0px;
-  //   $glow-line-width: 0px;
-  // }
-
-  &[role=noOffset] {
-    .glow-container {
-
-      .glow-blur,
-      .glow-line {
-        width: calc(100% - $container-offset );
-        height: calc(100% - $container-offset );
-        x: calc($container-offset / 2);
-        y: calc($container-offset / 2);
-      }
-    }
+  &.noAnimation {
+    --glow-line-length: 50px;
   }
 
-  &[role=noOutline] {
-    .glow-container {
-      .glow-line {
-        stroke-width: 1;
-      }
-
-      .glow-bur {
-        stroke-width: 0;
-        filter: blur(0px)
-      }
-
-      .glow-line,
-      .glow-blur {
-        stroke-dasharray: 100px;
-      }
-    }
-
-    &:hover {
-
-      .glow-blur,
-      .glow-line {
-        stroke-dashoffset: 0px;
-        transition: none;
-        animation: glow-stroke $glow-duration;
-      }
-    }
+  &.offset {
+    --glow-offset: 10px;
   }
 
   @keyframes glow-stroke {
@@ -130,12 +86,12 @@ $color-primary: red;
     25%,
     80%,
     100% {
-      stroke: $glow-line-color;
+      stroke: var(--glow-line-color);
     }
 
     50%,
     60% {
-      stroke: $glow-line-color2;
+      stroke: var(--glow-line-color2);
     }
   }
 
@@ -160,6 +116,28 @@ $color-primary: red;
         rgba(233, 233, 233, 0.8) 100%);
     animation: shimmer 2.5s ease-out infinite;
     content: "";
+  }
+}
+
+input[type=number] {
+
+  // Firefox
+  & {
+    -moz-appearance: textfield;
+    appearance: none;
+  }
+
+  //Chrome and chronium
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0
+  }
+}
+
+.capFirstLetter {
+  &:first-letter {
+    text-transform: capitalize;
   }
 }
 

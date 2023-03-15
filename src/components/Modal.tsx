@@ -32,7 +32,7 @@ const Modal = ({ btnProps, keepOpen = false, formType, type = 'default' }: Props
         switch (type) {
             case 'form':
                 return (
-                    <Dialog.Panel className="w-full xl:w-[1400px] h- transform overflow-hidden rounded-br-4xl bg-white p-2 text-left align-middle shadow-xl transition-all flex" >
+                    <Dialog.Panel className="w-full xl:w-[1600px] transform overflow-hidden rounded-br-4xl bg-white p-2 text-left align-middle shadow-xl transition-all flex" >
                         {/* Login */}
                         <Dialog.Title
                             as='div'

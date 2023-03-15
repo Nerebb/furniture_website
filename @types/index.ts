@@ -1,3 +1,4 @@
+import { Gender, User } from "@prisma/client"
 import { HTMLInputTypeAttribute } from "react"
 
 export interface Image {
@@ -5,42 +6,31 @@ export interface Image {
     url: string
 }
 
-export enum Role {
-    admin = "admin",
-    creator = "creator",
-    customer = "customer"
+export enum ApiMethod {
+    POST = "POST",
+    GET = 'GET',
+    PUT = 'PUT',
+    DELETE = "DELETE",
 }
 
-export enum Gender {
-    male = 'male',
-    female = 'female',
-    others = 'others',
-}
-
-export interface IRegister {
-    loginId: IUser['name']
-    password: IUser['password']
-    confirmPassword?: IUser['password']
-    email?: IUser['email']
-    gender?: Gender
-}
-
-
-export interface IUser {
-    id?: number
-    name: string
+export interface Login {
+    loginId: string
     password: string
-    nickName: string
-    address: string
-    email: string
-    gender: Gender
-    phoneNumber: number
-    birthDay?: string
-    wishList?: IProduct[]
-    purchased?: IProduct[]
-
-    role?: Role,
 }
+
+export interface Register extends Login {
+    //RegisterForm
+    confirmPassword?: string
+    email: string
+}
+
+export type UserProfile = Omit<User,
+    | 'userVerified'
+    | 'createdDate'
+    | 'updatedAt'
+    | 'deleted'
+    | 'emailVerified'
+>
 
 export interface IProduct {
     id: number | string
@@ -49,7 +39,7 @@ export interface IProduct {
     color: string
     price: number
     category: string[]
-    shiper?: IUser["id"]
+    shiper?: UserProfile["id"]
     imageUrl: Image["url"][]
     available: number
     createdDate: string
@@ -63,11 +53,11 @@ export interface Category {
     totalSale: number
 }
 
-export interface UserProfile {
-    id: number,
+export interface FormRow {
+    id: number | string,
     label: string,
     name: string,
 
     inputType?: HTMLInputTypeAttribute,
-    content?: string | number | string[],
+    content?: string | number | string[] | Date,
 }
