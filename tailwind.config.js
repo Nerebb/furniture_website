@@ -9,6 +9,9 @@ module.exports = {
       fontFamily: {
         sans: ["Inter var"],
       },
+      spacing: {
+        25: "6.25rem",
+      },
       colors: {
         priBlack: {
           50: "#EDEDED",

@@ -1,7 +1,6 @@
 import Section from '@/layouts/Section'
 import axios from '@/libs/axiosApi'
-import { ProductCard, ProductSearch } from '@/pages/api/products'
-import { InfiniteData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import ProductGrid from '../ProductGrid'
 
@@ -19,7 +18,7 @@ const DailyDiscover = () => {
         let rdCate: { id: number | string, name: string }[] = [
             { id: 0, name: "all Product" }
         ];
-        if (categories.data) categories.data.forEach((i, idx) => { if (idx < 6) return rdCate.push(i) })
+        if (categories.data) categories.data.forEach((i, idx) => { if (idx < 6) return rdCate.push({ id: i.id, name: i.label }) })
         return rdCate
     }, [categories])
 
@@ -54,7 +53,15 @@ const DailyDiscover = () => {
             </div>
 
             {/* Product Grid */}
-            <ProductGrid queryKey={['DailyDiscover', `${curFilter}`]} cateId={[curFilter]} loadMore={loadMore} setLoadMore={setLoadMore} />
+            <div className='mt-5'>
+                <ProductGrid
+                    queryKey={['DailyDiscover', `${curFilter}`]}
+                    cateId={[curFilter]}
+                    loadMore={loadMore}
+                    setLoadMore={setLoadMore}
+                    cardProps={{ modify: { text: "text-xl", chip: "text-lg px-3 py-0.5 mr-3 mb-3" } }}
+                />
+            </div>
         </Section>
     )
 }

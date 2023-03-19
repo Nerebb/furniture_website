@@ -7,7 +7,7 @@ type Props = {}
 export default function login({ }: Props) {
     return (
         <BlankLayout>
-            <Modal formType='moreInfo' keepOpen={true} />
+            <Modal formType='login' keepOpen={true} />
         </BlankLayout>
     )
 }

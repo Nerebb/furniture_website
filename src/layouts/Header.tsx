@@ -1,8 +1,9 @@
-import Button from '@/components/Button'
 import Modal from '@/components/Modal'
+import DropMenu from '@/components/static/DropMenu'
 import SearchBox from '@/components/static/SearchBox'
-import { ShoppingCartIcon } from '@heroicons/react/24/outline'
-import { signOut, useSession } from 'next-auth/react'
+import { AccPage } from '@/pages/account/[[...account]]'
+import { ShoppingCartIcon, UserCircleIcon } from '@heroicons/react/24/outline'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 
@@ -25,9 +26,7 @@ const Header = () => {
                 </Link>
                 <p className="stash mr-3">|</p>
                 {session ? (
-                    <>
-                        <Button text='Sign out' onClick={() => signOut({ callbackUrl: process.env.NEXT_PUBLIC_BASE_URL })} />
-                    </>
+                    <DropMenu title={<UserCircleIcon width={28} />} data={AccPage} />
                 ) : (
                     <div className='space-x-3 flex'>
                         <Modal btnProps={{ text: 'Login', variant: 'outline', glowModify: 'noAnimation' }} formType='login' />

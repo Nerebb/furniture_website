@@ -4,7 +4,7 @@ import { ApiMethod } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 type Data = {
-    data?: { id: string, name: string }[]
+    data?: { id: string, label: string }[]
     message: string
 }
 
@@ -16,7 +16,7 @@ export default async function handler(
         case ApiMethod.GET:
             try {
                 const data = await prismaClient.color.findMany()
-                    .then((res) => res.map(i => { return { id: i.hex, name: i.name } }))
+                    .then((res) => res.map(i => { return { id: i.hex, label: i.label } }))
                 return res.status(200).json({ data, message: "Get color success" })
             } catch (error: any) {
                 return res.status(401).json({ message: error.message || "Unknow error" })

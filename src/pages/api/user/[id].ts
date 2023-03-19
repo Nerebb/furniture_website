@@ -26,8 +26,20 @@ async function getUser(id: string): Promise<UserProfile> {
     )
     // data.user.birthDay = data.user.birthDay?.getDate()
 
-    const removeDataField = excludeField(data.user, ['deleted', 'emailVerified', 'userVerified', 'createdDate', 'updatedAt'])
-    return removeDataField
+    const responseData: UserProfile = {
+        id: data.user.id,
+        address: data.user.address ?? undefined,
+        nickName: data.user.nickName ?? undefined,
+        role: data.user.role,
+        phoneNumber: data.user.phoneNumber ?? undefined,
+        image: data.user.image ?? undefined,
+        birthDay: data.user.birthDay ?? undefined,
+        name: data.user.name ?? undefined,
+        email: data.user.email ?? undefined,
+        gender: data.user.gender,
+    }
+
+    return responseData
 }
 
 /**

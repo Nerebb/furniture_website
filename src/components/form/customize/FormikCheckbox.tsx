@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { Field, FieldInputProps, FieldMetaProps } from 'formik'
+import { FieldInputProps, FieldMetaProps } from 'formik'
 import { FormikField } from '../FormikField'
 
 type Prop = {
@@ -9,7 +9,7 @@ type Prop = {
 
 export default function FormikCheckbox({ ...props }: Prop) {
     return (
-        <div className='space-x-2 flex items-center'>
+        <label htmlFor={`${props.id}`} className='space-x-2 flex items-center'>
             <input
                 {...props.field}
                 id={`${props.id}`}
@@ -20,15 +20,14 @@ export default function FormikCheckbox({ ...props }: Prop) {
                     props.modifyInput
                 )}
             />
-            <label
-                htmlFor={`${props.id}`}
+            <p
                 className={classNames(
                     'capitalize',
                     props.modifyLabel
                 )}
             >
                 {props.label}
-            </label>
-        </div>
+            </p>
+        </label>
     )
 }

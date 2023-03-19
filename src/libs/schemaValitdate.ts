@@ -28,16 +28,42 @@ export const LoginSchemaValidate = {
 export const isUUID: Yup.StringSchema<string> =
     Yup.string().uuid('BAD REQUEST - Invalid Object ID').required('Object ID not found')
 
-export const ProductSearchSchemaValidate: Yup.ObjectSchema<ProductSearch> = Yup.object({
+export const ProductSearchSchemaValidate = {
     limit: Yup.number().integer().positive(),
     skip: Yup.number().integer().positive(),
     rating: Yup.number().integer().positive().max(5),
-    price: Yup.number().integer().positive(),
+    fromPrice: Yup.number().integer().positive(),
+    toPrice: Yup.number().integer().positive(),
     available: Yup.boolean(),
     cateId: Yup.array().of(Yup.number().positive().required()),
     colorHex: Yup.array().of(Yup.string().max(7).required()),
     roomId: Yup.array().of(Yup.number().positive().required()),
     createdDate: Yup.date(),
-    name: Yup.string().max(7),
+    name: Yup.string().max(50),
     creatorName: Yup.string(),
-}).typeError("Invalid Request - request.query must be object type")
+    isFeatureProduct: Yup.boolean(),
+}
+
+export const ProductCreateSchemaValidate = {
+    name: Yup.string().max(50).required(),
+    description: Yup.string().min(100).required(),
+    price: Yup.number().integer().positive().required(),
+    available: Yup.number().integer().positive().required(),
+    creatorId: Yup.string().uuid().required(),
+    colors: ProductSearchSchemaValidate.colorHex,
+    roomIds: Yup.array().of(Yup.object({ id: Yup.number().positive().required() })),
+    cateIds: Yup.array().of(Yup.object({ id: Yup.number().positive().required() })),
+    imageUrls: Yup.array().of(Yup.object({ id: Yup.number().positive().required() })),
+}
+
+//Shorten Validations
+// async function YupObjectValidator<T>(schema: T, validateObject: T): Promise<T> {
+//     const validator: Yup.ObjectSchema<T> = Yup.object(schema)
+//     try {
+//         const result = await validator.validate(validateObject)
+//         return result
+//     } catch (error) {
+//         throw error
+//     }
+// }
+

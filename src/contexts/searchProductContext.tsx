@@ -15,7 +15,8 @@ export const initSearchContext: ProductSearch = {
     createdDate: undefined,
     creatorName: undefined,
     name: undefined,
-    price: undefined,
+    fromPrice: undefined,
+    toPrice: undefined,
     rating: undefined,
     roomId: undefined,
 }
@@ -24,7 +25,6 @@ export const initSearchContext: ProductSearch = {
 export default function SearchProvider({ children }: Props) {
     const [searchContext, setSearchContext] = useState<ProductSearch>(initSearchContext)
     const searchMemo = useMemo(() => ({ searchContext, setSearchContext }), [searchContext, setSearchContext])
-    console.log("🚀 ~ file: searchProductContext.tsx:27 ~ SearchProvider ~ searchMemo:", searchMemo.searchContext)
     return (
         <SearchProductContext.Provider value={{ ...searchMemo }}>
             {children}

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { ReactNode } from 'react'
 
-export type SideMenuNav = {
+export type AccSideMenuNav = {
     id: number,
     label: string,
     href: string,
@@ -13,13 +13,13 @@ export type SideMenuNav = {
 }
 
 type Props = {
-    data: SideMenuNav[]
+    data: AccSideMenuNav[]
 }
 
 export default function AccSideMenu({ data }: Props) {
     const router = useRouter()
     return (
-        <section className=''>
+        <section className='min-w-[400px]'>
             <article className='flex mb-2 space-x-5 rounded-2xl bg-priBlue-100 px-5 py-7'>
                 <aside className='relative rounded-full w-14 h-14'>
                     <Image className='rounded-full h-full w-full' src={'/images/OliverSofa_RS.jpg'} fill alt='' />

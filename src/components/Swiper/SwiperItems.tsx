@@ -1,51 +1,61 @@
+import { fCurrency } from '@/libs/utils/numberal';
+import { ProductCard } from '@/pages/api/products';
+import { ProductDetail } from '@/pages/api/products/[productId]';
 import Image from 'next/image';
-import { type } from 'os';
-import React from 'react'
+import Link from 'next/link';
+import React from 'react';
+import ImageLost from '../static/ImageLost';
+import { SwiperContainerProps } from './SwiperContainer';
 
 interface SwiperItemsProps {
-  type: string,
-  imageUrl: string
-  category: string
+  type: SwiperContainerProps['type'],
+  product: ProductCard | ProductDetail
   onClick?: () => void,
 }
 
 const SwiperItems: React.FC<SwiperItemsProps> = ({
   type,
-  imageUrl,
-  category,
+  product,
   onClick,
-
 }) => {
 
   const Default =
-    <div className='flex flex-col justify-between items-center rounded-3xl' onClick={onClick}>
+    <Link href={`/products/${product.id}`} className='flex flex-col justify-between items-center rounded-3xl'>
       <div className='relative w-full h-full aspect-3/4 '>
-        <Image className='rounded-3xl' alt='' src={imageUrl} fill priority={true} />
+        {product.imageUrl ? (
+          <Image className='rounded-3xl' alt='' src={product.imageUrl[0]} fill priority={true} />
+        ) : (
+          <ImageLost />
+        )}
       </div>
-      <div className='text-deskText1 font-semibold mt-2'>{category}</div>
-    </div>
+      <div className='w-full px-4 flex justify-between first-letter:capitalize absolute py-2 bottom-0 rounded-b-3xl bg-priBlack-200/20 backdrop-blur-sm'>
+        <h1 className='first-letter:capitalize'>{product.name}</h1>
+        <div className='text-priBlue-600'>{fCurrency(product.price as number)}</div>
+      </div>
+    </Link>
 
-  const FeatureProduct =
-    <div className='flex flex-col justify-between items-center max-w-[300px] h-auto flex-1 relative' onClick={onClick}>
-      <div className='relative aspect-3/4'>
-        <Image className='' alt='' src={imageUrl[0]} fill priority={true} />
+  const ProductSquare =
+    <Link href={`/products/${product.id}`} className=''>
+      <div className="w-full aspect-square relative mb-2">
+        {product.imageUrl ? (
+          <Image className='' alt='' src={product.imageUrl[0]} fill priority={true} />
+        ) : (
+          <ImageLost />
+        )}
       </div>
-      {/* <div className='w-full text-xl font-semibold absolute bottom-0 p-2'>
-        <div>
-          <p>Minimalist Sofa</p>
-          <p>500.000 VND</p>
+      <div className="w-full flex justify-between whitespace-nowrap space-x-2">
+        <p className='capitalize text'>{product.name}</p>
+        <div className='font-semibold'>
+          {fCurrency(product.price as number)}
         </div>
-        <div className='w-full h-20'>
-          <CreatorInfo CreatorAva={false} BtnBuy={false} />
-        </div>
-      </div> */}
-    </div>
+      </div>
+    </Link>
 
   switch (type) {
-    case 'FeatureProduct':
-      return FeatureProduct;
+    case 'ProductSquare':
+      return ProductSquare
     default:
-      return Default;
+      return Default; //Images only
   }
 
 }

@@ -1,15 +1,15 @@
-import { useSearchContext } from '@/contexts/searchProductContext'
 import axios from '@/libs/axiosApi'
 import { ProductSearch } from '@/pages/api/products'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import Image from 'next/image'
-import { Dispatch, Fragment, SetStateAction, useRef, useState } from 'react'
+import { Dispatch, Fragment, SetStateAction } from 'react'
 import { toast } from 'react-toastify'
 import Button from './Button'
+import ProductCard2, { ProductCardProps } from './ProductCard2'
 import Loading from './static/Loading'
 
 type Props = ProductSearch & {
-    queryKey: string[]
+    cardProps?: Omit<ProductCardProps, 'type' | 'product'>
+    queryKey: any[]
     loadMore: number,
     setLoadMore: Dispatch<SetStateAction<number>>
 }
@@ -27,13 +27,15 @@ export default function ProductGrid({
     createdDate,
     creatorName,
     name,
-    price,
+    fromPrice,
+    toPrice,
     rating,
     roomId,
+    cardProps
 }: Props) {
-    const { data: fetchedProducts, isError, error, isLoading, fetchNextPage, isFetchingNextPage, hasNextPage } = useInfiniteQuery({
+    const { data: fetchedProducts, isError, error, isLoading, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
         queryKey: queryKey,
-        queryFn: ({ pageParam = { cateId, skip, limit, available, colorHex, createdDate, creatorName, name, price, rating, roomId } as ProductSearch }) => axios.getProducts({
+        queryFn: ({ pageParam = { cateId, skip, limit, available, colorHex, createdDate, creatorName, name, fromPrice, toPrice, rating, roomId } as ProductSearch }) => axios.getProducts({
             limit: pageParam.limit,
             skip: pageParam.skip,
             cateId: pageParam.cateId.includes(0) ? undefined : pageParam.cateId,
@@ -42,7 +44,8 @@ export default function ProductGrid({
             createdDate: pageParam.createdDate,
             creatorName: pageParam.creatorName,
             name: pageParam.name,
-            price: pageParam.price,
+            fromPrice: pageParam.fromPrice,
+            toPrice: pageParam.toPrice,
             rating: pageParam.rating,
             roomId: pageParam.roomId,
         }),
@@ -62,31 +65,34 @@ export default function ProductGrid({
     return (
         <>
             {isLoading ? (
-                <Loading />
-            ) : (
-                <div className='grid gap-5 grid-cols-4 my-5'>
-                    {fetchedProducts?.pages.flat().map((item) => (
-                        <Fragment key={item.id}>
-                            <div id={item.id} className='h-auto relative rounded-2xl aspect-3/4 border-0.5 border-priBlack-100/50'>
-                                {item.cateIds?.map(i => <span key={i.id} className="flex">CateID: {i.id}</span>)}
-                                <Image className='rounded-2xl -z-10' alt='' src={typeof (item.imageUrl) === "string" ? item.imageUrl : item.imageUrl![0]} fill sizes="(max-width:1000px): 100vw" priority={true} />
-                            </div>
-                        </Fragment>
-                    ))}
+                <div className='w-full h-[200px] flex-center'>
+                    <Loading />
                 </div>
+            ) : (
+                <>
+                    <div className='grid gap-5 grid-cols-4 mb-5'>
+                        {fetchedProducts?.pages.flat().map((item) => (
+                            <Fragment key={item.id}>
+                                <ProductCard2 type='horizontal' {...cardProps} product={item} />
+                            </Fragment>
+                        ))}
+                    </div>
+
+                    {/* Button */}
+                    <div className='w-full flex justify-center'>
+                        {isFetchingNextPage ? (
+                            <Button text='Loading...' disabled />
+                        ) : (
+                            fetchedProducts?.pages[fetchedProducts.pages.length - 1].length ? (
+                                <Button text='Load more' onClick={handleLoadMore} />
+                            ) : (
+                                ""
+                            )
+                        )}
+                    </div>
+                </>
             )}
-            {/* Button */}
-            <div className='w-full flex justify-center'>
-                {isFetchingNextPage ? (
-                    <Button text='Loading...' disabled />
-                ) : (
-                    fetchedProducts?.pages[fetchedProducts.pages.length - 1].length ? (
-                        <Button text='Load more' onClick={handleLoadMore} />
-                    ) : (
-                        ""
-                    )
-                )}
-            </div>
+
         </>
     )
 }

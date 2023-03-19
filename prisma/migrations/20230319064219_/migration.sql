@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE `Color` (
     `hex` VARCHAR(6) NOT NULL,
-    `name` VARCHAR(191) NOT NULL,
+    `label` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`hex`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -9,18 +9,18 @@ CREATE TABLE `Color` (
 -- CreateTable
 CREATE TABLE `Category` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(20) NOT NULL,
+    `label` VARCHAR(20) NOT NULL,
 
-    UNIQUE INDEX `Category_name_key`(`name`),
+    UNIQUE INDEX `Category_label_key`(`label`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `Room` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(20) NOT NULL,
+    `label` VARCHAR(20) NOT NULL,
 
-    UNIQUE INDEX `Room_name_key`(`name`),
+    UNIQUE INDEX `Room_label_key`(`label`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -59,7 +59,7 @@ CREATE TABLE `Account` (
 CREATE TABLE `User` (
     `id` VARCHAR(191) NOT NULL,
     `address` VARCHAR(191) NULL,
-    `nickName` VARCHAR(191) NOT NULL,
+    `nickName` VARCHAR(191) NULL,
     `role` ENUM('admin', 'creator', 'customer', 'shiper') NOT NULL DEFAULT 'customer',
     `gender` ENUM('male', 'female', 'others') NOT NULL DEFAULT 'others',
     `phoneNumber` VARCHAR(191) NULL,
@@ -104,10 +104,11 @@ CREATE TABLE `Session` (
 CREATE TABLE `Product` (
     `id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(20) NOT NULL,
-    `description` TEXT NOT NULL,
-    `price` INTEGER NOT NULL,
-    `available` INTEGER NOT NULL,
+    `description` TEXT NULL,
+    `price` INTEGER NULL DEFAULT 0,
+    `available` INTEGER NULL DEFAULT 0,
     `JsonColor` JSON NULL,
+    `isFeatureProduct` BOOLEAN NOT NULL DEFAULT false,
     `creatorId` VARCHAR(191) NOT NULL,
     `deleted` DATETIME(3) NULL,
     `createdDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -141,20 +142,22 @@ CREATE TABLE `Wishlist` (
     `id` VARCHAR(191) NOT NULL,
     `ownerId` VARCHAR(191) NOT NULL,
 
+    UNIQUE INDEX `Wishlist_ownerId_key`(`ownerId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `Order` (
     `id` VARCHAR(191) NOT NULL,
-    `subTotal` INTEGER NOT NULL,
+    `subTotal` BIGINT NOT NULL,
     `shippingFee` INTEGER NOT NULL,
-    `total` INTEGER NOT NULL,
+    `total` BIGINT NOT NULL,
     `billingAddress` VARCHAR(255) NOT NULL,
     `shippingAddress` VARCHAR(255) NOT NULL,
-    `color` JSON NULL,
-    `status` ENUM('pendingPayment', 'processingOrder', 'shipping', 'completed') NOT NULL DEFAULT 'pendingPayment',
+    `status` ENUM('orderCanceled', 'pendingPayment', 'processingOrder', 'shipping', 'completed') NOT NULL DEFAULT 'pendingPayment',
     `ownerId` VARCHAR(191) NOT NULL,
+    `createdDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -164,8 +167,11 @@ CREATE TABLE `OrderItem` (
     `id` VARCHAR(191) NOT NULL,
     `salePrice` INTEGER NOT NULL,
     `quantities` SMALLINT NOT NULL,
+    `color` JSON NULL,
     `orderId` VARCHAR(191) NOT NULL,
     `productId` VARCHAR(191) NOT NULL,
+    `createdDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -207,12 +213,12 @@ CREATE TABLE `_ProductToWishlist` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `_userLiked` (
+CREATE TABLE `_usersLiked` (
     `A` VARCHAR(191) NOT NULL,
     `B` VARCHAR(191) NOT NULL,
 
-    UNIQUE INDEX `_userLiked_AB_unique`(`A`, `B`),
-    INDEX `_userLiked_B_index`(`B`)
+    UNIQUE INDEX `_usersLiked_AB_unique`(`A`, `B`),
+    INDEX `_usersLiked_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
@@ -273,7 +279,7 @@ ALTER TABLE `_ProductToWishlist` ADD CONSTRAINT `_ProductToWishlist_A_fkey` FORE
 ALTER TABLE `_ProductToWishlist` ADD CONSTRAINT `_ProductToWishlist_B_fkey` FOREIGN KEY (`B`) REFERENCES `Wishlist`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_userLiked` ADD CONSTRAINT `_userLiked_A_fkey` FOREIGN KEY (`A`) REFERENCES `ProductComment`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_usersLiked` ADD CONSTRAINT `_usersLiked_A_fkey` FOREIGN KEY (`A`) REFERENCES `ProductComment`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_userLiked` ADD CONSTRAINT `_userLiked_B_fkey` FOREIGN KEY (`B`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_usersLiked` ADD CONSTRAINT `_usersLiked_B_fkey` FOREIGN KEY (`B`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

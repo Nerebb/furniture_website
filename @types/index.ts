@@ -1,4 +1,4 @@
-import { Gender, User } from "@prisma/client"
+import { Gender, Role, User } from "@prisma/client"
 import { HTMLInputTypeAttribute } from "react"
 
 export interface Image {
@@ -24,13 +24,18 @@ export interface Register extends Login {
     email: string
 }
 
-export type UserProfile = Omit<User,
-    | 'userVerified'
-    | 'createdDate'
-    | 'updatedAt'
-    | 'deleted'
-    | 'emailVerified'
->
+export type UserProfile = {
+    id: string;
+    address?: string;
+    nickName?: string;
+    role: Role;
+    gender: Gender;
+    phoneNumber?: string;
+    birthDay?: Date;
+    name?: string;
+    email?: string;
+    image?: string;
+}
 
 export interface IProduct {
     id: number | string

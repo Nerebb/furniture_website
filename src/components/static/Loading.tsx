@@ -11,7 +11,7 @@ export default function Loading({ className }: Props) {
             aria-hidden="true"
             className={classNames(
                 'animate-spin',
-                className ? className : "w-8 h-8 mr-2 fill-priBlue-500",
+                className ? className : "w-8 h-8 mr-2 fill-priBlue-500 text-priBlack-200/50",
             )}
             viewBox="0 0 100 101"
             fill="none"

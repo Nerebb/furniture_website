@@ -1,25 +1,27 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
 import { ProductSearchSchemaValidate } from '@/libs/schemaValitdate'
-import { MediaGallery, Prisma, Product } from '@prisma/client'
+import { MediaGallery, Prisma, Product, Status } from '@prisma/client'
 import { ApiMethod } from '@types'
+import * as Yup from 'yup'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 export type ProductCard = {
     id?: string,
     name?: Product['name']
     price?: Product['price']
+    description?: string,
     available?: Product['available']
     cateIds?: { id: number }[],
     roomIds?: { id: number }[]
-    colors?: Product['JsonColor']
+    colors?: string[],
     rating?: number,
     totalSale?: number,
     ratedUsers?: number,
     creatorId?: string,
     imageUrl?: MediaGallery['imageUrl'][],
-    createdDate?: Product['createdDate'],
-    updatedDate?: Product['updatedAt'],
+    createdDate?: string,
+    updatedDate?: string,
     totalProduct?: number,
 }
 
@@ -27,7 +29,8 @@ export type ProductSearch = {
     limit?: number,
     skip?: number,
     rating?: number,
-    price?: number,
+    fromPrice?: number,
+    toPrice?: number,
     available?: boolean,
     name?: string,
     cateId?: number[],
@@ -35,6 +38,7 @@ export type ProductSearch = {
     roomId?: number[],
     createdDate?: Date,
     creatorName?: string,
+    isFeatureProduct?: boolean,
 }
 
 type Data = {
@@ -65,8 +69,10 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
         const searchProductParams: Prisma.ProductFindManyArgs = {
             where: {
                 deleted: null,
+                isFeatureProduct: props.isFeatureProduct || undefined,
                 price: {
-                    equals: props.price
+                    gte: props.fromPrice,
+                    lte: props.toPrice
                 },
                 available: {
                     gt: props.available ? 0 : undefined //Boolean Type
@@ -95,14 +101,13 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
             room: {
                 select: { id: true }
             },
-
             creator: {
                 select: {
                     name: true,
                     nickName: true,
                 }
             },
-            OrderItem: {
+            OrderItems: {
                 select: {
                     quantities: true,
                 }
@@ -112,14 +117,14 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
                     imageUrl: true,
                 }
             },
-            rating: {
+            ratings: {
                 select: {
                     rating: true,
                 }
             },
             _count: {
                 select: {
-                    rating: true,
+                    ratings: true,
                 }
             },
         }
@@ -131,30 +136,32 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
         const data = await prismaClient.product.findMany({
             ...searchProductParams,
             include: searchProductIncludes,
-            // skip: 0,
-            // take: 100,
+            skip: props.skip || 0,
+            take: props.limit || 12,
         })
+
         //Santinize Data
         let responseData: ProductCard[] = data.map(product => {
             //Rating
-            const rating = Math.floor(product!.rating!.reduce((total, rate) => total + rate.rating, 0) / product!._count!.rating)
+            const rating = Math.floor(product!.ratings!.reduce((total, rate) => total + rate.rating, 0) / product!._count!.ratings)
 
             //TotalSale
-            const totalSale = product?.OrderItem?.reduce((total, sale) => total + sale.quantities, 0)
+            const totalSale = product?.OrderItems?.reduce((total, sale) => total + sale.quantities, 0)
             return {
                 id: product.id,
                 name: product.name,
                 available: product.available,
+                description: product.description ?? undefined,
                 cateIds: product.category,
                 roomIds: product.room,
-                colors: product.JsonColor,
+                colors: product.JsonColor as string[],
                 price: product.price,
                 creatorId: product.creatorId,
                 imageUrl: product?.image?.map(i => i.imageUrl),
-                createdDate: product.createdDate,
-                updatedDate: product.updatedAt,
+                createdDate: product.createdDate.toString(),
+                updatedDate: product.updatedAt.toString(),
                 rating,
-                ratedUsers: product?._count?.rating,
+                ratedUsers: product?._count?.ratings,
                 totalSale,
                 totalProduct,
             }
@@ -168,10 +175,17 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
             responseData = responseData.filter(product => props.roomId?.every(i => product.roomIds?.map(v => v.id).includes(i)))
         }
 
-        //Paginating
-        const paginatedData = responseData.slice(props.skip || 0, (props.skip || 0) + props.limit!)
+        //Rating
+        if (props.rating) {
+            responseData = responseData.filter(product => {
+                if (product.rating) return product.rating >= props.rating!
+            })
+        }
 
-        return paginatedData
+        // //Paginating
+        // const paginatedData = responseData.slice(props.skip || 0, (props.skip || 0) + props.limit!)
+
+        return responseData
     } catch (error) {
         console.log("GetProduct", error)
         throw error
@@ -185,7 +199,7 @@ export default async function handler(
     switch (req.method) {
         case ApiMethod.GET:
             try {
-                const { limit, skip, name, price, available, creatorName, rating, cateId, colorHex, roomId, createdDate } = req.query
+                const { limit, skip, name, fromPrice, toPrice, available, creatorName, rating, cateId, colorHex, roomId, createdDate } = req.query
                 //MiddleWare validation and santinization
                 if (name && Array.isArray(name)) throw new Error("Name: Array not allowed")
 
@@ -200,7 +214,8 @@ export default async function handler(
                     limit: limit ? parseInt(limit as string) : 12,
                     skip: skip ? parseInt(skip as string) : undefined,
                     name,
-                    price: price ? parseInt(price as string) : undefined,
+                    fromPrice: fromPrice ? parseInt(fromPrice as string) : undefined,
+                    toPrice: toPrice ? parseInt(toPrice as string) : undefined,
                     available: available ? Boolean(available) : false,
                     creatorName,
                     rating: rating ? parseInt(rating as string) : undefined,
@@ -210,10 +225,12 @@ export default async function handler(
                     createdDate: createdDate ? new Date(createdDate as string) : undefined,
                 }
 
-                await ProductSearchSchemaValidate.validate(filterProduct)
+                const YupValidator: Yup.ObjectSchema<ProductSearch> = Yup.object({ ...ProductSearchSchemaValidate }).typeError("Invalid Request - request.query must be object type")
+
+                const validateResult = await YupValidator.validate(filterProduct)
 
                 //Queries
-                const data = await getProducts({ ...filterProduct })
+                const data = await getProducts({ ...validateResult })
 
                 return res.status(200).json({ message: "Get product success", data })
             } catch (error: any) {

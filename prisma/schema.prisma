@@ -25,6 +25,7 @@ enum Role {
 }
 
 enum Status {
+  orderCanceled
   pendingPayment
   processingOrder
   shipping
@@ -32,26 +33,26 @@ enum Status {
 }
 
 model Color {
-  hex  String @id @db.VarChar(6)
-  name String
+  hex   String @id @db.VarChar(6)
+  label String
 }
 
 model Category {
-  id      Int       @id @default(autoincrement())
-  name    String    @unique @db.VarChar(20)
-  product Product[]
+  id       Int       @id @default(autoincrement())
+  label    String    @unique @db.VarChar(20)
+  products Product[]
 }
 
 model Room {
-  id      Int       @id @default(autoincrement())
-  name    String    @unique @db.VarChar(20)
-  product Product[]
+  id       Int       @id @default(autoincrement())
+  label    String    @unique @db.VarChar(20)
+  products Product[]
 }
 
 model MediaGallery {
   id       Int       @id @default(autoincrement())
   imageUrl String    @unique @db.VarChar(255)
-  product  Product[]
+  products Product[]
 }
 
 model Account {
@@ -100,13 +101,13 @@ model User {
 
   //UserInteractions
   comments      ProductComment[] @relation("userComments")
-  commentsliked ProductComment[] @relation("userLiked")
+  commentsliked ProductComment[] @relation("usersLiked")
   productsRated ProductRating[]  @relation("userRated")
 
   //Products Manage
-  writedContent Product[]
-  wishList      Wishlist[]
-  cart          Order[]
+  writedContents Product[] @relation("writedContent")
+  wishlist       Wishlist?
+  carts          Order[]
   // shiped        Order[]    @relation("shiped")
 
   //Data received from OAuth
@@ -135,23 +136,24 @@ model Session {
 }
 
 model Product {
-  id          String @id @default(uuid())
-  name        String @db.VarChar(20)
-  description String @db.Text
-  price       Int
-  available   Int    @db.Int
+  id          String  @id @default(uuid())
+  name        String  @db.VarChar(20)
+  description String? @db.Text
+  price       Int?    @default(0) @db.Int
+  available   Int?    @default(0) @db.Int
 
   //Database queries
-  JsonColor Json?
-  category  Category[]
-  room      Room[]
-  image     MediaGallery[]
+  JsonColor        Json?
+  isFeatureProduct Boolean        @default(false)
+  category         Category[]
+  room             Room[]
+  image            MediaGallery[]
 
   //User
-  creator   User   @relation(fields: [creatorId], references: [id])
+  creator   User   @relation("writedContent", fields: [creatorId], references: [id])
   creatorId String
 
-  rating   ProductRating[]  @relation("productRated")
+  ratings  ProductRating[]  @relation("productRated")
   comments ProductComment[] @relation("productComment")
 
   //Softdelete
@@ -160,8 +162,8 @@ model Product {
   //Time
   createdDate DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  OrderItem   OrderItem[]
-  wishlist    Wishlist[]
+  OrderItems  OrderItem[]
+  wishlists   Wishlist[]
 }
 
 model ProductComment {
@@ -169,11 +171,11 @@ model ProductComment {
   content String @db.Text
 
   //relation
-  owner     User    @relation("userComments", fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId   String
-  userLiked User[]  @relation("userLiked")
-  product   Product @relation("productComment", fields: [productId], references: [id])
-  productId String
+  owner      User    @relation("userComments", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId    String
+  usersLiked User[]  @relation("usersLiked")
+  product    Product @relation("productComment", fields: [productId], references: [id])
+  productId  String
 }
 
 model ProductRating {
@@ -189,7 +191,7 @@ model Wishlist {
   id String @id @default(uuid())
 
   //relation
-  ownerId  String
+  ownerId  String    @unique
   user     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   products Product[]
 }
@@ -204,11 +206,15 @@ model Order {
   status          Status @default(pendingPayment)
 
   //Relation
-  owner   User        @relation(fields: [ownerId], references: [id])
-  ownerId String
-  product OrderItem[] @relation()
+  owner           User        @relation(fields: [ownerId], references: [id])
+  ownerId         String
+  orderedProducts OrderItem[]
   // shiper   User?       @relation("shiped", fields: [shiperId], references: [id], onDelete: SetNull)
   // shiperId String?
+
+  //DateTime
+  createdDate DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model OrderItem {
@@ -224,4 +230,8 @@ model OrderItem {
   orderId   String
   product   Product @relation(fields: [productId], references: [id])
   productId String
+
+  //DateTime
+  createdDate DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

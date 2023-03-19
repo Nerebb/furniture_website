@@ -1,30 +1,27 @@
-import axios from '@/libs/axiosApi'
-import { Color } from '@prisma/client'
-import { useQuery } from '@tanstack/react-query'
+import useProductFilter from '@/hooks/useProductFilter'
 import FilterCard from '../form/FilterCard'
 import FilterForm from '../form/FilterForm'
+import FormikField from '../form/FormikField'
 
 type Props = {}
 
 export default function ProductSideMenu({ }: Props) {
-    const categories = useQuery({
-        queryKey: ['category'],
-        queryFn: () => axios.getFilter('category'),
-    })
-    const colors = useQuery({
-        queryKey: ['color'],
-        queryFn: () => axios.getFilter('color'),
-    })
-    const rooms = useQuery({
-        queryKey: ['room'],
-        queryFn: () => axios.getFilter('room'),
-    })
+    const categories = useProductFilter({ filter: 'category' })
+    const colors = useProductFilter({ filter: 'color' })
+    const rooms = useProductFilter({ filter: 'room' })
 
     return (
-        <FilterForm>
-            <FilterCard title='categories' data={categories.data} isLoading={categories.isLoading} />
-            <FilterCard title='colors' data={colors.data} isLoading={colors.isLoading} />
-            <FilterCard title='rooms' data={rooms.data} isLoading={rooms.isLoading} />
+        <FilterForm classname='space-y-5 sticky top-25'>
+            <FilterCard title='categories' name="cateId" data={categories.data} isLoading={categories.isLoading} />
+            <FilterCard title='colors' name="colorHex" data={colors.data} isLoading={colors.isLoading} />
+            <FilterCard title='rooms' name="roomId" data={rooms.data} isLoading={rooms.isLoading} />
+            <FilterCard title='price' isLoading={false}>
+                <div className='flex-center py-5'>
+                    <FormikField type='priceInput' id='fromPrice' name="fromPrice" label='From price' />
+                    <p className='text-center w-20'>-</p>
+                    <FormikField type='priceInput' id='toPrice' name="toPrice" label='To price' />
+                </div>
+            </FilterCard>
         </FilterForm>
     )
 }

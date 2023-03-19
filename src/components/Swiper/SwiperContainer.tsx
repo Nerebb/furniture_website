@@ -12,30 +12,43 @@ import Image from 'next/image';
 import { Autoplay, Navigation, Pagination, EffectFade } from 'swiper';
 import SwiperItems from './SwiperItems';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ProductCard } from '@/pages/api/products';
+import { ProductDetail } from '@/pages/api/products/[productId]';
+import { ReactNode } from 'react';
 
-interface SwiperProps {
-    data: any[],
+export interface SwiperContainerProps {
+    data: ProductCard[] | ProductDetail[],
     spaceBetween?: number;
     slidesPerView?: 'auto' | number;
     pagination?: boolean,
-    navigation?: boolean,
+    navigation?: boolean | ReactNode,
     loop?: boolean,
-    type:
+    type?:
     | 'Default'
-    | 'FeatureProduct',
+    | 'ProductSquare',
     onClick?: () => void,
 }
 
-const SwiperContainer: React.FC<SwiperProps> = ({
+const SwiperContainer: React.FC<SwiperContainerProps> = ({
     type = 'Default',
     data,
     spaceBetween,
     slidesPerView,
     pagination,
     navigation,
-    loop,
+    loop = true,
     onClick
 }) => {
+    const defaulNav = {
+        prevEl: '.swiper-button-prev',
+        nextEl: '.swiper-button-next'
+    }
+
+    const customNav = {
+        prevEl: '.customNav-button-prev',
+        nextEl: '.customNav-button-next'
+    }
+
     return (
         <Swiper
             className="mySwiper"
@@ -43,16 +56,12 @@ const SwiperContainer: React.FC<SwiperProps> = ({
             spaceBetween={spaceBetween ? spaceBetween : 50}
             slidesPerView={slidesPerView ? slidesPerView : 4}
             pagination={pagination}
-            navigation={navigation ? {
-                prevEl: '.swiper-button-prev',
-                nextEl: '.swiper-button-next'
-            } : undefined}
-            loop={loop ? loop : true}
-
+            navigation={navigation ? defaulNav : undefined}
+            loop={loop}
         >
             {data.map(item => (
                 <SwiperSlide key={item.id}>
-                    <SwiperItems type={type} category={item.category} imageUrl={item.imageUrl} onClick={onClick} />
+                    <SwiperItems type={type} product={item} onClick={onClick} />
                 </SwiperSlide>
             ))}
             {navigation &&

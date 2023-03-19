@@ -1,30 +1,37 @@
 import Loading from '@/components/static/Loading'
-import { FormRow } from '@types'
-import React, { PropsWithChildren, ReactNode } from 'react'
+import { ProductSearch } from '@/pages/api/products'
+import { ComponentProps, PropsWithChildren } from 'react'
 import Card from '../Card'
 import FormikField from './FormikField'
 
 export type checkBoxProps = {
     id: string | number,
-    name: string,
+    label: string,
 }
 
 export type FilterCardProps = {
     title:
     | 'rooms'
     | 'colors'
-    | 'categories',
+    | 'categories'
+    | 'price',
+    className?: ComponentProps<'div'>['className'],
+    name?: keyof ProductSearch,
     data?: checkBoxProps[],
-    isLoading: boolean,
+    isLoading?: boolean,
 }
 
-export default function FilterCard({ title, data, children, isLoading = true }: PropsWithChildren<FilterCardProps>) {
+export default function FilterCard({ className, title, data, name, children, isLoading = true }: PropsWithChildren<FilterCardProps>) {
     return (
-        <Card type='SearchCard'>
+        <Card type='SearchCard' modify={className}>
             {/* Title */}
             <h1 className='capitalize text-lg font-semibold border-b'>{title}</h1>
 
-            {isLoading && <Loading />}
+            {isLoading &&
+                <div className='flex-center min-h-[150px]'>
+                    <Loading className='w-6 h-6 fill-priBlue-500 text-priBlack-200/50' />
+                </div>
+            }
 
             {children}
 
@@ -35,8 +42,8 @@ export default function FilterCard({ title, data, children, isLoading = true }: 
                         <FormikField
                             type='checkbox'
                             id={`${i.id}`}
-                            label={i.name}
-                            name={title}
+                            label={i.label}
+                            name={name || "UnNamedCheckboxes"}
                         />
                     </div>
                 ))}

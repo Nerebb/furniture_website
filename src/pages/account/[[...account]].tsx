@@ -14,44 +14,46 @@ const iconStyle = {
     width: 24
 }
 
+export const AccPage = [
+    {
+        id: 0,
+        label: 'My Account',
+        href: '/account',
+        navIcon: <UserCircleIcon style={iconStyle} />,
+        element: <AccProfile />
+    },
+    {
+        id: 1,
+        label: 'Wish list',
+        href: '/account/wishlist',
+        navIcon: <HeartIcon style={iconStyle} />,
+        element: <AccWishlist />
+
+    },
+    {
+        id: 2,
+        label: 'Order status',
+        href: '/account/orderstatus',
+        navIcon: <ChartBarSquareIcon style={iconStyle} />,
+        element: <AccOrder />
+    },
+    {
+        id: 3,
+        label: 'Purchased',
+        href: '/account/purchased',
+        navIcon: <ClipboardDocumentListIcon style={iconStyle} />,
+        element: <AccPurchased />
+    },
+]
+
 export default function Account({ }: Props) {
     const router = useRouter()
 
-    const AccPage = [
-        {
-            id: 0,
-            label: 'My Account',
-            href: '/account',
-            navIcon: <UserCircleIcon style={iconStyle} />,
-            element: <AccProfile />
-        },
-        {
-            id: 1,
-            label: 'Wish list',
-            href: '/account/wishlist',
-            navIcon: <HeartIcon style={iconStyle} />,
-            element: <AccWishlist />
 
-        },
-        {
-            id: 2,
-            label: 'Order status',
-            href: '/account/orderstatus',
-            navIcon: <ChartBarSquareIcon style={iconStyle} />,
-            element: <AccOrder />
-        },
-        {
-            id: 3,
-            label: 'Purchased',
-            href: '/account/purchased',
-            navIcon: <ClipboardDocumentListIcon style={iconStyle} />,
-            element: <AccPurchased />
-        },
-    ]
 
     const render = AccPage.find(i => i.href === router.asPath)?.element
     return (
-        <SideMenuLayout sideMenu={<AccSideMenu data={AccPage} />}>
+        <SideMenuLayout sideMenu={<AccSideMenu data={AccPage} />} tabTitle='User detail'>
             {render}
         </SideMenuLayout>
     )

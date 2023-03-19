@@ -1,10 +1,10 @@
 import Banner from '@/components/static/Banner'
-import BaseLayout from '@/layouts/BaseLayout'
-import { Inter } from '@next/font/google'
-import Head from 'next/head'
 import DailyDiscover from '@/components/static/DailyDiscover'
 import FeatureProduct from '@/components/static/FeatureProduct'
 import TopCategory from '@/components/static/TopCategory'
+import BaseLayout from '@/layouts/BaseLayout'
+import { Inter } from '@next/font/google'
+import Head from 'next/head'
 
 const inter = Inter({ subsets: ['latin'] })
 

@@ -10,7 +10,6 @@ export async function middleware(request: NextRequest) {
         req: request,
         secret: process.env.SECRET
     },)
-    console.log("🚀 ~ file: middleware.ts:13 ~ middleware ~ token:", token)
 
     //Get clientUrl
     const { pathname } = request.nextUrl

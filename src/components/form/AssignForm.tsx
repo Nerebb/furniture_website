@@ -1,4 +1,3 @@
-import axios from '@/libs/axiosApi';
 import axiosClient from '@/libs/axiosClient';
 import { LoginSchemaValidate, RegisterSchemaValidate, UserSchemaValidate } from '@/libs/schemaValitdate';
 import { Gender } from '@prisma/client';
@@ -164,7 +163,7 @@ const FormikForm = ({ formData, type }: TFormProps) => {
                     address: '',
                     gender: Gender.others,
                     phoneNumber: '',
-                    birthDay: '',
+                    birthDay: undefined,
                 } as UserProfile,
                 validationSchema: Yup.object(UserSchemaValidate) as Yup.ObjectSchema<UserProfile>
             }
@@ -206,7 +205,7 @@ const FormikForm = ({ formData, type }: TFormProps) => {
                             }
                         )}>{submitError}</div>)}
                         <Button text={initForm.btnText} type='submit' modifier='w-full flex justify-center py-4 gap-2 text-xl' />
-                        {!session && (
+                        {type !== 'moreInfo' && (
                             <>
                                 <Button text='Sign in with google' modifier='w-full flex justify-center py-4 gap-2 text-xl' variant='outline'
                                     onClick={() => handleSignIn('google')}

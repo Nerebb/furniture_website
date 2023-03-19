@@ -1,7 +1,6 @@
 import { Category, Color, Gender, MediaGallery, Prisma, PrismaClient, Product, ProductRating, OrderItem, Role, Room, User, Order, Status } from "@prisma/client";
 import { hash } from "bcrypt";
 import { GetColorName } from "hex-color-to-color-name";
-import prismaClient from "../src/libs/prismaClient";
 import { generateString } from "../src/libs/utils/generateString";
 import { uuidv4 } from "../src/libs/utils/uuidv4";
 
@@ -55,7 +54,7 @@ async function main() {
 
     const admin = await prisma.user.create({
         data: {
-            id: uuidv4(),
+            id: `${process.env.ADMIN_UUID}`,
             nickName: 'Nereb',
             email: '123@admin.com',
             role: Role.admin,
@@ -103,7 +102,7 @@ async function main() {
         }
         const userCredentials = {
             loginId: "test" + generateString(10),
-            password: "test" + generateString(2),
+            password: await hash('test', 12),
             type: 'credentials',
             provider: "mysql" + generateString(5),
             providerAccountId: generateString(10),
@@ -128,19 +127,19 @@ async function main() {
     const color = ['000000', '000080', '001B1C', '003366', '008080', '01A368']
 
     //Category
-    const cateDb: Category[] = categories.map((i, idx) => ({ id: idx + 1, name: i }))
+    const cateDb: Category[] = categories.map((i, idx) => ({ id: idx + 1, label: i }))
     await prisma.category.createMany({
         data: cateDb
     })
 
     //Rooms
-    const roomsDb: Room[] = rooms.map((i, idx) => ({ id: idx + 1, name: i }))
+    const roomsDb: Room[] = rooms.map((i, idx) => ({ id: idx + 1, label: i }))
     await prisma.room.createMany({
         data: roomsDb
     })
 
     //Color
-    const colorDb: Color[] = color.map(i => ({ name: GetColorName(i), hex: i }))
+    const colorDb: Color[] = color.map(i => ({ label: GetColorName(i), hex: i }))
     await prisma.color.createMany({
         data: colorDb
     })
@@ -173,13 +172,19 @@ async function main() {
         JsonColor: Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | undefined
     }
 
+    const generatedDescription = [
+        'Looking for a comfortable place to sit? Check out our versatile and stylish Sofa! With a variety of seating options, this piece will have you feeling at home in no time. Whether you\'re watching TV or relaxing with a good book, our Sofa is perfect for any occasion. Plus, its classic style will complement any room in your home.',
+        'Mirror is the perfect way to make your bedroom, study or any other space look bigger and more open. With its frameless design and thin profile, it can be mounted on virtually any wall. The elegant silver finish will match any decor, while the simple yet sophisticated design allows you to add personality to your space without taking away from it.',
+        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.'
+    ]
+
     const productPromise = [];
     for (let i = 0; i < 100; i++) {
-        const testProduct: testProduct =
+        const testProduct =
         {
             id: uuidv4(),
             name: 'testProduct',
-            description: 'Testing...',
+            description: generatedDescription[randomNum(generatedDescription.length - 1)],
             creatorId: admin.id,
             price: Price + (randomNum(Price) * 1000),
             available: randomNum(100, true),
@@ -210,12 +215,12 @@ async function main() {
 
     //wishList
     const wishListDb = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < userDb.length; i++) {
         const productIds = randomField("id", productDbById, false, randomNum(15))
-        let fakeWishList = prismaClient.wishlist.create({
+        let fakeWishList = prisma.wishlist.create({
             data: {
                 id: uuidv4(),
-                ownerId: userDb[randomNum(userDb.length)].id,
+                ownerId: userDb[i].id,
                 products: {
                     connect: productIds.map(i => { return { id: i } }) as Prisma.Enumerable<Prisma.ProductWhereUniqueInput>,
                 }
@@ -231,7 +236,7 @@ async function main() {
         const productbyId = randomField("id", productDb, true)
 
         //CreatePurchasedItems
-        const OrderItems: Omit<OrderItem, 'id' | 'orderId'>[] = productbyId.map(i => {
+        const OrderItems: Omit<OrderItem, 'id' | 'orderId' | 'createdDate' | 'updatedAt'>[] = productbyId.map(i => {
             let quantities = 0;
             const color: { id: string, quantities: number }[] = randomField('hex', colorDb, true).map((i, idx) => {
                 const colorQuantities = randomNum(10, true);
@@ -242,7 +247,7 @@ async function main() {
                 }
             })//{id,quantities}[]
             return {
-                salePrice: productDb.find(item => item.id === i)!.price + (randomNum(Price) * 1000),
+                salePrice: productDb.find(item => item.id === i)!.price! + (randomNum(Price) * 1000),
                 quantities,
                 color,
                 productId: i,
@@ -256,7 +261,7 @@ async function main() {
             subTotal += item.salePrice * item.quantities;
         })
 
-        const fakeOrder = prismaClient.order.create({
+        const fakeOrder = prisma.order.create({
             data: {
                 ownerId: userDb[randomNum(userDb.length)].id,
                 billingAddress: userDb[randomNum(userDb.length)].address as string,
@@ -265,7 +270,7 @@ async function main() {
                 subTotal,
                 total: subTotal + shippingFee,
                 status: status[randomNum(status.length)],
-                product: {
+                orderedProducts: {
                     create: OrderItems as Prisma.OrderItemUncheckedCreateWithoutOrderInput[]
                 }
             }
@@ -289,9 +294,6 @@ async function main() {
         data: ratingDb
     })
 }
-
-
-
 
 main()
     .then(async () => {

@@ -24,7 +24,7 @@ const SideMenuLayout = ({ tabTitle, tabDescription, sideMenu, children }: Props)
             <Container >
                 <Header />
                 <section className='flex-grow flex '>
-                    <article className='min-w-[420px] py-5 pr-5 border-r border-priBlack-100'>
+                    <article className='max-w-[420px] py-5 pr-5 border-r border-priBlack-100'>
                         {sideMenu}
                     </article>
                     <article className='flex-grow p-5'>

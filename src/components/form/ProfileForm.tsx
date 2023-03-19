@@ -1,5 +1,4 @@
 import axios, { allowedField } from '@/libs/axiosApi';
-import { UserSchemaValidate } from '@/libs/schemaValitdate';
 import { Gender } from '@prisma/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FormRow } from '@types';
@@ -8,7 +7,6 @@ import { Form, Formik, FormikHelpers, useField } from 'formik';
 import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import * as Yup from 'yup';
 import Button from '../Button';
 import Loading from '../static/Loading';
 
@@ -24,9 +22,10 @@ type userField = {
 
 function UserField({ type = 'text', isEdit, ...props }: userField) {
     const [field, meta] = useField(props.name);
-    let displayContent: string;
-    if (type === 'date') {
+    let displayContent: string | undefined;
+    if (type === 'date' && props.content) {
         displayContent = new Date(props.content as string).toISOString().substring(0, 10)
+        console.log("🚀 ~ file: ProfileForm.tsx:28 ~ UserField ~ displayContent:", displayContent)
     } else {
         displayContent = props.content?.toString() || ''
     }
@@ -58,7 +57,12 @@ function UserField({ type = 'text', isEdit, ...props }: userField) {
                     )} />
                 )
             ) : (
-                <p className="mt-1 capitalize sm:pl-3 text-sm text-gray-500 sm:col-span-2 sm:mt-0">{displayContent}</p>
+                displayContent &&
+                <p
+                    className="mt-1 capitalize sm:pl-3 text-sm text-gray-500 sm:col-span-2 sm:mt-0"
+                >
+                    {displayContent}
+                </p>
             )}
         </div>
     )
