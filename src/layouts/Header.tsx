@@ -3,11 +3,22 @@ import DropMenu from '@/components/static/DropMenu'
 import SearchBox from '@/components/static/SearchBox'
 import { AccPage } from '@/pages/account/[[...account]]'
 import { ShoppingCartIcon, UserCircleIcon } from '@heroicons/react/24/outline'
+import { Session } from 'next-auth'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 
-const Header = () => {
+
+function LoginState() {
+    return (
+        <div className='flex items-center space-x-2 px-2 py-0.5'>
+            <h1>My Account</h1>
+            < UserCircleIcon width={28} />
+        </div>
+    )
+}
+
+export default function Header() {
     const router = useRouter()
     const { data: session } = useSession()
 
@@ -26,7 +37,7 @@ const Header = () => {
                 </Link>
                 <p className="stash mr-3">|</p>
                 {session ? (
-                    <DropMenu title={<UserCircleIcon width={28} />} data={AccPage} />
+                    <DropMenu title={<LoginState />} data={AccPage} />
                 ) : (
                     <div className='space-x-3 flex'>
                         <Modal btnProps={{ text: 'Login', variant: 'outline', glowModify: 'noAnimation' }} formType='login' />
@@ -37,5 +48,3 @@ const Header = () => {
         </header>
     )
 }
-
-export default Header

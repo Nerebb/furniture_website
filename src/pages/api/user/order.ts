@@ -1,8 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import ProductImages from '@/components/static/ProductDetail/ProductImages';
 import prismaClient from '@/libs/prismaClient';
 import { isUUID } from '@/libs/schemaValitdate';
-import { OrderItem, Status } from '@prisma/client';
+import { Status } from '@prisma/client';
 import { ApiMethod } from '@types';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getToken } from 'next-auth/jwt';
@@ -27,7 +26,7 @@ export type UserOrder = {
     status: Status
     createdDate: string
     updatedAt: string
-    orderedProducts?: OrderedItem[]
+    orderedProductIds?: string[]
 }
 
 type Data = {
@@ -39,41 +38,28 @@ type Data = {
  * @method GET
  * @param userId Get from cookies JWT
  * @param productId req.query
- * @returns ProductCard[] & status
+ * @returns UserOrder[] & status
  */
 export async function getUserOrders(userId: string) {
     const orders = await prismaClient.order.findMany({
         where: { ownerId: userId },
         include: {
-            orderedProducts: {
-                include: {
-                    product: {
-                        select: {
-                            name: true,
-                            image: {
-                                select: {
-                                    imageUrl: true
-                                }
-                            }
-                        }
-                    },
-                },
-            }
+            orderedProducts: { select: { id: true } }
         }
     })
 
 
     //Santinize data
     const responseData: UserOrder[] = orders.map(order => {
-        const orderedProducts: UserOrder['orderedProducts'] = order.orderedProducts.map(product => ({
-            id: product.id,
-            salePrice: product.salePrice,
-            totalQuantities: product.quantities,
-            colors: product.color as Array<{ id: string, quantities: number }>,
-            orderId: product.orderId,
-            name: product.product.name,
-            imageUrls: product.product.image.map(i => i.imageUrl)
-        }))
+        // const orderedProducts: UserOrder['orderedProducts'] = order.orderedProducts.map(product => ({
+        //     id: product.id,
+        //     salePrice: product.salePrice,
+        //     totalQuantities: product.quantities,
+        //     colors: product.color as Array<{ id: string, quantities: number }>,
+        //     orderId: product.orderId,
+        //     name: product.product.name,
+        //     imageUrls: product.product.image.map(i => i.imageUrl)
+        // }))
 
         return {
             id: order.id,
@@ -83,7 +69,7 @@ export async function getUserOrders(userId: string) {
             status: order.status,
             subTotal: order.subTotal.toString(),
             total: order.total.toString(),
-            orderedProducts,
+            orderedProductsIds: order.orderedProducts.map(i => i.id),
             createdDate: order.createdDate.toString(),
             updatedAt: order.updatedAt.toString(),
         }
@@ -91,6 +77,12 @@ export async function getUserOrders(userId: string) {
 
     return responseData
 }
+
+/**
+ * @method GET
+ * @param orderedProductIds
+ * @return OrderedItem[]
+ */
 
 /**
  * @method delete

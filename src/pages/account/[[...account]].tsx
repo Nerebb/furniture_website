@@ -49,8 +49,6 @@ export const AccPage = [
 export default function Account({ }: Props) {
     const router = useRouter()
 
-
-
     const render = AccPage.find(i => i.href === router.asPath)?.element
     return (
         <SideMenuLayout sideMenu={<AccSideMenu data={AccPage} />} tabTitle='User detail'>
@@ -58,26 +56,3 @@ export default function Account({ }: Props) {
         </SideMenuLayout>
     )
 }
-
-// Protected route with login only
-// export const getServerSideProps: GetServerSideProps<{
-//     session: Session | null
-// }> = async (context) => {
-//     const session = await getServerSession(context.req, context.res, authOptions)
-//     console.log("🚀 ~ file: [[...account]].tsx:77 ~ session:", session)
-
-//     const userProfile = await getUser(session!.id as string)
-
-//     // const userProfile = await prismaClient.user
-//     //     .findFirstOrThrow({
-//     //         where: { id: session!.id },
-//     //     })
-//     //     .then(data => excludeField(data, ['password', 'deleted', 'emailVerified', 'userVerified', 'createdDate', 'updatedAt']))
-//     //     .catch(err => console.log(err))
-
-//     // console.log(userProfile)
-//     return {
-//         props: { session, userProfile }
-//     }
-
-// }

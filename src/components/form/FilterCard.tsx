@@ -1,6 +1,6 @@
 import Loading from '@/components/static/Loading'
 import { ProductSearch } from '@/pages/api/products'
-import { ComponentProps, PropsWithChildren } from 'react'
+import { ComponentProps, Fragment, PropsWithChildren } from 'react'
 import Card from '../Card'
 import FormikField from './FormikField'
 
@@ -38,14 +38,14 @@ export default function FilterCard({ className, title, data, name, children, isL
             {/* Form */}
             {data && <div className='grid grid-cols-2 space-y-1 py-2'>
                 {data.map(i => (
-                    <div key={i.id} className=''>
+                    <Fragment key={`${i.label}-${i.id}`}>
                         <FormikField
                             type='checkbox'
                             id={`${i.id}`}
                             label={i.label}
                             name={name || "UnNamedCheckboxes"}
                         />
-                    </div>
+                    </Fragment>
                 ))}
             </div>}
         </Card>

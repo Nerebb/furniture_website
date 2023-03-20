@@ -27,7 +27,7 @@ export default function DropMenu({ title, data, modifyIcon }: Props) {
                     leaveFrom="transform opacity-100 scale-100"
                     leaveTo="transform opacity-0 scale-95"
                 >
-                    <Menu.Items className='min-w-[150px] bg-white border divide-y divide-priGray-200/50 rounded-md absolute right-0'>
+                    <Menu.Items className='min-w-[150px] bg-white border divide-y divide-priGray-200/50 rounded-xl absolute right-0'>
                         <div>
                             {data.map(nav => (
                                 <Menu.Item key={nav.id}>
@@ -53,7 +53,7 @@ export default function DropMenu({ title, data, modifyIcon }: Props) {
                                 {({ active }) => (
                                     <button
                                         className={classNames(
-                                            'bg-priBlack-200/40',
+                                            'bg-priBlack-200/40 rounded-b-xl',
                                             'first-letter:capitalize w-full flex px-2 py-1.5 space-x-2',
                                         )}
                                         onClick={() => signOut({ callbackUrl: process.env.NEXT_PUBLIC_BASE_URL })}

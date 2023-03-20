@@ -182,9 +182,6 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
             })
         }
 
-        // //Paginating
-        // const paginatedData = responseData.slice(props.skip || 0, (props.skip || 0) + props.limit!)
-
         return responseData
     } catch (error) {
         console.log("GetProduct", error)

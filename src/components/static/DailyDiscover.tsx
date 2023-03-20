@@ -1,3 +1,4 @@
+import useProductFilter from '@/hooks/useProductFilter'
 import Section from '@/layouts/Section'
 import axios from '@/libs/axiosApi'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -6,13 +7,10 @@ import ProductGrid from '../ProductGrid'
 
 
 const DailyDiscover = () => {
+    const queryClient = useQueryClient()
     const [curFilter, setCurFilter] = useState<number>(0)
     const [loadMore, setLoadMore] = useState<number>(0)
-    const queryClient = useQueryClient()
-    const categories = useQuery({
-        queryKey: ['category'],
-        queryFn: () => axios.getFilter('category'),
-    })
+    const categories = useProductFilter({ filter: "category" })
 
     const cateFilter = useMemo(() => {
         let rdCate: { id: number | string, name: string }[] = [
@@ -28,7 +26,8 @@ const DailyDiscover = () => {
         queryClient.fetchInfiniteQuery({
             queryKey: ['DailyDiscover', `${id}`],
             queryFn:
-                ({ pageParam = { skip: 0, cateId: id } }) => axios.getProducts({
+                ({ pageParam = { limit: 12, skip: 0, cateId: id } }) => axios.getProducts({
+                    limit: pageParam.limit,
                     skip: pageParam.skip,
                     cateId: id === 0 ? undefined : [id]
                 }),

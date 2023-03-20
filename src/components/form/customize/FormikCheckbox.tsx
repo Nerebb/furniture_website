@@ -9,10 +9,10 @@ type Prop = {
 
 export default function FormikCheckbox({ ...props }: Prop) {
     return (
-        <label htmlFor={`${props.id}`} className='space-x-2 flex items-center'>
+        <label htmlFor={`${props.field.name}-${props.id}`} className='space-x-2 flex items-center'>
             <input
                 {...props.field}
-                id={`${props.id}`}
+                id={`${props.field.name}-${props.id}`}
                 type="checkbox"
                 value={props.id}
                 className={classNames(

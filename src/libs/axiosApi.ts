@@ -14,17 +14,21 @@ export type allowedField = Omit<UserProfile,
 export const allowedFilter = ['category', 'color', 'room'] as const
 
 type AxiosApi = {
-    //UserApi
+    //User
     getUser: (id: string) => Promise<UserProfile | undefined>,
     updateUser: (id: string, data: allowedField) => Promise<{ message: string }>,
+
+    //Wishlist
     getWishList: () => Promise<ProductCard[]>,
     addToWishList: (productId: string) => Promise<{ message: string }>,
     deleteWishlistProduct: (productId: string) => Promise<{ message: String }>,
+
+    //Orders
     getUserOrders: () => Promise<UserOrder[]>,
     cancelUserOrder: (orderId: string) => Promise<{ message: string }>,
 
 
-    //ProductApi
+    //Product
     getFilter: (filter: typeof allowedFilter[number]) => Promise<{ id: number | string, label: string }[]>,
     getProducts: ({ ...props }: ProductSearch) => Promise<ProductCard[]>
     getProductById: (productId: string) => Promise<ProductDetail>

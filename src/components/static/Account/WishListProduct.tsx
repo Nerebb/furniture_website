@@ -1,9 +1,12 @@
 import Chip from '@/components/Chip'
+import axios from '@/libs/axiosApi'
 import { fCurrency } from '@/libs/utils/numberal'
 import { ProductCard } from '@/pages/api/products'
+import { useQueryClient } from '@tanstack/react-query'
 import classNames from 'classnames'
 import { GetColorName } from 'hex-color-to-color-name'
 import Image from 'next/image'
+import { toast } from 'react-toastify'
 import Button from '../../Button'
 import Card from '../../Card'
 import ImageLost from '../ImageLost'
@@ -24,7 +27,18 @@ const status = [
 
 
 export default function WishListProduct({ product, isLoading = true }: Props) {
+    const queryClient = useQueryClient()
 
+    async function handleRemoveProduct(id: string) {
+        try {
+            const res = await axios.deleteWishlistProduct(id)
+            queryClient.invalidateQueries(['UserWishlist'])
+            toast.success("Product removed from wishlist")
+        } catch (error) {
+            console.log(error)
+            toast.error("Something went wrong - please try again or refresh the page")
+        }
+    }
     return (
         <Card modify={classNames(
             'divide-y h-[300px]',
@@ -72,7 +86,7 @@ export default function WishListProduct({ product, isLoading = true }: Props) {
                             <dd className='flex-grow'></dd>
                             <dd className='flex space-x-5'>
                                 <Button text='Buy now' modifier='py-1 px-8' />
-                                <Button text='Remove' variant='outline' modifier='py-1 px-8' />
+                                <Button text='Remove' variant='outline' modifier='py-1 px-8' onClick={() => handleRemoveProduct(product.id!)} />
                             </dd>
                         </aside>
                     </dl>

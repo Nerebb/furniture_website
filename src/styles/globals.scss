@@ -156,6 +156,10 @@ input[type=number] {
   .bold-Underline {
     @apply text-black font-semibold underline
   }
+
+  .customScrollbar {
+    @apply scrollbar-thin scrollbar-track-priBlack-200/50 scrollbar-thumb-priBlue-300
+  }
 }
 
 //------------------------------------Keyframes-----------------------------------------
