@@ -20,7 +20,7 @@ const TopCategory = () => {
           <Loading />
         </div>
       )}
-      {products &&
+      {products && products.length > 0 &&
         <SwiperContainer type='Default' data={products} navigation={true} />
       }
     </Section>
