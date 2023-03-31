@@ -23,8 +23,10 @@ axiosClient.interceptors.response.use(
     async (response) => {
 
         if (response && response.data) {
+            // throw new Error("Testing blocked")
             return { ...response.data, message: response.data.message };
         }
+        // throw new Error("Testing blocked")
         return response;
     },
     (error) => {

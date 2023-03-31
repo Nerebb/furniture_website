@@ -20,8 +20,8 @@ export default function Home() {
       <BaseLayout>
         <Banner />
         <TopCategory />
-        {/* <FeatureProduct />
-        <DailyDiscover /> */}
+        <FeatureProduct />
+        <DailyDiscover />
       </BaseLayout>
     </>
   )

@@ -71,7 +71,8 @@ export default function ProductGrid({
             ) : (
                 <>
                     <div className='grid gap-5 grid-cols-4 mb-5'>
-                        {fetchedProducts?.pages.flat().map((item) => (
+                        {fetchedProducts && fetchedProducts.pages.flat().map((item) => (
+                            item &&
                             <Fragment key={item.id}>
                                 <ProductCard2 type='horizontal' {...cardProps} product={item} />
                             </Fragment>
@@ -83,7 +84,7 @@ export default function ProductGrid({
                         {isFetchingNextPage ? (
                             <Button text='Loading...' disabled />
                         ) : (
-                            fetchedProducts?.pages[fetchedProducts.pages.length - 1].length ? (
+                            fetchedProducts && fetchedProducts.pages[fetchedProducts.pages.length - 1] && fetchedProducts.pages[fetchedProducts.pages.length - 1].length ? (
                                 <Button text='Load more' onClick={handleLoadMore} />
                             ) : (
                                 ""
