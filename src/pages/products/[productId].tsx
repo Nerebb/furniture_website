@@ -25,6 +25,7 @@ export default function ProductDetailPage({ }: Props) {
     const router = useRouter();
     const [selectedColor, setSelectedColor] = useState<string>()
     const [selectedQty, setSelectedQty] = useState<number>(1)
+    const [isWishlist, setIsWishlist] = useState<boolean>()
     const [error, setError] = useState<string>()
 
     const { productId } = router.query;
