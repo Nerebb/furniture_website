@@ -1,5 +1,4 @@
 import Button from '@/components/Button';
-import Card from '@/components/Card';
 import Chip from '@/components/Chip';
 import Loading from '@/components/static/Loading';
 import ProductComment from '@/components/static/ProductDetail/ProductComment';
@@ -11,12 +10,12 @@ import BaseLayout from '@/layouts/BaseLayout';
 import Section from '@/layouts/Section';
 import axios from '@/libs/axiosApi';
 import { fCurrency } from '@/libs/utils/numberal';
-import { BeakerIcon } from '@heroicons/react/20/solid';
-import { HeartIcon } from '@heroicons/react/24/outline';
-import { useQuery } from '@tanstack/react-query';
+import { HeartIcon as HeartIconOutline } from '@heroicons/react/24/outline';
+import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { GetColorName } from 'hex-color-to-color-name';
 import { useRouter } from 'next/router';
-import { Fragment, useMemo } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 
 type Props = {
@@ -24,7 +23,22 @@ type Props = {
 
 export default function ProductDetailPage({ }: Props) {
     const router = useRouter();
+    const [selectedColor, setSelectedColor] = useState<string>()
+    const [selectedQty, setSelectedQty] = useState<number>(1)
+    const [error, setError] = useState<string>()
+
     const { productId } = router.query;
+    const queryClient = useQueryClient()
+
+    const { mutate, error: mutateError } = useMutation({
+        mutationKey: ['ShoppingCart'],
+        mutationFn: ({ color, quantities }: { color: string, quantities?: number }) => axios.addToShoppingCart(productId as string, color, quantities),
+        onSuccess: () => {
+            queryClient.invalidateQueries()
+        }
+    })
+
+    if (mutateError) console.log("mutateError", mutateError)
 
     const { data: product, isLoading, isError } = useQuery({
         queryKey: ['ProductDetail', productId],
@@ -44,7 +58,6 @@ export default function ProductDetailPage({ }: Props) {
         enabled: Boolean(product),
     })
 
-
     //Controlling DisplayedData on client
     const MayLikesProduct = useMemo(() =>
         sameCateProducts?.data?.filter(i => i.id !== productId) || []
@@ -55,6 +68,32 @@ export default function ProductDetailPage({ }: Props) {
         , [sameRoomProducts, productId])
 
     if (isError) toast.error("Something went wrong!, please refesh the page")
+
+    function handleAddToCart() {
+        if (!selectedColor) return setError("Please select provided color")
+        if (!selectedQty || selectedQty < 0) return setError("Quantities is missing")
+        if (product?.available && selectedQty > product?.available) return setError("Product stock not meet requirements")
+
+        mutate({ color: selectedColor, quantities: selectedQty }, {
+            onError: (error: any) => {
+                toast.error(error)
+            },
+            onSuccess: (res) => {
+                toast.success(res.message)
+
+                //Reset
+                setSelectedQty(0)
+                setError(undefined)
+                setSelectedColor(undefined)
+            }
+        })
+    }
+
+    async function handleAddToWishList(productId?: string) {
+        if (!productId) return
+        queryClient.fetchQuery(['AddToWishList', productId], () => axios.addToWishList(productId))
+    }
+
     return (
         <BaseLayout whiteSpace={false}>
             {isLoading &&
@@ -64,14 +103,20 @@ export default function ProductDetailPage({ }: Props) {
             }
             {product &&
                 <article className='flex border-b'>
+                    {/* Images */}
                     <aside className='w-1/2 flex flex-col py-5 pr-5'>
                         <ProductImages images={product.image} />
                         {MayLikesProduct && MayLikesProduct.length > 0 && <ProductSimilar products={MayLikesProduct} isLoading={sameCateProducts.isLoading} />}
                     </aside>
-                    <aside className='flex flex-col w-1/2 pl-5 py-5 border-l-2 space-y-8'>
+
+                    {/*Product detail*/}
+                    <aside className='flex flex-col w-1/2 pl-5 py-5 border-l space-y-8'>
                         <div className='flex items-center justify-between'>
                             <h1 className="text-[32px] font-bold first-letter:capitalize">{product.name}</h1>
-                            <HeartIcon className='w-12 h-12 text-priBlack-50' />
+                            <button onClick={() => handleAddToWishList(productId as string)}>
+                                <HeartIconOutline className='w-12 h-12 text-priBlack-50 hover:text-priBlue-300' />
+                                <HeartIconSolid className='w-12 h-12 text-priBlue-300 hover:text-priBlack-50' />
+                            </button>
                         </div>
 
                         {/* Description */}
@@ -86,7 +131,7 @@ export default function ProductDetailPage({ }: Props) {
                         {/* Rating */}
                         <div className="flex mb-7">
                             <div className="flex mr-3">
-                                <StarRating ProductRating={product.rating} />
+                                <StarRating ProductRating={product.avgRating} />
                             </div>
                             <span className='underline'>{product.ratedUsers} reviews</span>
                         </div>
@@ -96,15 +141,38 @@ export default function ProductDetailPage({ }: Props) {
                             <div className="">
                                 {product?.colors.map(color => (
                                     <Fragment key={color}>
-                                        <Chip label={GetColorName(color)} modify="text-base px-4 py-1 mr-4" color={color} onClick={() => { }} />
+                                        <Chip
+                                            label={GetColorName(color)}
+                                            modify="text-base px-4 py-1 mr-4"
+                                            color={color}
+                                            onClick={() => { setSelectedColor(color) }}
+                                            selected={color === selectedColor}
+                                        />
                                     </Fragment>
                                 ))}
                             </div>}
 
+                        <label
+                            htmlFor={'quantities'}
+                        >
+                            Quantity:
+                            <input
+                                value={selectedQty}
+                                className='rounded-md ml-2 border-none ring-none focus:ring-priBlue-500'
+                                type='number'
+                                inputMode="numeric"
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedQty(parseInt(e.target.value))}
+                            />
+                        </label>
+
                         <div className="flex space-x-5">
                             <Button text='Buy now' variant='outline' modifier='w-[150px] py-1.5 font-semibold' />
-                            <Button text='Add to cart' variant='fill' modifier='w-[150px] py-1.5 font-semibold' />
+                            <Button text='Add to cart' variant='fill' modifier='w-[150px] py-1.5 font-semibold' onClick={handleAddToCart} />
                         </div>
+
+                        {error &&
+                            <div className='text-red-500 first-letter:capitalize font-semibold'>{error}</div>
+                        }
 
                         <div className='space-y-3'>
                             {product.totalComments >= 0 && (

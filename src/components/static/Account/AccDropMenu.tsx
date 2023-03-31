@@ -1,23 +1,24 @@
+import { AccPage } from '@/pages/account/[[...account]]';
 import { Menu, Transition } from '@headlessui/react';
-import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { ArrowRightOnRectangleIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import classNames from 'classnames';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { Fragment, ReactNode } from 'react';
-import { AccSideMenuNav } from './Account/AccSideMenu';
-
 
 type Props = {
-    title: ReactNode;
-    data: AccSideMenuNav[];
-    modifyIcon?: string;
 }
 
-export default function DropMenu({ title, data, modifyIcon }: Props) {
+export default function AccDropMenu({ }: Props) {
     return (
         <div className='text-right'>
             <Menu as="div" className="relative">
-                <Menu.Button className={'rounded-full hover:ring-2 flex-center'}>{title}</Menu.Button>
+                <Menu.Button className={'rounded-full hover:ring-2 flex-center'}>
+                    <div className='flex items-center space-x-2 px-2 py-0.5'>
+                        <h1>My Account</h1>
+                        < UserCircleIcon width={28} />
+                    </div>
+                </Menu.Button>
                 <Transition
                     as={Fragment}
                     enter="transition ease-out duration-100"
@@ -27,9 +28,9 @@ export default function DropMenu({ title, data, modifyIcon }: Props) {
                     leaveFrom="transform opacity-100 scale-100"
                     leaveTo="transform opacity-0 scale-95"
                 >
-                    <Menu.Items className='min-w-[150px] bg-white border divide-y divide-priGray-200/50 rounded-xl absolute right-0'>
+                    <Menu.Items className='min-w-[150px] bg-white border divide-y divide-priGray-200/50 rounded-md absolute right-0'>
                         <div>
-                            {data.map(nav => (
+                            {AccPage.map(nav => (
                                 <Menu.Item key={nav.id}>
                                     {({ active }) => (
                                         <Link
@@ -53,7 +54,7 @@ export default function DropMenu({ title, data, modifyIcon }: Props) {
                                 {({ active }) => (
                                     <button
                                         className={classNames(
-                                            'bg-priBlack-200/40 rounded-b-xl',
+                                            'bg-priBlack-200/40',
                                             'first-letter:capitalize w-full flex px-2 py-1.5 space-x-2',
                                         )}
                                         onClick={() => signOut({ callbackUrl: process.env.NEXT_PUBLIC_BASE_URL })}

@@ -58,13 +58,13 @@ export default function ProductCard2({ type = 'vertical', product, modify }: Pro
                                 'hidden rounded-3xl group-hover:grid grid-rows-5 h-full backdrop-blur-sm bg-priBlack-200 bg-opacity-30 px-3', modify?.text
                             )}>
                                 <div className='row-span-2'></div>
-                                <p className='w-full flex justify-between self-end'>
+                                <div className='w-full self-end flex justify-between flex-wrap'>
                                     <span className='capitalize'>
                                         <p>{product.name}</p>
                                     </span>
                                     <span className='text-priBlue-700'>{price}</span>
-                                </p>
-                                <p>
+                                </div>
+                                <div>
                                     {product.colors?.length && product.colors?.map(i => (
                                         <Chip
                                             key={i}
@@ -73,7 +73,7 @@ export default function ProductCard2({ type = 'vertical', product, modify }: Pro
                                             color={i} onClick={handleChipOnClick}
                                         />
                                     ))}
-                                </p>
+                                </div>
                             </div>
                         </Link>
                     )}

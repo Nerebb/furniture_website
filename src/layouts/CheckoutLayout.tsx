@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import React, { Fragment } from 'react'
+import CheckoutHeader from './CheckoutHeader'
 import Container from './Container'
 import MainFooter from './MainFooter'
 import MainHeader from './MainHeader'
@@ -7,11 +8,11 @@ import MainHeader from './MainHeader'
 type Props = {
     tabTitle: string,
     tabDescription?: string,
-    sideMenu: React.ReactNode
-    children?: React.ReactNode
+    rightSide: React.ReactNode
+    leftSide?: React.ReactNode
 }
 
-const SideMenuLayout = ({ tabTitle, tabDescription, sideMenu, children }: Props) => {
+export function CheckoutLayout({ tabTitle, tabDescription, rightSide, leftSide }: Props) {
 
     return (
         <Fragment>
@@ -22,19 +23,14 @@ const SideMenuLayout = ({ tabTitle, tabDescription, sideMenu, children }: Props)
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <Container >
-                <MainHeader />
-                <section className='flex-grow flex '>
-                    <article className='max-w-[420px] py-5 pr-5 border-r border-priBlack-100'>
-                        {sideMenu}
-                    </article>
-                    <article className='flex-grow p-5'>
-                        {children}
-                    </article>
-                </section>
+                <CheckoutHeader />
+                <div className='grid grid-cols-2'>
+                    <div >{leftSide}</div>
+                    <div >{rightSide}</div>
+                </div>
+                <div className='grow'></div>
                 <MainFooter />
             </Container>
         </Fragment>
     )
 }
-
-export default SideMenuLayout

@@ -1,7 +1,7 @@
 import { CubeIcon } from '@heroicons/react/24/outline'
 import React from 'react'
 
-const Footer = () => {
+export default function MainFooter() {
   return (
 
     <footer className="py-4 bg-white sm:py-6 border-t border-solid border-priBlack-100">
@@ -79,5 +79,3 @@ const Footer = () => {
 
   )
 }
-
-export default Footer

@@ -14,7 +14,7 @@ export default function AccWishlist({ }: Props) {
 
     if (isError) toast.error('Something went wrong - please refresh the page')
     return (
-        <article className='space-y-8'>
+        <article className='space-y-6'>
             {
                 products?.map(product => (
                     <WishListProduct

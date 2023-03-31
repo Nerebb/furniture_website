@@ -105,8 +105,9 @@ model User {
   productsRated ProductRating[]  @relation("userRated")
 
   //Products Manage
-  writedContents Product[] @relation("writedContent")
+  writedContents Product[]     @relation("writedContent")
   wishlist       Wishlist?
+  shoppingCart   ShoppingCart?
   carts          Order[]
   // shiped        Order[]    @relation("shiped")
 
@@ -137,13 +138,13 @@ model Session {
 
 model Product {
   id          String  @id @default(uuid())
-  name        String  @db.VarChar(20)
+  name        String  @unique @db.VarChar(20)
   description String? @db.Text
-  price       Int?    @default(0) @db.Int
-  available   Int?    @default(0) @db.Int
+  price       Int     @default(0) @db.Int
+  available   Int     @default(0) @db.Int
 
   //Database queries
-  JsonColor        Json?
+  JsonColor        Json
   isFeatureProduct Boolean        @default(false)
   category         Category[]
   room             Room[]
@@ -153,6 +154,11 @@ model Product {
   creator   User   @relation("writedContent", fields: [creatorId], references: [id])
   creatorId String
 
+  avgRating     Int @default(0) @db.UnsignedTinyInt
+  totalSale     Int @default(0) @db.UnsignedInt
+  totalRating   Int @default(0) @db.UnsignedInt
+  totalComments Int @default(0) @db.UnsignedInt
+
   ratings  ProductRating[]  @relation("productRated")
   comments ProductComment[] @relation("productComment")
 
@@ -160,10 +166,14 @@ model Product {
   deleted DateTime?
 
   //Time
-  createdDate DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  OrderItems  OrderItem[]
-  wishlists   Wishlist[]
+  createdDate DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  //Relation
+  shoppingCartItem ShoppingCartItem[]
+  OrderItems       OrderItem[]        @relation("productId")
+  // OrderNames  OrderItem[] @relation("productName")
+  wishlists        Wishlist[]
 }
 
 model ProductComment {
@@ -194,6 +204,27 @@ model Wishlist {
   ownerId  String    @unique
   user     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   products Product[]
+}
+
+model ShoppingCart {
+  id               String             @id @default(uuid())
+  owner            User               @relation(fields: [ownerId], references: [id])
+  ownerId          String             @unique
+  subTotal         BigInt
+  //relation
+  shoppingCartItem ShoppingCartItem[]
+}
+
+model ShoppingCartItem {
+  id             String       @id @default(uuid())
+  ShoppingCart   ShoppingCart @relation(fields: [ShoppingCartId], references: [id], onDelete: Cascade)
+  ShoppingCartId String
+
+  color      String
+  quantities Int    @db.SmallInt
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
 }
 
 model Order {
@@ -228,8 +259,10 @@ model OrderItem {
   //relation
   order     Order   @relation(fields: [orderId], references: [id])
   orderId   String
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product @relation("productId", fields: [productId], references: [id])
   productId String
+  // name        Product @relation("productName", fields: [productName], references: [name])
+  // productName String  @unique
 
   //DateTime
   createdDate DateTime @default(now())

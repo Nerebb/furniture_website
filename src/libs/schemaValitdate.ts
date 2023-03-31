@@ -1,5 +1,5 @@
 import { ProductSearch } from '@/pages/api/products'
-import { Gender } from '@prisma/client'
+import { Gender, Status } from '@prisma/client'
 import * as Yup from 'yup'
 const phoneRegExp = /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/
 
@@ -28,16 +28,22 @@ export const LoginSchemaValidate = {
 export const isUUID: Yup.StringSchema<string> =
     Yup.string().uuid('BAD REQUEST - Invalid Object ID').required('Object ID not found')
 
+export const isValidNum: Yup.NumberSchema<number | undefined> =
+    Yup.number().integer().moreThan(-1, "Filters must be greater than -1")
+
+export const isValidStatus: Yup.StringSchema<Status | undefined> =
+    Yup.string().oneOf(Object.values(Status))
+
 export const ProductSearchSchemaValidate = {
-    limit: Yup.number().integer().positive(),
-    skip: Yup.number().integer().positive(),
-    rating: Yup.number().integer().positive().max(5),
-    fromPrice: Yup.number().integer().positive(),
-    toPrice: Yup.number().integer().positive(),
+    limit: Yup.number().integer().moreThan(-1),
+    skip: Yup.number().integer().moreThan(-1),
+    rating: Yup.number().integer().moreThan(-1).max(5),
+    fromPrice: Yup.number().integer().moreThan(-1),
+    toPrice: Yup.number().integer().moreThan(-1),
     available: Yup.boolean(),
-    cateId: Yup.array().of(Yup.number().positive().required()),
+    cateId: Yup.array().of(Yup.number().moreThan(-1).required()),
     colorHex: Yup.array().of(Yup.string().max(7).required()),
-    roomId: Yup.array().of(Yup.number().positive().required()),
+    roomId: Yup.array().of(Yup.number().moreThan(-1).required()),
     createdDate: Yup.date(),
     name: Yup.string().max(50),
     creatorName: Yup.string(),
@@ -47,13 +53,29 @@ export const ProductSearchSchemaValidate = {
 export const ProductCreateSchemaValidate = {
     name: Yup.string().max(50).required(),
     description: Yup.string().min(100).required(),
-    price: Yup.number().integer().positive().required(),
-    available: Yup.number().integer().positive().required(),
+    price: Yup.number().integer().moreThan(-1).required(),
+    available: Yup.number().integer().moreThan(-1).required(),
     creatorId: Yup.string().uuid().required(),
-    colors: ProductSearchSchemaValidate.colorHex,
-    roomIds: Yup.array().of(Yup.object({ id: Yup.number().positive().required() })),
-    cateIds: Yup.array().of(Yup.object({ id: Yup.number().positive().required() })),
-    imageUrls: Yup.array().of(Yup.object({ id: Yup.number().positive().required() })),
+    colors: ProductSearchSchemaValidate.colorHex.required('Color must be array type'),
+    roomIds: Yup.array().of(Yup.object({ id: Yup.number().moreThan(-1).required() })),
+    cateIds: Yup.array().of(Yup.object({ id: Yup.number().moreThan(-1).required() })),
+    imageUrl: Yup.array().of(Yup.object({ id: Yup.number().moreThan(-1).required() })),
+}
+
+export const ShoppingCartUpdateSchemaValidate = {
+    cartItemId: Yup.string().uuid("Invalid cartItemId").required("cartItemId required"),
+    color: Yup.string().max(7, "Color must be hex type"),
+    quantities: Yup.number().typeError("Invalid quanitities").moreThan(0)
+}
+
+export const ShoppingCartCreateSchemaValidate = {
+    productId: Yup.string().uuid("Invalid cartItemId").required("cartItemId required"),
+    color: Yup.string().max(7, "Color must be hex type").required("Color is missing"),
+    quantities: Yup.number().moreThan(0)
+}
+
+export const ShoppingCartDeleteSchemaValidate = {
+    cartItemId: Yup.string().uuid("Invalid cartItemId").required("cartItemId required")
 }
 
 //Shorten Validations

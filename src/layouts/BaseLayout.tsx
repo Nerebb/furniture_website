@@ -1,7 +1,7 @@
 import React from 'react'
 import Container from './Container'
-import Footer from './Footer'
-import Header from './Header'
+import MainFooter from './MainFooter'
+import MainHeader from './MainHeader'
 
 type Props = {
   whiteSpace?: boolean
@@ -10,10 +10,10 @@ type Props = {
 const BaseLayout = ({ whiteSpace = true, children }: React.PropsWithChildren<Props>) => {
   return (
     <Container>
-      <Header />
+      <MainHeader />
       {children}
       {whiteSpace && <section className='flex-grow'></section>}
-      <Footer />
+      <MainFooter />
     </Container>
   )
 }

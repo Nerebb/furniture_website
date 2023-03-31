@@ -9,19 +9,22 @@
     // Nest rules in .ag-theme-alpine so that the selectors include the theme name.
     // Without the theme name, your styles will not override the theme's built-in
     // styles due to CSS selector specificity rules.
-    --ag-background-color: transparent;
     --ag-header-background-color: #EDEDED;
     --ag-header-cell-hover-background-color: #D2E1EE;
+    --ag-row-hover-color: #D2E1EE50;
+    --ag-selected-row-background-color: #D2E1EE80;
+    --ag-cell-horizontal-padding: calc(var(--ag-grid-size) *2);
 
     .ag-header,
     .ag-header-container,
     .ag-header-row {
-        @apply rounded-t-lg
+        @apply rounded-t-lg;
     }
 
     .ag-header-cell {
         font-size: 1.1em;
         font-weight: 600;
+        justify-items: center;
 
         &:hover {
             color: white

@@ -1,4 +1,4 @@
-import { Category, Color, Gender, MediaGallery, Prisma, PrismaClient, Product, ProductRating, OrderItem, Role, Room, User, Order, Status } from "@prisma/client";
+import { Category, Color, Gender, MediaGallery, Prisma, PrismaClient, Product, ProductRating, OrderItem, Role, Room, User, Order, Status, ShoppingCartItem, ShoppingCart } from "@prisma/client";
 import { hash } from "bcrypt";
 import { GetColorName } from "hex-color-to-color-name";
 import { generateString } from "../src/libs/utils/generateString";
@@ -18,12 +18,16 @@ async function main() {
     await prisma.color.deleteMany()
     await prisma.mediaGallery.deleteMany()
     await prisma.wishlist.deleteMany()
+    await prisma.shoppingCartItem.deleteMany()
+    await prisma.shoppingCart.deleteMany()
     await prisma.orderItem.deleteMany()
     await prisma.order.deleteMany()
     await prisma.productRating.deleteMany()
     await prisma.product.deleteMany()
     await prisma.user.deleteMany()
     await prisma.account.deleteMany()
+
+    console.log("CleanningDataCompelted")
 
     //Functional
     function randomNum(maxLength?: number, noZero?: boolean): number {
@@ -69,6 +73,8 @@ async function main() {
             }
         }
     })
+
+    console.log("Adding AdminUser")
 
     //user
     const AllowedRole = Object.values(Role).filter(i => i != Role.admin)
@@ -121,10 +127,13 @@ async function main() {
     }
     const userDb = await Promise.all(UserPromise)
 
+    console.log("Add testUser completed: password:test")
+
     //Products
     const categories = ['cabinets', 'accessories', 'beds', 'ottomans', 'shelves', 'dining chairs', 'dining tables', 'armchairs', 'stools', 'office desks', 'sofas', 'coffee tables', 'lounge chair', 'benches', 'games', 'side tables', 'counter/bar chair']
     const rooms = ['living room', 'bedroom', 'dining room', 'office', 'entertaining room']
     const color = ['000000', '000080', '001B1C', '003366', '008080', '01A368']
+
 
     //Category
     const cateDb: Category[] = categories.map((i, idx) => ({ id: idx + 1, label: i }))
@@ -132,17 +141,24 @@ async function main() {
         data: cateDb
     })
 
+    console.log("Category created")
+
     //Rooms
     const roomsDb: Room[] = rooms.map((i, idx) => ({ id: idx + 1, label: i }))
     await prisma.room.createMany({
         data: roomsDb
     })
 
+    console.log("Rooms created")
+
+
     //Color
     const colorDb: Color[] = color.map(i => ({ label: GetColorName(i), hex: i }))
     await prisma.color.createMany({
         data: colorDb
     })
+
+    console.log("Colors created")
 
     //ImageGallery
     const images = ['/images/OliverSofa_RS.jpg', '/images/CoffeTable.jpg', '/images/Console.jpg', '/images/mirror.jpg']
@@ -155,6 +171,8 @@ async function main() {
     await prisma.mediaGallery.createMany({
         data: mediaDb
     })
+
+    console.log("MediaGallery created")
 
     //Products
     const Price = 100000
@@ -169,7 +187,7 @@ async function main() {
         | 'deleted'
         | 'wishlistId'
     > & {
-        JsonColor: Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | undefined
+        JsonColor: Prisma.JsonValue | null
     }
 
     const generatedDescription = [
@@ -178,12 +196,16 @@ async function main() {
         'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.'
     ]
 
-    const productPromise = [];
+    const productPromise: testProduct[] = [];
     for (let i = 0; i < 100; i++) {
+        let name = 'testProduct' + generateString(5)
+        while (productPromise.some(i => i.name === name)) {
+            name = 'testProduct' + generateString(6)
+        }
         const testProduct =
         {
             id: uuidv4(),
-            name: 'testProduct',
+            name,
             description: generatedDescription[randomNum(generatedDescription.length - 1)],
             creatorId: admin.id,
             price: Price + (randomNum(Price) * 1000),
@@ -210,6 +232,8 @@ async function main() {
         productPromise.push(prom)
     }
 
+    console.log("Products created")
+
     const productDb = await Promise.all(productPromise)
     const productDbById = productDb.map(i => { return { id: i.id } })
 
@@ -230,8 +254,10 @@ async function main() {
     }
     await Promise.all(wishListDb)
 
+    console.log("WishList created")
+
     //Order --- OrderItem
-    const cartDb = [];
+    const ordersProms = [];
     for (let i = 0; i < 30; i++) {
         const productbyId = randomField("id", productDb, true)
 
@@ -272,12 +298,15 @@ async function main() {
                 status: status[randomNum(status.length)],
                 orderedProducts: {
                     create: OrderItems as Prisma.OrderItemUncheckedCreateWithoutOrderInput[]
-                }
+                },
             }
         })
-        cartDb.push(fakeOrder)
+        ordersProms.push(fakeOrder)
     }
-    await Promise.all(cartDb)
+    const orderDb = await Promise.all(ordersProms)
+    const orderItemsDb = await prisma.orderItem.findMany()
+    console.log("Orders created")
+
 
     //Product rating
     const ratingDb: Omit<ProductRating, 'id'>[] = [];
@@ -293,6 +322,87 @@ async function main() {
     await prisma.productRating.createMany({
         data: ratingDb
     })
+
+    console.log("ProductRating created")
+
+    //ShoppingCart
+    const shoppingCartDb = [];
+    for (let i = 0; i < 11; i++) {
+        const cartItems: Omit<ShoppingCartItem, "id" | "ShoppingCartId">[] = []
+        for (let i = 0; i < 11; i++) {
+            let curProduct = productDb[randomNum(productDb.length)]
+            while (cartItems.some(promProduct => promProduct.productId === curProduct.id)) {
+                curProduct = productDb[randomNum(productDb.length)]
+            }
+
+            const curProductColor = curProduct.JsonColor as string[]
+
+            const shoppingCartItem: Omit<ShoppingCartItem, "id" | "ShoppingCartId"> = {
+                color: curProductColor[randomNum(curProductColor.length)],
+                productId: curProduct.id,
+                quantities: randomNum(5, true),
+            }
+
+            cartItems.push(shoppingCartItem)
+        }
+
+
+        let ownerId = userDb[i].id
+
+        const subTotal = cartItems.reduce((total, product) => {
+            const price = productDb.find(i => i.id === product.productId)!.price!
+            return total += price * product.quantities
+        }, 0)
+
+        const userCart = prisma.shoppingCart.create({
+            data: {
+                ownerId,
+                subTotal,
+                shoppingCartItem: {
+                    create: cartItems
+                }
+            }
+        })
+        shoppingCartDb.push(userCart)
+    }
+
+    await Promise.all(shoppingCartDb)
+
+    console.log("ShoppingCart created")
+
+
+
+
+    //Update Product - ratings comments
+    const updateProducts = productDb.map(product => {
+        const productRating = ratingDb.filter(i => i.productId === product.id)
+        const productRate = Math.floor(productRating.reduce((total, rate) => total + rate.rating, 0) / productRating.length)
+
+        const productOrdered = orderItemsDb.filter(i => i.productId === product.id)
+
+        const totalSale = productOrdered.reduce((total, sale) => total + sale.quantities, 0)
+
+        return {
+            id: product.id,
+            productRate,
+            totalRate: productRating.length,
+            totalSale,
+        }
+    })
+
+    const updateProductsProms = updateProducts.map(product => (
+        prisma.product.update({
+            where: { id: product.id },
+            data: {
+                avgRating: product.productRate,
+                totalSale: product.totalSale,
+                totalRating: product.totalRate
+            }
+        })
+    ))
+
+    await Promise.all(updateProductsProms)
+
 }
 
 main()

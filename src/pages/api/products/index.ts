@@ -7,22 +7,22 @@ import * as Yup from 'yup'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 export type ProductCard = {
-    id?: string,
-    name?: Product['name']
-    price?: Product['price']
+    id: string,
+    name: Product['name']
+    price: Product['price']
     description?: string,
-    available?: Product['available']
+    available: Product['available']
     cateIds?: { id: number }[],
     roomIds?: { id: number }[]
-    colors?: string[],
-    rating?: number,
-    totalSale?: number,
-    ratedUsers?: number,
-    creatorId?: string,
+    colors: string[],
+    avgRating: number,
+    totalSale: number,
+    ratedUsers: number,
+    creatorId: string,
     imageUrl?: MediaGallery['imageUrl'][],
-    createdDate?: string,
-    updatedDate?: string,
-    totalProduct?: number,
+    createdDate: string,
+    updatedDate: string,
+    totalProduct: number,
 }
 
 export type ProductSearch = {
@@ -89,6 +89,7 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
                 JsonColor: {
                     array_contains: props.colorHex
                 },
+                avgRating: { gte: props.rating },
                 createdDate: props.createdDate
             }
         }
@@ -107,24 +108,9 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
                     nickName: true,
                 }
             },
-            OrderItems: {
-                select: {
-                    quantities: true,
-                }
-            },
             image: {
                 select: {
                     imageUrl: true,
-                }
-            },
-            ratings: {
-                select: {
-                    rating: true,
-                }
-            },
-            _count: {
-                select: {
-                    ratings: true,
                 }
             },
         }
@@ -142,27 +128,22 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
 
         //Santinize Data
         let responseData: ProductCard[] = data.map(product => {
-            //Rating
-            const rating = Math.floor(product!.ratings!.reduce((total, rate) => total + rate.rating, 0) / product!._count!.ratings)
-
-            //TotalSale
-            const totalSale = product?.OrderItems?.reduce((total, sale) => total + sale.quantities, 0)
             return {
                 id: product.id,
                 name: product.name,
                 available: product.available,
                 description: product.description ?? undefined,
-                cateIds: product.category,
-                roomIds: product.room,
+                cateIds: product.category?.map(i => ({ id: i.id })),
+                roomIds: product.room?.map(i => ({ id: i.id })),
                 colors: product.JsonColor as string[],
                 price: product.price,
                 creatorId: product.creatorId,
                 imageUrl: product?.image?.map(i => i.imageUrl),
                 createdDate: product.createdDate.toString(),
                 updatedDate: product.updatedAt.toString(),
-                rating,
-                ratedUsers: product?._count?.ratings,
-                totalSale,
+                avgRating: product.avgRating,
+                ratedUsers: product.totalRating,
+                totalSale: product.totalSale,
                 totalProduct,
             }
         })
@@ -173,13 +154,6 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
         }
         if (props.roomId?.length) {
             responseData = responseData.filter(product => props.roomId?.every(i => product.roomIds?.map(v => v.id).includes(i)))
-        }
-
-        //Rating
-        if (props.rating) {
-            responseData = responseData.filter(product => {
-                if (product.rating) return product.rating >= props.rating!
-            })
         }
 
         return responseData
@@ -201,6 +175,7 @@ export default async function handler(
                 if (name && Array.isArray(name)) throw new Error("Name: Array not allowed")
 
                 if (creatorName && Array.isArray(creatorName)) throw new Error("CreatorName: Array not allowed")
+
                 /**
                  * @SantinizeData
                  * @description turn data to correct prisma form for queries - data received from req.query: string | string [] | undefine
@@ -222,7 +197,7 @@ export default async function handler(
                     createdDate: createdDate ? new Date(createdDate as string) : undefined,
                 }
 
-                const YupValidator: Yup.ObjectSchema<ProductSearch> = Yup.object({ ...ProductSearchSchemaValidate }).typeError("Invalid Request - request.query must be object type")
+                const YupValidator: Yup.ObjectSchema<ProductSearch> = Yup.object(ProductSearchSchemaValidate).typeError("Invalid Request - request.query must be object type")
 
                 const validateResult = await YupValidator.validate(filterProduct)
 
@@ -234,6 +209,6 @@ export default async function handler(
                 return res.status(400).json({ message: error.message })
             }
         default:
-            return res.status(500).json({ message: 'UNKNOWN EROR' })
+            return res.status(405).json({ message: 'UNKNOWN EROR' })
     }
 }

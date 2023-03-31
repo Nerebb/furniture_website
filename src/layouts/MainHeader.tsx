@@ -1,24 +1,12 @@
-import Modal from '@/components/Modal'
-import DropMenu from '@/components/static/DropMenu'
+import AssignForm from '@/components/form/AssignForm'
+import AccDropMenu from '@/components/static/Account/AccDropMenu'
 import SearchBox from '@/components/static/SearchBox'
-import { AccPage } from '@/pages/account/[[...account]]'
-import { ShoppingCartIcon, UserCircleIcon } from '@heroicons/react/24/outline'
-import { Session } from 'next-auth'
+import ShoppingCart from '@/components/static/ShoppingCart'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 
-
-function LoginState() {
-    return (
-        <div className='flex items-center space-x-2 px-2 py-0.5'>
-            <h1>My Account</h1>
-            < UserCircleIcon width={28} />
-        </div>
-    )
-}
-
-export default function Header() {
+export default function MainHeader() {
     const router = useRouter()
     const { data: session } = useSession()
 
@@ -32,16 +20,16 @@ export default function Header() {
             </nav>
             <nav className="RightHeaderNav flex-1 flex justify-end items-center w-auto">
                 <SearchBox />
-                <Link className='Cart mr-3' href={'/cart'}>
-                    <ShoppingCartIcon className='w-6 h-6' />
-                </Link>
+                <div className='mr-3'>
+                    <ShoppingCart />
+                </div>
                 <p className="stash mr-3">|</p>
                 {session ? (
-                    <DropMenu title={<LoginState />} data={AccPage} />
+                    <AccDropMenu />
                 ) : (
                     <div className='space-x-3 flex'>
-                        <Modal btnProps={{ text: 'Login', variant: 'outline', glowModify: 'noAnimation' }} formType='login' />
-                        <Modal btnProps={{ text: 'Sign up', glowModify: 'noAnimation' }} formType='register' />
+                        <AssignForm type='login' btnProps={{ text: 'Login', variant: 'outline', glowModify: 'noAnimation' }} />
+                        <AssignForm type='register' btnProps={{ text: 'Sign up', glowModify: 'noAnimation' }} />
                     </div>
                 )}
             </nav>

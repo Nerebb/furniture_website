@@ -28,7 +28,6 @@ export default function FilterForm({ classname, children }: Props) {
     }, [searchContext])
 
     async function handleOnSubmit(values: ProductSearch, { setSubmitting }: FormikHelpers<ProductSearch>) {
-        console.log("🚀 ~ file: FilterForm.tsx:21 ~ handleOnSubmit ~ values:", values)
 
         await new Promise(r => setTimeout(r, 500)); // Debounce
         const { cateId, colorHex, roomId } = values

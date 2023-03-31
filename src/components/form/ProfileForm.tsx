@@ -25,7 +25,6 @@ function UserField({ type = 'text', isEdit, ...props }: userField) {
     let displayContent: string | undefined;
     if (type === 'date' && props.content) {
         displayContent = new Date(props.content as string).toISOString().substring(0, 10)
-        console.log("🚀 ~ file: ProfileForm.tsx:28 ~ UserField ~ displayContent:", displayContent)
     } else {
         displayContent = props.content?.toString() || ''
     }
@@ -116,11 +115,9 @@ function ProfileForm({ }: Props) {
 
     async function handleSubmit(values: allowedField, { setSubmitting, }: FormikHelpers<allowedField>) {
         setSubmitting(true)
-        console.log("🚀 ~ file: ProfileForm.tsx:109 ~ handleSubmit ~ values:", values)
         await new Promise(r => setTimeout(r, 500)); //Debounce
         values.phoneNumber ? values.phoneNumber.toString() : ''
 
-        console.log("🚀 ~ file: ProfileForm.tsx:109 ~ handleSubmit ~ values:", values.birthDay, typeof values.birthDay)
         try {
             mutate(values)
             setSubmitting(false)

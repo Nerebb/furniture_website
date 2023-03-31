@@ -5,6 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { AppProps } from 'next/app';
 import SearchProvider from '@/contexts/searchProductContext';
+import ShoppingCartProvider from '@/contexts/shoppingCartContext';
 const queryClient = new QueryClient();
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -14,8 +15,10 @@ export default function App({ Component, pageProps }: AppProps) {
       <Hydrate state={pageProps.dehydratedState}>
         <SessionProvider session={pageProps.session}>
           <SearchProvider>
-            <ToastAlert />
-            <Component {...pageProps} />
+            <ShoppingCartProvider>
+              <ToastAlert />
+              <Component {...pageProps} />
+            </ShoppingCartProvider>
           </SearchProvider>
         </SessionProvider>
       </Hydrate>

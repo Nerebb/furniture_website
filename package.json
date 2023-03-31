@@ -7,11 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "ts-node @/prisma/seed.ts",
-    "test": "ts-node @/test.ts"
+    "seed": "ts-node prisma/seed"
   },
   "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"esnext\"} prisma/seed.ts"
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.13",

@@ -13,7 +13,7 @@ type Data = {
     message?: any
 }
 
-export type ProductDetail = ProductCard & {
+export type ProductDetail = Omit<ProductCard, 'totalProduct'> & {
     totalComments: number,
     commentIds: {
         id: string;
@@ -38,7 +38,7 @@ export type NewProduct = {
  * @description get product by Id
 */
 export async function getProductById(id: string): Promise<ProductDetail> {
-    const data = await prismaClient.product.findFirstOrThrow({
+    const data = await prismaClient.product.findUniqueOrThrow({
         where: { id },
         include: {
             category: {
@@ -53,23 +53,7 @@ export async function getProductById(id: string): Promise<ProductDetail> {
                     nickName: true,
                 }
             },
-            OrderItems: {
-                select: {
-                    quantities: true,
-                }
-            },
-            image: {},
-            ratings: {
-                select: {
-                    rating: true,
-                }
-            },
-            _count: {
-                select: {
-                    ratings: true,
-                    comments: true,
-                }
-            },
+            image: true,
             comments: {
                 select: {
                     id: true,
@@ -79,12 +63,6 @@ export async function getProductById(id: string): Promise<ProductDetail> {
     })
 
     //SantinizeData
-    //Rating
-    const rating = Math.floor(data.ratings.reduce((total, rate) => total + rate.rating, 0) / data._count.ratings)
-
-    //TotalSale
-    const totalSale = data?.OrderItems?.reduce((total, sale) => total + sale.quantities, 0)
-
     const response: ProductDetail = {
         id: data.id,
         name: data.name,
@@ -92,14 +70,16 @@ export async function getProductById(id: string): Promise<ProductDetail> {
         price: data.price,
         description: data.description ?? undefined,
         commentIds: data.comments,
-        totalComments: data._count.comments,
+        totalComments: data.totalComments,
         cateIds: data.category,
         colors: data.JsonColor as string[],
         creatorId: data.creatorId,
         image: data.image,
-        rating,
-        ratedUsers: data._count.ratings,
-        totalSale,
+        avgRating: data.avgRating,
+        ratedUsers: data.totalRating,
+        totalSale: data.totalSale,
+        createdDate: data.createdDate.toString(),
+        updatedDate: data.updatedAt.toString(),
     }
 
     return response
@@ -161,9 +141,9 @@ export async function deleteProductById({ userRole, productId }: deleteProduct) 
 }
 
 /**
- * @method CREATE
+ * @method PUT
  * @description Create new product - only Admin
- * @response res.body message:"Update complete"
+ * @response message
 */
 type createProduct = {
     userRole: Role
@@ -172,42 +152,30 @@ type createProduct = {
 }
 export async function createProduct({ userRole, userId, req }: createProduct) {
     if (userRole !== 'admin') throw Error("Unauthorize User")
-    const { name, description, price, available, creatorId, colors, cateIds, roomIds, imageUrl } = req.body
+    // const { name, description, price, available, creatorId, colors, cateIds, roomIds, imageUrl } = req.body
 
     if (!userId) throw Error("Invalid user please login again")
 
     //SantinizeData
-    const requestProduct: NewProduct = {
-        name,
-        description,
-        price: price ? parseInt(price) : undefined,
-        available: available ? parseInt(available) : undefined,
-        creatorId: creatorId ? creatorId : userId,
-        colors: typeof colors === 'string' ? [colors] : Array.isArray(colors) ? colors.map(i => i.toString()) : undefined,
-        cateIds: typeof cateIds === 'string' ? [{ id: parseInt(cateIds) }] : Array.isArray(cateIds) ? cateIds.map(i => ({ id: parseInt(i) })) : undefined,
-        roomIds: typeof roomIds === 'string' ? [{ id: parseInt(roomIds) }] : Array.isArray(roomIds) ? roomIds.map(i => ({ id: parseInt(i) })) : undefined,
-        imageUrls: typeof imageUrl === 'string' ? [{ id: parseInt(imageUrl) }] : Array.isArray(imageUrl) ? imageUrl.map(i => ({ id: parseInt(i) })) : undefined,
-    }
-
+    const schema = Yup.object(ProductCreateSchemaValidate)
+    const { name, description, price, available, creatorId, colors, cateIds, roomIds, imageUrl } = await schema.validate(req.body)
     try {
-        const YupValidator: Yup.ObjectSchema<NewProduct> = Yup.object({ ...ProductCreateSchemaValidate })
-        const newProduct = await YupValidator.validate(requestProduct)
         await prismaClient.product.create({
             data: {
-                name: newProduct.name,
-                description: newProduct.description,
-                available: newProduct.available,
-                price: newProduct.price,
-                creatorId: newProduct.creatorId,
-                JsonColor: newProduct.colors,
+                name,
+                description,
+                available,
+                price,
+                creatorId,
+                JsonColor: colors,
                 category: {
-                    connect: newProduct.cateIds,
+                    connect: cateIds,
                 },
                 room: {
-                    connect: newProduct.roomIds,
+                    connect: roomIds,
                 },
                 image: {
-                    connect: newProduct.imageUrls
+                    connect: imageUrl
                 }
             }
         })

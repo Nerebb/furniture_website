@@ -34,25 +34,16 @@ export async function getWishList(loginId: string) {
                             imageUrl: true,
                         }
                     },
-                    ratings: {
-                        select: {
-                            rating: true
-                        }
-                    },
-                    _count: {
-                        select: {
-                            ratings: true
-                        }
-                    }
                 }
             }
         }
     })
 
-    let responseData: ProductCard[] = data.products.map(product => {
-        //Rating
-        const rating = Math.floor(product!.ratings!.reduce((total, rate) => total + rate.rating, 0) / product!._count!.ratings)
+    const totalProduct = await prismaClient.wishlist.count({
+        where: { ownerId: { equals: loginId } },
+    })
 
+    let responseData: ProductCard[] = data.products.map(product => {
         return {
             id: product.id,
             name: product.name,
@@ -66,8 +57,10 @@ export async function getWishList(loginId: string) {
             imageUrl: product?.image?.map(i => i.imageUrl),
             createdDate: product.createdDate.toString(),
             updatedDate: product.updatedAt.toString(),
-            rating,
-            ratedUsers: product?._count?.ratings,
+            avgRating: product.avgRating,
+            ratedUsers: product.totalRating,
+            totalSale: product.totalSale,
+            totalProduct,
         }
     })
     return responseData
@@ -120,7 +113,7 @@ export default async function handler(
         secret: process.env.SECRET
     },)
 
-    if (!token?.userId || !token) return res.redirect('/login')
+    if (!token?.userId || !token) return res.redirect('/login') //Already check in middleware - this just for userId is specified - no undefined
 
     const userId = token.userId
 

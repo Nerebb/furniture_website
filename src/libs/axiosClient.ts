@@ -21,10 +21,10 @@ axiosClient.interceptors.request.use(
 //Destructuring - get the data only
 axiosClient.interceptors.response.use(
     async (response) => {
-        if (response && response.data) {
-            return response.data;
-        }
 
+        if (response && response.data) {
+            return { ...response.data, message: response.data.message };
+        }
         return response;
     },
     (error) => {

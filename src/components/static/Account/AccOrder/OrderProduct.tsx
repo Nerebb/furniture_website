@@ -1,16 +1,21 @@
+import Button from '@/components/Button'
+import Card from '@/components/Card'
+import axios from '@/libs/axiosApi'
 import bigIntStringToNumber from '@/libs/utils/bigIntStringToNumber'
 import { fCurrency } from '@/libs/utils/numberal'
 import { OrderedItem, UserOrder } from '@/pages/api/user/order'
 import { Disclosure, Transition } from '@headlessui/react'
+import { XCircleIcon } from '@heroicons/react/24/outline'
 import { Status } from '@prisma/client'
+import { useQuery } from '@tanstack/react-query'
 import classNames from 'classnames'
 import { GetColorName } from 'hex-color-to-color-name'
 import Image from 'next/image'
 import { Fragment, useMemo, useState } from 'react'
-import Button from '../../Button'
-import Card from '../../Card'
-import ImageLost from '../ImageLost'
-import Loading from '../Loading'
+import { toast } from 'react-toastify'
+import ImageLost from '../../ImageLost'
+import Loading from '../../Loading'
+import OrderDropMenu from './OrderDropMenu'
 
 type Props = {
     order?: UserOrder
@@ -48,15 +53,29 @@ function OrderedItems({ product }: { product: OrderedItem }) {
 
 export default function OrderProduct({ order, isLoading = true, productStatus = true }: Props) {
     const [loadMore, setLoadMore] = useState<boolean>(false)
+
     const statusIdx = useMemo(() => {
         const idx = status.findIndex(i => i.id === order?.status)
         if (idx > -1) return idx
         return 0
     }, [order?.status])
 
+    const { data: orderedProducts, isLoading: orderedIsLoading, isError } = useQuery({
+        queryKey: ['orderedProducts', order?.id],
+        queryFn: () => axios.getOrderedProducts(order?.id as string),
+        enabled: !!order?.id && loadMore
+    })
+
+    const disableCancleButton = () => {
+        if (order?.status === 'completed' || order?.status === 'orderCanceled' || order?.status === 'shipping') return true
+        return false
+    }
+
+    if (isError) toast.error("Cannot get products of current order - please try again")
+
     return (
         <Card modify={classNames(
-            'divide-y',
+            'relative group hover:border-priBlue-500 hover:border-1',
             productStatus ? 'h-[400px]' : 'h-[300px]'
         )}>
             {isLoading &&
@@ -67,6 +86,11 @@ export default function OrderProduct({ order, isLoading = true, productStatus = 
 
             {order &&
                 <>
+                    {/* DropMenu */}
+                    <div className='hidden right-3 top-2.5 group-hover:block group-hover:absolute'>
+                        <OrderDropMenu orderId={order?.id || ''} setLoadMore={setLoadMore} disable={disableCancleButton()} />
+                    </div>
+
                     <dl className={classNames(
                         'flex space-x-5 p-5',
                         productStatus ? 'h-2/3' : 'h-full'
@@ -89,18 +113,24 @@ export default function OrderProduct({ order, isLoading = true, productStatus = 
                             <Transition
                                 as='div'
                                 show={loadMore}
-                                className='overflow-y-auto customScrollbar'
+                                className='space-y-1.5 overflow-x-hidden overflow-y-auto customScrollbar'
                                 enter='transform transition duration-300'
                                 enterFrom='opacity-0'
                                 enterTo='opacity-100'
                             >
-                                {order.orderedProducts?.map(product => (
+                                {orderedIsLoading &&
+                                    <div className='h-full w-full flex-center'>
+                                        <Loading />
+                                    </div>
+                                }
+                                {orderedProducts && orderedProducts?.map(product => (
                                     <OrderedItems key={product.id} product={product} />
                                 ))}
                             </Transition>
 
                             <Transition
                                 as='div'
+                                className={'grow flex flex-col'}
                                 show={!loadMore}
                                 leave='transform transition duration-300'
                                 leaveFrom='opacity-100'
@@ -108,18 +138,12 @@ export default function OrderProduct({ order, isLoading = true, productStatus = 
                             >
                                 <dt className='font-semibold'>Sumary</dt>
                                 <dd className='text-gray-500'>Total: {fCurrency(bigIntStringToNumber(order.total))}</dd>
-                            </Transition>
-                            {!loadMore && <dd className='grow'></dd>}
-                            <Transition
-                                show={!loadMore}
-                                as='div'
-                                className='flex space-x-5'
-                                leave='transform transition duration-300'
-                                leaveFrom='opacity-100'
-                                leaveTo='opacity-0'
-                            >
-                                <Button text='More detail' variant='fill' modifier='py-1 w-[120px]' glowModify='noAnimation' onClick={() => setLoadMore(true)} />
-                                <Button text='Cancel Order' variant='outline' modifier='py-1 w-[120px]' glowModify='noAnimation' />
+                                <dd className='grow'></dd>
+
+                                <dd className='flex space-x-5'>
+                                    <Button text='More detail' variant='fill' modifier='py-1 w-[120px]' glowModify='noAnimation' onClick={() => setLoadMore(true)} />
+                                    <Button text={disableCancleButton() ? 'Cannot cancel' : 'Cancel Order'} variant='outline' modifier='py-1 w-[120px]' glowModify='noAnimation' disabled={disableCancleButton()} />
+                                </dd>
                             </Transition>
                         </aside>
 
@@ -148,17 +172,10 @@ export default function OrderProduct({ order, isLoading = true, productStatus = 
                                 <dd className='text-gray-500'>Total: {fCurrency(bigIntStringToNumber(order.total))}</dd>
                             </Transition>
                         </aside>
-
-                        {/* DateTime */}
-                        {/* <aside className='grow'>
-                            <dt className='font-semibold'>Status</dt>
-                            <dd className='text-gray-500'>Created date: {new Date(order.createdDate).toISOString().substring(0, 10) || "Unknown"}</dd>
-                            <dd className='text-gray-500'>Updated date: {new Date(order.updatedAt).toISOString().substring(0, 10) || "Unknown"}</dd>
-                        </aside> */}
                     </dl>
 
                     {/* Status */}
-                    <article className='h-1/3 w-full p-5 flex flex-col justify-between'>
+                    <article className='h-1/3 w-full p-5 flex flex-col justify-between border-t'>
                         <dt>{status[statusIdx].msg}</dt>
                         <dt className="relative w-full bg-gray-200 rounded flex">
                             <div className="top-0 h-2 rounded shim-blue" style={{ width: `${status[statusIdx].width}` }}></div>
