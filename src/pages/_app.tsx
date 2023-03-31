@@ -1,5 +1,6 @@
 import ToastAlert from '@/components/ToastAlert';
-import '../styles/App.scss';
+import '@/styles/app.scss';
+// import '../styles/App.scss';
 import { QueryClient, QueryClientProvider, Hydrate } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'

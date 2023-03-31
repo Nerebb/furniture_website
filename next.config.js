@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  async header() {
+  async headers() {
+    console.log("Running header");
     return [
       {
-        source: "/:path*",
+        source: "/_next/:path*",
         headers: [
           {
             key: "Access-Control-Allow-Origin",

@@ -1,8 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
-import { Category, Prisma } from '@prisma/client'
+import { Category } from '@prisma/client'
 import { ApiMethod } from '@types'
-import * as Yup from 'yup'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 type Data = {

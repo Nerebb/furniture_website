@@ -1,14 +1,214 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-  // previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model Color {
+  hex   String @id @db.VarChar(6)
+  label String
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  label    String    @unique @db.VarChar(20)
+  products Product[] @relation("CategoryToProduct")
+}
+
+model Room {
+  id       Int       @id @default(autoincrement())
+  label    String    @unique @db.VarChar(20)
+  products Product[] @relation("ProductToRoom")
+}
+
+model MediaGallery {
+  id       Int       @id @default(autoincrement())
+  imageUrl String    @unique @db.VarChar(255)
+  products Product[] @relation("MediaGalleryToProduct")
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  loginId           String? @unique
+  password          String?
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId], map: "Account_userId_fkey")
+}
+
+model User {
+  id             String           @id @default(uuid())
+  address        String?
+  nickName       String?          @unique
+  role           Role             @default(customer)
+  gender         Gender           @default(others)
+  phoneNumber    String?          @unique
+  birthDay       DateTime?        @db.Date
+  createdDate    DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  userVerified   DateTime?
+  deleted        DateTime?
+  name           String?
+  email          String?          @unique
+  emailVerified  DateTime?
+  image          String?
+  accounts       Account[]
+  carts          Order[]
+  writedContents Product[]        @relation("writedContent")
+  comments       ProductComment[] @relation("userComments")
+  productsRated  ProductRating[]  @relation("userRated")
+  sessions       Session[]
+  shoppingCart   ShoppingCart?
+  wishlist       Wishlist?
+  commentsliked  ProductComment[] @relation("usersLiked")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "Session_userId_fkey")
+}
+
+model Product {
+  id               String             @id @default(uuid())
+  name             String             @unique @db.VarChar(20)
+  description      String?            @db.Text
+  price            Int                @default(0)
+  available        Int                @default(0)
+  JsonColor        Json
+  isFeatureProduct Boolean            @default(false)
+  creatorId        String
+  avgRating        Int                @default(0) @db.UnsignedTinyInt
+  totalSale        Int                @default(0) @db.UnsignedInt
+  totalRating      Int                @default(0) @db.UnsignedInt
+  totalComments    Int                @default(0) @db.UnsignedInt
+  deleted          DateTime?
+  createdDate      DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  OrderItems       OrderItem[]        @relation("productId")
+  creator          User               @relation("writedContent", fields: [creatorId], references: [id])
+  comments         ProductComment[]   @relation("productComment")
+  ratings          ProductRating[]    @relation("productRated")
+  shoppingCartItem ShoppingCartItem[]
+  category         Category[]         @relation("CategoryToProduct")
+  image            MediaGallery[]     @relation("MediaGalleryToProduct")
+  room             Room[]             @relation("ProductToRoom")
+  wishlists        Wishlist[]         @relation("ProductToWishlist")
+
+  @@index([creatorId], map: "Product_creatorId_fkey")
+}
+
+model ProductComment {
+  id         String  @id @default(uuid())
+  content    String  @db.Text
+  ownerId    String
+  productId  String
+  owner      User    @relation("userComments", fields: [ownerId], references: [id], onDelete: Cascade)
+  product    Product @relation("productComment", fields: [productId], references: [id])
+  usersLiked User[]  @relation("usersLiked")
+
+  @@index([ownerId], map: "ProductComment_ownerId_fkey")
+  @@index([productId], map: "ProductComment_productId_fkey")
+}
+
+model ProductRating {
+  id        String  @id @default(uuid())
+  rating    Int     @db.UnsignedTinyInt
+  productId String
+  ownerId   String
+  owner     User    @relation("userRated", fields: [ownerId], references: [id], onDelete: Cascade)
+  product   Product @relation("productRated", fields: [productId], references: [id])
+
+  @@index([ownerId], map: "ProductRating_ownerId_fkey")
+  @@index([productId], map: "ProductRating_productId_fkey")
+}
+
+model Wishlist {
+  id       String    @id @default(uuid())
+  ownerId  String    @unique
+  user     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  products Product[] @relation("ProductToWishlist")
+}
+
+model ShoppingCart {
+  id               String             @id @default(uuid())
+  ownerId          String             @unique
+  subTotal         BigInt
+  owner            User               @relation(fields: [ownerId], references: [id])
+  shoppingCartItem ShoppingCartItem[]
+}
+
+model ShoppingCartItem {
+  id             String       @id @default(uuid())
+  ShoppingCartId String
+  color          String
+  quantities     Int          @db.SmallInt
+  productId      String
+  ShoppingCart   ShoppingCart @relation(fields: [ShoppingCartId], references: [id], onDelete: Cascade)
+  product        Product      @relation(fields: [productId], references: [id])
+
+  @@index([ShoppingCartId], map: "ShoppingCartItem_ShoppingCartId_fkey")
+  @@index([productId], map: "ShoppingCartItem_productId_fkey")
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  subTotal        BigInt
+  shippingFee     Int
+  total           BigInt
+  billingAddress  String      @db.VarChar(255)
+  shippingAddress String      @db.VarChar(255)
+  status          Status      @default(pendingPayment)
+  ownerId         String
+  createdDate     DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  owner           User        @relation(fields: [ownerId], references: [id])
+  orderedProducts OrderItem[]
+
+  @@index([ownerId], map: "Order_ownerId_fkey")
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  salePrice   Int
+  quantities  Int      @db.SmallInt
+  color       Json?
+  orderId     String
+  productId   String
+  createdDate DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  order       Order    @relation(fields: [orderId], references: [id])
+  product     Product  @relation("productId", fields: [productId], references: [id])
+
+  @@index([orderId], map: "OrderItem_orderId_fkey")
+  @@index([productId], map: "OrderItem_productId_fkey")
 }
 
 enum Gender {
@@ -30,241 +230,4 @@ enum Status {
   processingOrder
   shipping
   completed
-}
-
-model Color {
-  hex   String @id @db.VarChar(6)
-  label String
-}
-
-model Category {
-  id       Int       @id @default(autoincrement())
-  label    String    @unique @db.VarChar(20)
-  products Product[]
-}
-
-model Room {
-  id       Int       @id @default(autoincrement())
-  label    String    @unique @db.VarChar(20)
-  products Product[]
-}
-
-model MediaGallery {
-  id       Int       @id @default(autoincrement())
-  imageUrl String    @unique @db.VarChar(255)
-  products Product[]
-}
-
-model Account {
-  id     String @id @default(uuid())
-  userId String
-
-  //LoginType: Credentials - Oauth
-  type String
-
-  //Credentials
-  loginId  String? @unique
-  password String?
-
-  //Sign-On
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model User {
-  id String @id @default(uuid())
-
-  //Data assign after access OAuth
-  address     String?
-  nickName    String?   @unique
-  role        Role      @default(customer)
-  gender      Gender    @default(others)
-  phoneNumber String?   @unique
-  birthDay    DateTime? @db.Date
-  createdDate DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  //MiddleWare confirmation
-  userVerified DateTime?
-  deleted      DateTime?
-
-  //UserInteractions
-  comments      ProductComment[] @relation("userComments")
-  commentsliked ProductComment[] @relation("usersLiked")
-  productsRated ProductRating[]  @relation("userRated")
-
-  //Products Manage
-  writedContents Product[]     @relation("writedContent")
-  wishlist       Wishlist?
-  shoppingCart   ShoppingCart?
-  carts          Order[]
-  // shiped        Order[]    @relation("shiped")
-
-  //Data received from OAuth
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Product {
-  id          String  @id @default(uuid())
-  name        String  @unique @db.VarChar(20)
-  description String? @db.Text
-  price       Int     @default(0) @db.Int
-  available   Int     @default(0) @db.Int
-
-  //Database queries
-  JsonColor        Json
-  isFeatureProduct Boolean        @default(false)
-  category         Category[]
-  room             Room[]
-  image            MediaGallery[]
-
-  //User
-  creator   User   @relation("writedContent", fields: [creatorId], references: [id])
-  creatorId String
-
-  avgRating     Int @default(0) @db.UnsignedTinyInt
-  totalSale     Int @default(0) @db.UnsignedInt
-  totalRating   Int @default(0) @db.UnsignedInt
-  totalComments Int @default(0) @db.UnsignedInt
-
-  ratings  ProductRating[]  @relation("productRated")
-  comments ProductComment[] @relation("productComment")
-
-  //Softdelete
-  deleted DateTime?
-
-  //Time
-  createdDate DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  //Relation
-  shoppingCartItem ShoppingCartItem[]
-  OrderItems       OrderItem[]        @relation("productId")
-  // OrderNames  OrderItem[] @relation("productName")
-  wishlists        Wishlist[]
-}
-
-model ProductComment {
-  id      String @id @default(uuid())
-  content String @db.Text
-
-  //relation
-  owner      User    @relation("userComments", fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId    String
-  usersLiked User[]  @relation("usersLiked")
-  product    Product @relation("productComment", fields: [productId], references: [id])
-  productId  String
-}
-
-model ProductRating {
-  id        String  @id @default(uuid())
-  rating    Int     @db.UnsignedTinyInt
-  product   Product @relation("productRated", fields: [productId], references: [id])
-  productId String
-  owner     User    @relation("userRated", fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId   String
-}
-
-model Wishlist {
-  id String @id @default(uuid())
-
-  //relation
-  ownerId  String    @unique
-  user     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  products Product[]
-}
-
-model ShoppingCart {
-  id               String             @id @default(uuid())
-  owner            User               @relation(fields: [ownerId], references: [id])
-  ownerId          String             @unique
-  subTotal         BigInt
-  //relation
-  shoppingCartItem ShoppingCartItem[]
-}
-
-model ShoppingCartItem {
-  id             String       @id @default(uuid())
-  ShoppingCart   ShoppingCart @relation(fields: [ShoppingCartId], references: [id], onDelete: Cascade)
-  ShoppingCartId String
-
-  color      String
-  quantities Int    @db.SmallInt
-
-  product   Product @relation(fields: [productId], references: [id])
-  productId String
-}
-
-model Order {
-  id              String @id @default(uuid())
-  subTotal        BigInt
-  shippingFee     Int
-  total           BigInt
-  billingAddress  String @db.VarChar(255)
-  shippingAddress String @db.VarChar(255)
-  status          Status @default(pendingPayment)
-
-  //Relation
-  owner           User        @relation(fields: [ownerId], references: [id])
-  ownerId         String
-  orderedProducts OrderItem[]
-  // shiper   User?       @relation("shiped", fields: [shiperId], references: [id], onDelete: SetNull)
-  // shiperId String?
-
-  //DateTime
-  createdDate DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model OrderItem {
-  id String @id @default(uuid())
-
-  //Stored to kept info
-  salePrice  Int
-  quantities Int   @db.SmallInt
-  color      Json? //{hex,quantities}[]
-
-  //relation
-  order     Order   @relation(fields: [orderId], references: [id])
-  orderId   String
-  product   Product @relation("productId", fields: [productId], references: [id])
-  productId String
-  // name        Product @relation("productName", fields: [productName], references: [name])
-  // productName String  @unique
-
-  //DateTime
-  createdDate DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }
