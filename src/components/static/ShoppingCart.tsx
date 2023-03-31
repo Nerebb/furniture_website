@@ -1,4 +1,3 @@
-import { useShoppingCartContext } from '@/contexts/shoppingCartContext'
 import axios from '@/libs/axiosApi'
 import { fCurrency } from '@/libs/utils/numberal'
 import { shoppingCartItem } from '@/pages/api/user/shoppingCart'
@@ -19,6 +18,7 @@ type Props = {
   keepOpen?: boolean
 }
 
+// Input component
 function QtyInput({ ...product }: shoppingCartItem) {
   const [itemQty, setItemQty] = useState<number>(product.quantities)
 
