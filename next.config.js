@@ -5,7 +5,12 @@ const nextConfig = {
     return [
       {
         source: "/:path*",
-        headers: securityHeaders,
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "https://furniture-website-pi.vercel.app",
+          },
+        ],
       },
     ];
   },
