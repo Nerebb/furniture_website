@@ -1,8 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
-import { Category, Prisma } from '@prisma/client'
+import { Category } from '@prisma/client'
 import { ApiMethod } from '@types'
-import * as Yup from 'yup'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 type Data = {
@@ -20,7 +19,8 @@ export default async function handler(
         const data = await prismaClient.category.findMany()
         return res.status(200).json({ data, message: "Get category success" })
       } catch (error: any) {
-        return res.status(401).json({ message: error.message || "Unknow error" })
+        console.log("CATEGORY", error)
+        return res.status(400).json({ message: error.message || "Unknow error" })
       }
 
     default:

@@ -1,11 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  async header() {
+  async headers() {
     return [
       {
-        source: "/:path*",
-        headers: securityHeaders,
+        source: "/_next/:path*",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "https://furniture-website-pi.vercel.app",
+          },
+        ],
       },
     ];
   },

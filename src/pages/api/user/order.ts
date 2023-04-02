@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient';
 import { isUUID, isValidNum, isValidStatus } from '@/libs/schemaValitdate';
-import { Status } from '@prisma/client';
+import { Product, Status } from '@prisma/client';
 import { ApiMethod } from '@types';
 import { GetColorName } from 'hex-color-to-color-name';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -75,16 +75,15 @@ export async function getUserOrders(userId: string, take: number | undefined, sk
  * @return OrderedItem[]
  */
 export async function getOrderedProducts(orderId: string) {
+
     const data = await prismaClient.orderItem.findMany({
         where: { orderId },
-        include: {
-            product: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            }
-        }
+    })
+
+    const productIds = data.map(i => i.productId)
+
+    const productDetails = await prismaClient.product.findMany({
+        where: { id: { in: productIds } }
     })
 
     const responseData: OrderedItem[] = data.map(product => ({
@@ -93,7 +92,7 @@ export async function getOrderedProducts(orderId: string) {
         totalQuantities: product.quantities,
         colors: product.color as Array<{ id: string, quantities: number }>,
         orderId: product.orderId,
-        name: product.product.name,
+        name: productDetails.find(i => i.id === product.id)?.name || "Unknown",
     }))
 
     return responseData

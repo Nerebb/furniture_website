@@ -105,11 +105,15 @@ CREATE TABLE `Product` (
     `id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(20) NOT NULL,
     `description` TEXT NULL,
-    `price` INTEGER NULL DEFAULT 0,
-    `available` INTEGER NULL DEFAULT 0,
-    `JsonColor` JSON NULL,
+    `price` INTEGER NOT NULL DEFAULT 0,
+    `available` INTEGER NOT NULL DEFAULT 0,
+    `JsonColor` JSON NOT NULL,
     `isFeatureProduct` BOOLEAN NOT NULL DEFAULT false,
     `creatorId` VARCHAR(191) NOT NULL,
+    `avgRating` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    `totalSale` INTEGER UNSIGNED NOT NULL DEFAULT 0,
+    `totalRating` INTEGER UNSIGNED NOT NULL DEFAULT 0,
+    `totalComments` INTEGER UNSIGNED NOT NULL DEFAULT 0,
     `deleted` DATETIME(3) NULL,
     `createdDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
@@ -144,6 +148,27 @@ CREATE TABLE `Wishlist` (
     `ownerId` VARCHAR(191) NOT NULL,
 
     UNIQUE INDEX `Wishlist_ownerId_key`(`ownerId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ShoppingCart` (
+    `id` VARCHAR(191) NOT NULL,
+    `ownerId` VARCHAR(191) NOT NULL,
+    `subTotal` BIGINT NOT NULL,
+
+    UNIQUE INDEX `ShoppingCart_ownerId_key`(`ownerId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ShoppingCartItem` (
+    `id` VARCHAR(191) NOT NULL,
+    `ShoppingCartId` VARCHAR(191) NOT NULL,
+    `color` VARCHAR(191) NOT NULL,
+    `quantities` SMALLINT NOT NULL,
+    `productId` VARCHAR(191) NOT NULL,
+
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -247,13 +272,19 @@ ALTER TABLE `ProductRating` ADD CONSTRAINT `ProductRating_ownerId_fkey` FOREIGN 
 ALTER TABLE `Wishlist` ADD CONSTRAINT `Wishlist_ownerId_fkey` FOREIGN KEY (`ownerId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `ShoppingCart` ADD CONSTRAINT `ShoppingCart_ownerId_fkey` FOREIGN KEY (`ownerId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ShoppingCartItem` ADD CONSTRAINT `ShoppingCartItem_ShoppingCartId_fkey` FOREIGN KEY (`ShoppingCartId`) REFERENCES `ShoppingCart`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ShoppingCartItem` ADD CONSTRAINT `ShoppingCartItem_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `Order` ADD CONSTRAINT `Order_ownerId_fkey` FOREIGN KEY (`ownerId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `OrderItem` ADD CONSTRAINT `OrderItem_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `OrderItem` ADD CONSTRAINT `OrderItem_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `OrderItem` ADD CONSTRAINT `OrderItem_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_CategoryToProduct` ADD CONSTRAINT `_CategoryToProduct_A_fkey` FOREIGN KEY (`A`) REFERENCES `Category`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
