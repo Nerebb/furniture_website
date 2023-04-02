@@ -7,34 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Color {
-  hex   String @id @db.VarChar(6)
-  label String
-}
-
-model Category {
-  id       Int       @id @default(autoincrement())
-  label    String    @unique @db.VarChar(20)
-  products Product[] @relation("CategoryToProduct")
-}
-
-model Room {
-  id       Int       @id @default(autoincrement())
-  label    String    @unique @db.VarChar(20)
-  products Product[] @relation("ProductToRoom")
-}
-
-model MediaGallery {
-  id       Int       @id @default(autoincrement())
-  imageUrl String    @unique @db.VarChar(255)
-  products Product[] @relation("MediaGalleryToProduct")
-}
-
-model Account {
-  id                String  @id @default(uuid())
+model account {
+  id                String  @id
   userId            String
   type              String
-  loginId           String? @unique
+  loginId           String? @unique(map: "Account_loginId_key")
   password          String?
   provider          String
   providerAccountId String
@@ -45,60 +22,63 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              user    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Account_userId_fkey")
 
-  @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId], map: "Account_provider_providerAccountId_key")
   @@index([userId], map: "Account_userId_fkey")
 }
 
-model User {
-  id             String           @id @default(uuid())
-  address        String?
-  nickName       String?          @unique
-  role           Role             @default(customer)
-  gender         Gender           @default(others)
-  phoneNumber    String?          @unique
-  birthDay       DateTime?        @db.Date
-  createdDate    DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  userVerified   DateTime?
-  deleted        DateTime?
-  name           String?
-  email          String?          @unique
-  emailVerified  DateTime?
-  image          String?
-  accounts       Account[]
-  carts          Order[]
-  writedContents Product[]        @relation("writedContent")
-  comments       ProductComment[] @relation("userComments")
-  productsRated  ProductRating[]  @relation("userRated")
-  sessions       Session[]
-  shoppingCart   ShoppingCart?
-  wishlist       Wishlist?
-  commentsliked  ProductComment[] @relation("usersLiked")
+model category {
+  id      Int       @id @default(autoincrement())
+  label   String    @unique(map: "Category_label_key") @db.VarChar(20)
+  product product[] @relation("categorytoproduct")
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
+model color {
+  hex   String @id @db.VarChar(6)
+  label String
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId], map: "Session_userId_fkey")
+model mediagallery {
+  id       Int       @id @default(autoincrement())
+  imageUrl String    @unique(map: "MediaGallery_imageUrl_key") @db.VarChar(255)
+  product  product[] @relation("mediagallerytoproduct")
 }
 
-model Product {
-  id               String             @id @default(uuid())
-  name             String             @unique @db.VarChar(20)
+model order {
+  id              String       @id
+  subTotal        BigInt
+  shippingFee     Int
+  total           BigInt
+  billingAddress  String       @db.VarChar(255)
+  shippingAddress String       @db.VarChar(255)
+  status          order_status @default(pendingPayment)
+  ownerId         String
+  createdDate     DateTime     @default(now())
+  updatedAt       DateTime
+  user            user         @relation(fields: [ownerId], references: [id], map: "Order_ownerId_fkey")
+  orderitem       orderitem[]
+
+  @@index([ownerId], map: "Order_ownerId_fkey")
+}
+
+model orderitem {
+  id          String   @id
+  salePrice   Int
+  quantities  Int      @db.SmallInt
+  color       Json?
+  orderId     String
+  productId   String
+  createdDate DateTime @default(now())
+  updatedAt   DateTime
+  order       order    @relation(fields: [orderId], references: [id], map: "OrderItem_orderId_fkey")
+
+  @@index([orderId], map: "OrderItem_orderId_fkey")
+}
+
+model product {
+  id               String             @id
+  name             String             @unique(map: "Product_name_key") @db.VarChar(20)
   description      String?            @db.Text
   price            Int                @default(0)
   available        Int                @default(0)
@@ -111,120 +91,137 @@ model Product {
   totalComments    Int                @default(0) @db.UnsignedInt
   deleted          DateTime?
   createdDate      DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  OrderItems       OrderItem[]        @relation("productId")
-  creator          User               @relation("writedContent", fields: [creatorId], references: [id])
-  comments         ProductComment[]   @relation("productComment")
-  ratings          ProductRating[]    @relation("productRated")
-  shoppingCartItem ShoppingCartItem[]
-  category         Category[]         @relation("CategoryToProduct")
-  image            MediaGallery[]     @relation("MediaGalleryToProduct")
-  room             Room[]             @relation("ProductToRoom")
-  wishlists        Wishlist[]         @relation("ProductToWishlist")
+  updatedAt        DateTime
+  user             user               @relation(fields: [creatorId], references: [id], map: "Product_creatorId_fkey")
+  productcomment   productcomment[]
+  productrating    productrating[]
+  shoppingcartitem shoppingcartitem[]
+  category         category[]         @relation("categorytoproduct")
+  mediagallery     mediagallery[]     @relation("mediagallerytoproduct")
+  room             room[]             @relation("producttoroom")
+  wishlist         wishlist[]         @relation("producttowishlist")
 
   @@index([creatorId], map: "Product_creatorId_fkey")
 }
 
-model ProductComment {
-  id         String  @id @default(uuid())
-  content    String  @db.Text
-  ownerId    String
-  productId  String
-  owner      User    @relation("userComments", fields: [ownerId], references: [id], onDelete: Cascade)
-  product    Product @relation("productComment", fields: [productId], references: [id])
-  usersLiked User[]  @relation("usersLiked")
+model productcomment {
+  id                                String  @id
+  content                           String  @db.Text
+  ownerId                           String
+  productId                         String
+  user_productcomment_ownerIdTouser user    @relation("productcomment_ownerIdTouser", fields: [ownerId], references: [id], onDelete: Cascade, map: "ProductComment_ownerId_fkey")
+  product                           product @relation(fields: [productId], references: [id], map: "ProductComment_productId_fkey")
+  user_usersliked                   user[]  @relation("usersliked")
 
   @@index([ownerId], map: "ProductComment_ownerId_fkey")
   @@index([productId], map: "ProductComment_productId_fkey")
 }
 
-model ProductRating {
-  id        String  @id @default(uuid())
+model productrating {
+  id        String  @id
   rating    Int     @db.UnsignedTinyInt
   productId String
   ownerId   String
-  owner     User    @relation("userRated", fields: [ownerId], references: [id], onDelete: Cascade)
-  product   Product @relation("productRated", fields: [productId], references: [id])
+  user      user    @relation(fields: [ownerId], references: [id], onDelete: Cascade, map: "ProductRating_ownerId_fkey")
+  product   product @relation(fields: [productId], references: [id], map: "ProductRating_productId_fkey")
 
   @@index([ownerId], map: "ProductRating_ownerId_fkey")
   @@index([productId], map: "ProductRating_productId_fkey")
 }
 
-model Wishlist {
-  id       String    @id @default(uuid())
-  ownerId  String    @unique
-  user     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  products Product[] @relation("ProductToWishlist")
+model room {
+  id      Int       @id @default(autoincrement())
+  label   String    @unique(map: "Room_label_key") @db.VarChar(20)
+  product product[] @relation("producttoroom")
 }
 
-model ShoppingCart {
-  id               String             @id @default(uuid())
-  ownerId          String             @unique
+model session {
+  id           String   @id
+  sessionToken String   @unique(map: "Session_sessionToken_key")
+  userId       String
+  expires      DateTime
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Session_userId_fkey")
+
+  @@index([userId], map: "Session_userId_fkey")
+}
+
+model shoppingcart {
+  id               String             @id
+  ownerId          String             @unique(map: "ShoppingCart_ownerId_key")
   subTotal         BigInt
-  owner            User               @relation(fields: [ownerId], references: [id])
-  shoppingCartItem ShoppingCartItem[]
+  user             user               @relation(fields: [ownerId], references: [id], map: "ShoppingCart_ownerId_fkey")
+  shoppingcartitem shoppingcartitem[]
 }
 
-model ShoppingCartItem {
-  id             String       @id @default(uuid())
+model shoppingcartitem {
+  id             String       @id
   ShoppingCartId String
   color          String
   quantities     Int          @db.SmallInt
   productId      String
-  ShoppingCart   ShoppingCart @relation(fields: [ShoppingCartId], references: [id], onDelete: Cascade)
-  product        Product      @relation(fields: [productId], references: [id])
+  shoppingcart   shoppingcart @relation(fields: [ShoppingCartId], references: [id], onDelete: Cascade, map: "ShoppingCartItem_ShoppingCartId_fkey")
+  product        product      @relation(fields: [productId], references: [id], map: "ShoppingCartItem_productId_fkey")
 
   @@index([ShoppingCartId], map: "ShoppingCartItem_ShoppingCartId_fkey")
   @@index([productId], map: "ShoppingCartItem_productId_fkey")
 }
 
-model Order {
-  id              String      @id @default(uuid())
-  subTotal        BigInt
-  shippingFee     Int
-  total           BigInt
-  billingAddress  String      @db.VarChar(255)
-  shippingAddress String      @db.VarChar(255)
-  status          Status      @default(pendingPayment)
-  ownerId         String
-  createdDate     DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  owner           User        @relation(fields: [ownerId], references: [id])
-  orderedProducts OrderItem[]
-
-  @@index([ownerId], map: "Order_ownerId_fkey")
+model user {
+  id                                          String           @id
+  address                                     String?
+  nickName                                    String?          @unique(map: "User_nickName_key")
+  role                                        user_role        @default(customer)
+  gender                                      user_gender      @default(others)
+  phoneNumber                                 String?          @unique(map: "User_phoneNumber_key")
+  birthDay                                    DateTime?        @db.Date
+  createdDate                                 DateTime         @default(now())
+  updatedAt                                   DateTime
+  userVerified                                DateTime?
+  deleted                                     DateTime?
+  name                                        String?
+  email                                       String?          @unique(map: "User_email_key")
+  emailVerified                               DateTime?
+  image                                       String?
+  account                                     account[]
+  order                                       order[]
+  product                                     product[]
+  productcomment_productcomment_ownerIdTouser productcomment[] @relation("productcomment_ownerIdTouser")
+  productrating                               productrating[]
+  session                                     session[]
+  shoppingcart                                shoppingcart?
+  wishlist                                    wishlist?
+  productcomment_usersliked                   productcomment[] @relation("usersliked")
 }
 
-model OrderItem {
-  id          String   @id @default(uuid())
-  salePrice   Int
-  quantities  Int      @db.SmallInt
-  color       Json?
-  orderId     String
-  productId   String
-  createdDate DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  order       Order    @relation(fields: [orderId], references: [id])
-  product     Product  @relation("productId", fields: [productId], references: [id])
+model verificationtoken {
+  identifier String
+  token      String   @unique(map: "VerificationToken_token_key")
+  expires    DateTime
 
-  @@index([orderId], map: "OrderItem_orderId_fkey")
-  @@index([productId], map: "OrderItem_productId_fkey")
+  @@unique([identifier, token], map: "VerificationToken_identifier_token_key")
 }
 
-enum Gender {
-  male
-  female
-  others
+model wishlist {
+  id      String    @id
+  ownerId String    @unique(map: "Wishlist_ownerId_key")
+  user    user      @relation(fields: [ownerId], references: [id], onDelete: Cascade, map: "Wishlist_ownerId_fkey")
+  product product[] @relation("producttowishlist")
 }
 
-enum Role {
+enum user_role {
   admin
   creator
   customer
   shiper
 }
 
-enum Status {
+enum user_gender {
+  male
+  female
+  others
+}
+
+enum order_status {
   orderCanceled
   pendingPayment
   processingOrder

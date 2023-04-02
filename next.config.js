@@ -2,7 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   async headers() {
-    console.log("Running header");
     return [
       {
         source: "/_next/:path*",

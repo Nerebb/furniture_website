@@ -181,25 +181,16 @@ async function main() {
     const cateDbById = cateDb.map(i => { return { id: i.id } })
     const status = Object.values(Status)
 
-    type testProduct = Omit<Product,
-        | 'createdDate'
-        | 'updatedAt'
-        | 'deleted'
-        | 'wishlistId'
-    > & {
-        JsonColor: Prisma.JsonValue | null
-    }
-
     const generatedDescription = [
         'Looking for a comfortable place to sit? Check out our versatile and stylish Sofa! With a variety of seating options, this piece will have you feeling at home in no time. Whether you\'re watching TV or relaxing with a good book, our Sofa is perfect for any occasion. Plus, its classic style will complement any room in your home.',
         'Mirror is the perfect way to make your bedroom, study or any other space look bigger and more open. With its frameless design and thin profile, it can be mounted on virtually any wall. The elegant silver finish will match any decor, while the simple yet sophisticated design allows you to add personality to your space without taking away from it.',
         'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.'
     ]
 
-    const productPromise: testProduct[] = [];
+    const productDb: Product[] = [];
     for (let i = 0; i < 100; i++) {
         let name = 'testProduct' + generateString(5)
-        while (productPromise.some(i => i.name === name)) {
+        while (productDb.some(i => i.name === name)) {
             name = 'testProduct' + generateString(6)
         }
         const testProduct =
@@ -229,12 +220,11 @@ async function main() {
             }
 
         })
-        productPromise.push(prom)
+        productDb.push(prom)
     }
 
     console.log("Products created")
 
-    const productDb = await Promise.all(productPromise)
     const productDbById = productDb.map(i => { return { id: i.id } })
 
     //wishList
@@ -303,8 +293,11 @@ async function main() {
         })
         ordersProms.push(fakeOrder)
     }
+
     const orderDb = await Promise.all(ordersProms)
+
     const orderItemsDb = await prisma.orderItem.findMany()
+
     console.log("Orders created")
 
 
@@ -369,8 +362,6 @@ async function main() {
     await Promise.all(shoppingCartDb)
 
     console.log("ShoppingCart created")
-
-
 
 
     //Update Product - ratings comments
