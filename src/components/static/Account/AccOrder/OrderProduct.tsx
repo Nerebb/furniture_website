@@ -7,7 +7,7 @@ import { OrderedItem, UserOrder } from '@/pages/api/user/order'
 import { Disclosure, Transition } from '@headlessui/react'
 import { XCircleIcon } from '@heroicons/react/24/outline'
 import { Status } from '@prisma/client'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import classNames from 'classnames'
 import { GetColorName } from 'hex-color-to-color-name'
 import Image from 'next/image'
@@ -18,7 +18,7 @@ import Loading from '../../Loading'
 import OrderDropMenu from './OrderDropMenu'
 
 type Props = {
-    order?: UserOrder
+    order: UserOrder
     productStatus?: boolean
     isLoading?: boolean
 }
@@ -54,21 +54,35 @@ function OrderedItems({ product }: { product: OrderedItem }) {
 export default function OrderProduct({ order, isLoading = true, productStatus = true }: Props) {
     const [loadMore, setLoadMore] = useState<boolean>(false)
 
-    const statusIdx = useMemo(() => {
-        const idx = status.findIndex(i => i.id === order?.status)
-        if (idx > -1) return idx
-        return 0
-    }, [order?.status])
-
-    const { data: orderedProducts, isLoading: orderedIsLoading, isError } = useQuery({
-        queryKey: ['orderedProducts', order?.id],
-        queryFn: () => axios.getOrderedProducts(order?.id as string),
-        enabled: !!order?.id && loadMore
+    const { mutate } = useMutation({
+        mutationKey: ['OrderProduct'],
+        mutationFn: () => axios.cancelUserOrder(order.id),
+        onSuccess: (data) => toast.success(data.message)
     })
 
-    const disableCancleButton = () => {
-        if (order?.status === 'completed' || order?.status === 'orderCanceled' || order?.status === 'shipping') return true
+    const statusIdx = useMemo(() => {
+        const idx = status.findIndex(i => i.id === order.status)
+        if (idx > -1) return idx
+        return 0
+    }, [order.status])
+
+    const { data: orderedProducts, isLoading: orderedIsLoading, isError } = useQuery({
+        queryKey: ['orderedProducts', order.id],
+        queryFn: () => axios.getOrderedProducts(order.id),
+        enabled: loadMore
+    })
+
+    const disableButton = () => {
+        if (
+            order.status === 'completed'
+            || order.status === 'orderCanceled'
+            || order.status === 'shipping'
+        ) return true
         return false
+    }
+
+    const handleCancelOrder = () => {
+        mutate()
     }
 
     if (isError) toast.error("Cannot get products of current order - please try again")
@@ -88,7 +102,7 @@ export default function OrderProduct({ order, isLoading = true, productStatus = 
                 <>
                     {/* DropMenu */}
                     <div className='hidden right-3 top-2.5 group-hover:block group-hover:absolute'>
-                        <OrderDropMenu orderId={order?.id || ''} setLoadMore={setLoadMore} disable={disableCancleButton()} />
+                        <OrderDropMenu orderId={order.id} setLoadMore={setLoadMore} disable={disableButton()} />
                     </div>
 
                     <dl className={classNames(
@@ -142,7 +156,13 @@ export default function OrderProduct({ order, isLoading = true, productStatus = 
 
                                 <dd className='flex space-x-5'>
                                     <Button text='More detail' variant='fill' modifier='py-1 w-[120px]' glowModify='noAnimation' onClick={() => setLoadMore(true)} />
-                                    <Button text={disableCancleButton() ? 'Cannot cancel' : 'Cancel Order'} variant='outline' modifier='py-1 w-[120px]' glowModify='noAnimation' disabled={disableCancleButton()} />
+                                    <Button
+                                        text={disableButton() ? 'Cannot cancel' : 'Cancel Order'}
+                                        variant='outline' modifier='py-1 w-[120px]'
+                                        glowModify='noAnimation'
+                                        disabled={disableButton()}
+                                        onClick={handleCancelOrder}
+                                    />
                                 </dd>
                             </Transition>
                         </aside>
@@ -185,7 +205,9 @@ export default function OrderProduct({ order, isLoading = true, productStatus = 
                                 <span key={i.id} className={classNames(
                                     "cursor-pointer",
                                     { "text-priBlue-500": idx <= statusIdx }
-                                )}>{i.label}</span>
+                                )}>
+                                    {i.label}
+                                </span>
                             ))}
                         </dt>
                     </article>

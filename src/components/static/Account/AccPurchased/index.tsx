@@ -21,6 +21,7 @@ export default function AccPurchased() {
 
     //AG-GRID
     const [rowData, setRowData] = useState<UserOrder[]>();
+    console.log("🚀 ~ file: index.tsx:24 ~ AccPurchased ~ rowData:", rowData)
     const gridRef = useRef<AgGridReact<UserOrder>>(null);
 
     const { data: userOrder, isLoading, isError } = useQuery({
@@ -77,9 +78,6 @@ export default function AccPurchased() {
         return {
             sortable: true,
             editable: false,
-            // enable floating filters by default
-            // floatingFilter: true,
-            // make columns resizable
             resizable: true,
         };
     }, []);

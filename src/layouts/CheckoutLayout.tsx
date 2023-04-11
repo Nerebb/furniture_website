@@ -24,9 +24,9 @@ export function CheckoutLayout({ tabTitle, tabDescription, rightSide, leftSide }
             </Head>
             <Container >
                 <CheckoutHeader />
-                <div className='grid grid-cols-2'>
-                    <div >{leftSide}</div>
-                    <div >{rightSide}</div>
+                <div className='grid grid-cols-2 p-5'>
+                    <Fragment >{leftSide}</Fragment>
+                    <Fragment >{rightSide}</Fragment>
                 </div>
                 <div className='grow'></div>
                 <MainFooter />

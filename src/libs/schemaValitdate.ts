@@ -1,16 +1,17 @@
-import { ProductSearch } from '@/pages/api/products'
 import { Gender, Status } from '@prisma/client'
 import * as Yup from 'yup'
-const phoneRegExp = /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/
+import dateFormat from './utils/dateFormat'
+
+export const phoneRegExp = /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/
 
 export const UserSchemaValidate = {
     name: Yup.string().lowercase().max(100, 'Must lesser than 100 characters').required("Name required"),
-    nickName: Yup.string().lowercase().max(50, "Must lesser than 10 characters").required('Nickname required'),
-    address: Yup.string().lowercase().max(50, "Must lesser than 10 characters").required('Address required'),
+    nickName: Yup.string().lowercase().max(50, "Must lesser than 10 characters"),
+    address: Yup.string().lowercase().max(255).required('Address required'),
     email: Yup.string().email().typeError("Invalid email").required('Email required'),
-    gender: Yup.string().lowercase().oneOf(Object.values(Gender), "Invalid gender"),
-    phoneNumber: Yup.string().matches(phoneRegExp, "Invalid phone number").required("PhoneNumber required"),
-    birthDay: Yup.date().typeError("Invalid date"),
+    gender: Yup.string().oneOf(Object.values(Gender), "Invalid gender").required(),
+    phoneNumber: Yup.string().required("Phone number required"),
+    birthDay: Yup.date().max(new Date()).typeError("Invalid date")
 }
 
 export const RegisterSchemaValidate = {
@@ -29,7 +30,7 @@ export const isUUID: Yup.StringSchema<string> =
     Yup.string().uuid('BAD REQUEST - Invalid Object ID').required('Object ID not found')
 
 export const isValidNum: Yup.NumberSchema<number | undefined> =
-    Yup.number().integer().moreThan(-1, "Filters must be greater than -1")
+    Yup.number().integer().moreThan(-1)
 
 export const isValidStatus: Yup.StringSchema<Status | undefined> =
     Yup.string().oneOf(Object.values(Status))
@@ -63,19 +64,42 @@ export const ProductCreateSchemaValidate = {
 }
 
 export const ShoppingCartUpdateSchemaValidate = {
-    cartItemId: Yup.string().uuid("Invalid cartItemId").required("cartItemId required"),
+    cartItemId: Yup.string().uuid().required(),
     color: Yup.string().max(7, "Color must be hex type"),
     quantities: Yup.number().typeError("Invalid quanitities").moreThan(0)
 }
 
 export const ShoppingCartCreateSchemaValidate = {
-    productId: Yup.string().uuid("Invalid cartItemId").required("cartItemId required"),
-    color: Yup.string().max(7, "Color must be hex type").required("Color is missing"),
-    quantities: Yup.number().moreThan(0)
+    productId: Yup.string().uuid().required(),
+    color: Yup.string().max(7, "Color must be hex type").required(),
+    quantities: Yup.number().moreThan(0).required()
 }
 
 export const ShoppingCartDeleteSchemaValidate = {
-    cartItemId: Yup.string().uuid("Invalid cartItemId").required("cartItemId required")
+    cartItemId: Yup.string().uuid().required()
+}
+
+export const UserOrderSchemaValidate = {
+    orderId: Yup.string().uuid("Invalid orderId"),
+    limit: ProductSearchSchemaValidate.limit,
+    skip: ProductSearchSchemaValidate.skip,
+    status: isValidStatus
+}
+
+export const NewOrderSchemaValidate = {
+    subTotal: isValidNum.required(),
+    total: isValidNum.required(),
+    billingAddress: Yup.string().max(255).required(),
+    shippingAddress: Yup.string().max(255).required(),
+    orderItems: Yup.array().of(Yup.object(ShoppingCartCreateSchemaValidate)).required()
+}
+
+export const CheckoutFormSchemaValidate = {
+    name: UserSchemaValidate.name,
+    phoneNumber: UserSchemaValidate.phoneNumber,
+    email: UserSchemaValidate.email,
+    billingAddress: NewOrderSchemaValidate.billingAddress,
+    shippingAddress: NewOrderSchemaValidate.shippingAddress,
 }
 
 //Shorten Validations

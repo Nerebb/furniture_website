@@ -1,6 +1,7 @@
 import AssignForm from '@/components/form/AssignForm'
 import AccDropMenu from '@/components/static/Account/AccDropMenu'
 import SearchBox from '@/components/static/SearchBox'
+import ShoppingCart from '@/components/static/ShoppingCart'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -20,7 +21,7 @@ export default function MainHeader() {
             <nav className="RightHeaderNav flex-1 flex justify-end items-center w-auto">
                 <SearchBox />
                 <div className='mr-3'>
-                    {/* <ShoppingCart /> */}
+                    <ShoppingCart />
                 </div>
                 <p className="stash mr-3">|</p>
                 {session ? (

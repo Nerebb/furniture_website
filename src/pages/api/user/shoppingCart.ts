@@ -262,14 +262,14 @@ export default async function handler(
                 const data = await getShoppingCart(userId as string)
                 return res.status(200).json({ data, message: "Get shoppingcart product success" })
             } catch (error: any) {
-                return res.status(406).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.PUT:
             try {
                 await createShoppingCart(userId as string, req)
                 return res.status(200).json({ message: "Create/Add to cart success" })
             } catch (error: any) {
-                return res.status(406).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.POST:
             try {
@@ -277,14 +277,14 @@ export default async function handler(
                 return res.status(200).json({ message: "Update product completed" })
             } catch (error: any) {
                 console.log("🚀 ~ file: shoppingCart.ts:144 ~ error:", error)
-                return res.status(406).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.DELETE:
             try {
                 await deleteShoppingCart(userId as string, req)
                 return res.status(200).json({ message: "Product has been removed from cart" })
             } catch (error: any) {
-                return res.status(406).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         default:
             return res.status(405).json({ message: "Invalid request method" })

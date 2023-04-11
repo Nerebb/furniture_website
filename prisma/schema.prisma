@@ -100,7 +100,7 @@ model User {
   role        Role      @default(customer)
   gender      Gender    @default(others)
   phoneNumber String?   @unique
-  birthDay    DateTime? @db.Date
+  birthDay    DateTime? @db.Date //yyyy-MM-dd
   createdDate DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -280,7 +280,7 @@ model OrderItem {
   //Stored to kept info
   salePrice  Int
   quantities Int   @db.SmallInt
-  color      Json? //{hex,quantities}[]
+  color      Json? //{id,quantities}[]
 
   //relation
   order     Order  @relation(fields: [orderId], references: [id])

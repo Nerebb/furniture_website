@@ -2,6 +2,8 @@ import { Dialog, Transition } from '@headlessui/react'
 import classNames from 'classnames'
 import { Fragment, ReactNode, useMemo, useState } from 'react'
 import Button, { ButtonProps } from './Button'
+import Loading from './static/Loading'
+import { toast } from 'react-toastify'
 
 
 type Props = {
@@ -11,10 +13,30 @@ type Props = {
     btnProps?: ButtonProps
     keepOpen?: boolean
     children?: ReactNode
+    title?: string
+    content?: string
+    dialogBtnText?: {
+        accept: string,
+        refuse: string,
+    }
+    isLoading?: boolean,
+    acceptCallback?: (param?: any) => Promise<void>,
+    refuseCallback?: (param?: any) => Promise<void>
 }
 
-const Modal = ({ type = 'default', btnProps, keepOpen = false, children }: Props) => {
-    const [isOpen, setIsOpen] = useState(keepOpen ? true : false)
+const Modal = ({
+    type = 'default',
+    btnProps,
+    keepOpen = false,
+    children,
+    title,
+    content,
+    dialogBtnText,
+    isLoading,
+    acceptCallback,
+    refuseCallback,
+}: Props) => {
+    const [isOpen, setIsOpen] = useState(keepOpen)
 
     const ContentTransition = useMemo(() => {
         switch (type) {
@@ -42,6 +64,24 @@ const Modal = ({ type = 'default', btnProps, keepOpen = false, children }: Props
     function closeModal() {
         if (keepOpen) return
         setIsOpen(false)
+    }
+
+    async function handleAccept() {
+        try {
+            if (acceptCallback) await acceptCallback()
+            setIsOpen(false)
+        } catch (error: any) {
+            toast.error(error.message || "Cannot accept - Something went wrong!!!")
+        }
+    }
+
+    async function handleRefuse() {
+        try {
+            if (refuseCallback) await refuseCallback()
+            setIsOpen(false)
+        } catch (error: any) {
+            toast.error(error.message || "Cannot accept - Something went wrong!!!")
+        }
     }
 
     function openModal() {
@@ -81,28 +121,39 @@ const Modal = ({ type = 'default', btnProps, keepOpen = false, children }: Props
                                 {...ContentTransition}
                             >
                                 {children ? children : (
-                                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p- text-left align-middle shadow-xl transition-all">
+                                    <Dialog.Panel className="p-5 w-full max-w-md transform overflow-hidden rounded-2xl bg-white p- text-left align-middle shadow-xl transition-all">
                                         <Dialog.Title
                                             as="h3"
                                             className="text-lg font-medium leading-6 text-gray-900"
                                         >
-                                            Payment successful
+                                            {title ?? "Payment successful"}
                                         </Dialog.Title>
                                         <div className="mt-2">
                                             <p className="text-sm text-gray-500">
-                                                Your payment has been successfully submitted. We’ve sent
-                                                you an email with all of the details of your order.
+                                                {content ?? "Your payment has been successfully submitted. We’ve sent you an email with all of the details of your order."}
                                             </p>
                                         </div>
 
-                                        <div className="mt-4">
-                                            <button
-                                                type="button"
-                                                className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                                                onClick={closeModal}
+                                        <div className="mt-4 space-x-5 flex">
+                                            <Button
+                                                text={isLoading ? ("") : (dialogBtnText?.accept ?? "Accept")}
+                                                onClick={handleAccept}
+                                                modifier='w-full max-w-md px-5 py-1 flex-center whitespace-nowrap'
+                                                variant='fill'
+                                                glowModify='noAnimation'
+                                                disabled={isLoading}
                                             >
-                                                Got it, thanks!
-                                            </button>
+                                                {isLoading &&
+                                                    <Loading className='w-6 h-6 text-priBlack-200/50 fill-priBlue-500' />
+                                                }
+                                            </Button>
+                                            <Button
+                                                text={dialogBtnText?.refuse ?? "Refuse"}
+                                                onClick={handleRefuse}
+                                                modifier='w-full max-w-md px-5 border-red-500 border py-1 whitespace-nowrap'
+                                                variant='plain'
+                                                glowModify='noAnimation'
+                                            />
                                         </div>
                                     </Dialog.Panel>
                                 )}

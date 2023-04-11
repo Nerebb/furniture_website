@@ -4,7 +4,7 @@ import { ApiMethod } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 type Data = {
-    data?: { id: number, name: string }[]
+    data?: { id: number, label: string }[]
     message: string
 }
 
@@ -16,8 +16,8 @@ export default async function handler(
         case ApiMethod.GET:
             try {
                 const data = await prismaClient.room.findMany()
-                const resData = data.map(i => ({ id: i.id, name: i.label }))
-                return res.status(200).json({ data: resData, message: "Get rooms success" })
+                // const resData = data.map(i => ({ id: i.id, name: i.label }))
+                return res.status(200).json({ data, message: "Get rooms success" })
             } catch (error: any) {
                 return res.status(401).json({ message: error.message || "Unknow error" })
             }

@@ -207,7 +207,7 @@ export default async function handler(
                 const data = await getProductById(productId as string)
                 return res.status(200).json({ data, message: 'Get product by id success' })
             } catch (error: any) {
-                return res.status(406).json({ message: error.name })
+                return res.status(400).json({ message: error.name })
             }
         case ApiMethod.PUT:
             try {
@@ -216,20 +216,20 @@ export default async function handler(
                 const data = await getProductById(productId as string)
                 return res.status(200).json({ data, message: 'Product has been updated' })
             } catch (error: any) {
-                return res.status(406).json({ message: error.message })
+                return res.status(400).json({ message: error.message })
             }
         case ApiMethod.DELETE:
             try {
                 await deleteProductById({ userRole, productId: productId as string })
                 return res.status(200).json({ message: 'Product has been deleted' })
             } catch (error: any) {
-                return res.status(406).json({ message: error.message })
+                return res.status(400).json({ message: error.message })
             }
         case ApiMethod.POST:
             try {
                 await createProduct({ userId, userRole, req })
             } catch (error: any) {
-                return res.status(406).json({ message: error.message })
+                return res.status(400).json({ message: error.message })
             }
         default:
             return res.status(500).json({ message: 'BAD REQUEST' })

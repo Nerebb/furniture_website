@@ -15,7 +15,7 @@ import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { GetColorName } from 'hex-color-to-color-name';
 import { useRouter } from 'next/router';
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 
 type Props = {
@@ -31,15 +31,44 @@ export default function ProductDetailPage({ }: Props) {
     const { productId } = router.query;
     const queryClient = useQueryClient()
 
-    const { mutate, error: mutateError } = useMutation({
+    const userWishist = useQuery({
+        queryKey: ['UserWishlist'],
+        queryFn: () => axios.getWishList()
+    })
+
+    useEffect(() => {
+        if (!userWishist.data) return setIsWishlist(false)
+        if (userWishist.data.some(i => i.id === productId)) return setIsWishlist(true)
+    }, [userWishist.data, productId])
+
+    const { mutate: mutateAddToWishlist } = useMutation({
+        mutationKey: ['UserWishlist'],
+        mutationFn: (productId: string) => axios.addToWishList(productId),
+        onSuccess: (data) => {
+            toast.success(data.message)
+            setIsWishlist(true)
+        }
+    })
+
+    const { mutate: mutateRemoveFromWishlist } = useMutation({
+        mutationKey: ['UserWishlist'],
+        mutationFn: (productId: string) => axios.deleteWishlistProduct(productId),
+        onError: (error: any) => {
+            toast.error(error.message)
+        },
+        onSuccess: (data) => {
+            toast.info(data.message)
+            setIsWishlist(false)
+        }
+    })
+
+    const { mutate: mutateShoppingCart, isLoading: isLoadingShoppingCart } = useMutation({
         mutationKey: ['ShoppingCart'],
         mutationFn: ({ color, quantities }: { color: string, quantities?: number }) => axios.addToShoppingCart(productId as string, color, quantities),
         onSuccess: () => {
             queryClient.invalidateQueries()
         }
     })
-
-    if (mutateError) console.log("mutateError", mutateError)
 
     const { data: product, isLoading, isError } = useQuery({
         queryKey: ['ProductDetail', productId],
@@ -71,11 +100,12 @@ export default function ProductDetailPage({ }: Props) {
     if (isError) toast.error("Something went wrong!, please refesh the page")
 
     function handleAddToCart() {
+        setError("")
         if (!selectedColor) return setError("Please select provided color")
         if (!selectedQty || selectedQty < 0) return setError("Quantities is missing")
         if (product?.available && selectedQty > product?.available) return setError("Product stock not meet requirements")
 
-        mutate({ color: selectedColor, quantities: selectedQty }, {
+        mutateShoppingCart({ color: selectedColor, quantities: selectedQty }, {
             onError: (error: any) => {
                 toast.error(error)
             },
@@ -90,9 +120,10 @@ export default function ProductDetailPage({ }: Props) {
         })
     }
 
-    async function handleAddToWishList(productId?: string) {
-        if (!productId) return
-        queryClient.fetchQuery(['AddToWishList', productId], () => axios.addToWishList(productId))
+    async function updateUserWishlist() {
+        if (!productId || typeof productId !== 'string') return toast.error("Invalid Product")
+        if (!isWishlist) return mutateAddToWishlist(productId)
+        if (isWishlist) return mutateRemoveFromWishlist(productId)
     }
 
     return (
@@ -114,9 +145,12 @@ export default function ProductDetailPage({ }: Props) {
                     <aside className='flex flex-col w-1/2 pl-5 py-5 border-l space-y-8'>
                         <div className='flex items-center justify-between'>
                             <h1 className="text-[32px] font-bold first-letter:capitalize">{product.name}</h1>
-                            <button onClick={() => handleAddToWishList(productId as string)}>
-                                <HeartIconOutline className='w-12 h-12 text-priBlack-50 hover:text-priBlue-300' />
-                                <HeartIconSolid className='w-12 h-12 text-priBlue-300 hover:text-priBlack-50' />
+                            <button onClick={updateUserWishlist}>
+                                {isWishlist ? (
+                                    <HeartIconSolid className='w-12 h-12 text-priBlue-300 hover:text-priBlack-50' />
+                                ) : (
+                                    <HeartIconOutline className='w-12 h-12 text-priBlack-50 hover:text-priBlue-300' />
+                                )}
                             </button>
                         </div>
 
@@ -168,7 +202,18 @@ export default function ProductDetailPage({ }: Props) {
 
                         <div className="flex space-x-5">
                             <Button text='Buy now' variant='outline' modifier='w-[150px] py-1.5 font-semibold' />
-                            <Button text='Add to cart' variant='fill' modifier='w-[150px] py-1.5 font-semibold' onClick={handleAddToCart} />
+                            <Button
+                                text={isLoadingShoppingCart ? "" : 'Add to cart'}
+                                variant='fill'
+                                modifier='w-[150px] py-1.5 font-semibold'
+                                onClick={handleAddToCart}
+                            >
+                                {isLoadingShoppingCart &&
+                                    <div className='flex-center w-full'>
+                                        <Loading className='w-6 h-6' />
+                                    </div>
+                                }
+                            </Button>
                         </div>
 
                         {error &&

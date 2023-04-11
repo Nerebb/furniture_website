@@ -1,69 +1,21 @@
 import axios from '@/libs/axiosApi'
 import { fCurrency } from '@/libs/utils/numberal'
-import { shoppingCartItem } from '@/pages/api/user/shoppingCart'
 import { Dialog } from '@headlessui/react'
 import { ShoppingCartIcon } from '@heroicons/react/24/outline'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { GetColorName } from 'hex-color-to-color-name'
-import Image from 'next/image'
-import React, { useState } from 'react'
+import { useRouter } from 'next/router'
 import Button from '../Button'
-import Chip from '../Chip'
 import Modal from '../Modal'
-import ImageLost from './ImageLost'
 import Loading from './Loading'
-import { StarRating } from './StarRating'
+import ShoppingItem from './ShoppingItem'
 
 type Props = {
   keepOpen?: boolean
 }
 
-// Input component
-function QtyInput({ ...product }: shoppingCartItem) {
-  const [itemQty, setItemQty] = useState<number>(product.quantities)
-
-  const [error, setError] = useState<string>()
-
-  const queryClient = useQueryClient()
-
-  const { mutate } = useMutation({
-    mutationKey: ['ShoppingCart'],
-    mutationFn: (newQty: number) => axios.updateShoppingCart(product.id, undefined, newQty),
-    onSuccess: () => {
-      queryClient.invalidateQueries()
-    }
-  })
-
-  async function handleOnChange(e: React.ChangeEvent<HTMLInputElement>) {
-    //Debounce
-    const value = parseInt(e.target.value)
-    setItemQty(value)
-    if (value > product.available) {
-      setError("Product stock not meet requirements")
-      return
-    } else {
-      setError(undefined)
-      await new Promise(r => setTimeout(r, 2000)); // Debounce
-      mutate(value)
-    }
-  }
-
-  return <label htmlFor={product.id} className="space-x-2">
-    <p className='text-red-500 first-letter:capitalize'>{error || ""}</p>
-    Qty:
-    <input
-      id={product.id}
-      className="border-none rounded-md focus:outline-none focus:ring-priBlue-500 p-1"
-      type='number'
-      inputMode="numeric"
-      value={itemQty}
-      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleOnChange(e)}
-    />
-  </label>
-}
-
 export default function ShoppingCart({ keepOpen = false }: Props) {
   const queryClient = useQueryClient()
+  const router = useRouter()
   const { data: Cart, isLoading, isError, isFetching } = useQuery({
     queryKey: ['ShoppingCart'],
     queryFn: () => axios.getShoppingCart()
@@ -113,47 +65,19 @@ export default function ShoppingCart({ keepOpen = false }: Props) {
               <Loading />
             </div>
           }
-          {Cart?.shoppingCartItem && Cart?.shoppingCartItem.map(product => (
-            <aside
-              key={product.id}
-              className='grid grid-cols-4 space-x-5 py-5'
-            >
-              <div className='w-full relative aspect-square'>
-                {product.imageUrl ? (
-                  <Image
-                    alt=''
-                    className='rounded-xl border border-priBlack-200/50'
-                    src={product.imageUrl[0]}
-                    sizes="(max-width:1000px): 100vw"
-                    fill
-                  />
-                ) : (
-                  <ImageLost />
-                )}
-              </div>
-              <div className='col-span-2 flex flex-col'>
-                <h1 className='font-semibold first-letter:capitalize'>{product.name}</h1>
-
-                <div>
-                  <Chip label={GetColorName(product.color)} color={product.color} />
-                </div>
-
-                <div className='flex space-x-2'>
-                  <StarRating ProductRating={product.avgRating} />
-                  <div className='text-gray-500'>{`(${product.totalRating})`}</div>
-                </div>
-
-                <p className='text-gray-500'>OnStock: {product.available}</p>
-                <p className='grow'></p>
-                <QtyInput {...product} />
-              </div>
-              <div className='items-end flex flex-col'>
-                <h1 className='font-semibold'>{fCurrency(product.price)}</h1>
-                <p className='grow'></p>
-                <Button text='Remove' variant='outline' glowEffect={false} onClick={() => handleRemoveProduct(product.id)} />
-              </div>
-            </aside>
-          ))}
+          {Cart && Cart.shoppingCartItem ? Cart.shoppingCartItem.map(product => (
+            <ShoppingItem key={product.id} {...product} />
+          )) : !isLoading && (
+            <div className='w-full text-center mt-5'>
+              <h1 className='text-xl'>No product found</h1>
+              <button
+                className='underline text-priBlue-500'
+                onClick={() => router.push('/products')}
+              >
+                Continue shopping
+              </button>
+            </div>
+          )}
         </article>
         <div className='grow'></div>
 

@@ -9,6 +9,9 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import Button from '../Button';
 import Loading from '../static/Loading';
+import { UserSchemaValidate } from '@/libs/schemaValitdate';
+import * as Yup from 'yup'
+import dateFormat from '@/libs/utils/dateFormat';
 
 
 type Props = {
@@ -22,11 +25,14 @@ type userField = {
 
 function UserField({ type = 'text', isEdit, ...props }: userField) {
     const [field, meta] = useField(props.name);
+
     let displayContent: string | undefined;
-    if (type === 'date' && props.content) {
-        displayContent = new Date(props.content as string).toISOString().substring(0, 10)
+    if (type === 'date') {
+        displayContent = dateFormat(meta.value)
+        meta.value = dateFormat(meta.value, 'yyyy-MM-dd') //Actual value type
+        field.value = dateFormat(field.value, 'yyyy-MM-dd') //Showed value
     } else {
-        displayContent = props.content?.toString() || ''
+        displayContent = field.value
     }
 
     return (
@@ -96,27 +102,28 @@ function ProfileForm({ }: Props) {
     )
 
     const profileRow: FormRow[] = [
-        { id: 0, label: "Full name", inputType: 'text', name: 'name', content: userProfile?.name || "" },
-        { id: 1, label: "Nick name", inputType: 'text', name: 'nickName', content: userProfile?.nickName || "" },
-        { id: 2, label: "Address", inputType: 'text', name: 'address', content: userProfile?.address || "" },
-        { id: 3, label: "Gender", inputType: 'select', name: 'gender', content: userProfile?.gender || "" },
-        { id: 4, label: "Phone number", inputType: 'text', name: 'phoneNumber', content: userProfile?.phoneNumber || "" },
-        { id: 5, label: "Birthday", inputType: 'date', name: 'birthDay', content: userProfile?.birthDay || "" },
+        { id: 0, label: "Full name", inputType: 'text', name: 'name', content: userProfile?.name },
+        { id: 1, label: "Nick name", inputType: 'text', name: 'nickName', content: userProfile?.nickName },
+        { id: 2, label: "Email", name: 'email', inputType: 'email', content: userProfile?.email },
+        { id: 3, label: "Address", inputType: 'text', name: 'address', content: userProfile?.address },
+        { id: 4, label: "Gender", inputType: 'select', name: 'gender', content: userProfile?.gender },
+        { id: 5, label: "Phone number", inputType: 'number', name: 'phoneNumber', content: userProfile?.phoneNumber },
+        { id: 6, label: "Birthday", inputType: 'date', name: 'birthDay', content: userProfile?.birthDay },
     ]
 
     const initValue: allowedField = {
-        name: userProfile?.name === (null || undefined) ? '' : userProfile?.name,
-        nickName: userProfile?.nickName === (null || undefined) ? '' : userProfile?.nickName,
-        address: userProfile?.address === (null || undefined) ? '' : userProfile?.address,
+        name: userProfile?.name,
+        nickName: userProfile?.nickName,
+        email: userProfile?.email,
+        address: userProfile?.address,
         gender: userProfile!.gender,
-        phoneNumber: userProfile?.name === (null || undefined) ? '' : userProfile?.phoneNumber,
-        birthDay: userProfile?.birthDay === (null || undefined) ? new Date() : new Date(userProfile.birthDay as Date),
+        phoneNumber: userProfile?.phoneNumber,
+        birthDay: userProfile?.birthDay,
     }
 
     async function handleSubmit(values: allowedField, { setSubmitting, }: FormikHelpers<allowedField>) {
         setSubmitting(true)
         await new Promise(r => setTimeout(r, 500)); //Debounce
-        values.phoneNumber ? values.phoneNumber.toString() : ''
 
         try {
             mutate(values)
@@ -133,7 +140,7 @@ function ProfileForm({ }: Props) {
     return (
         <Formik
             initialValues={initValue}
-            // validationSchema={Yup.object(UserSchemaValidate)}
+            validationSchema={Yup.object(UserSchemaValidate)}
             onSubmit={handleSubmit}
         >
             {({ handleReset, isSubmitting }) => (<Form className={classNames(
@@ -143,10 +150,10 @@ function ProfileForm({ }: Props) {
                 {profileRow?.map((row, idx) => (
                     <UserField
                         key={row.id}
-                        idx={idx}
-                        type={row.inputType}
                         isEdit={isEdit}
+                        idx={idx}
                         id={row.id}
+                        type={row.inputType}
                         label={row.label}
                         content={row.content}
                         name={row.name}

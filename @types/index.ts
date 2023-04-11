@@ -31,7 +31,7 @@ export type UserProfile = {
     role: Role;
     gender: Gender;
     phoneNumber?: string;
-    birthDay?: Date;
+    birthDay?: string;
     name?: string;
     email?: string;
     image?: string;
@@ -64,5 +64,5 @@ export interface FormRow {
     name: string,
 
     inputType?: HTMLInputTypeAttribute,
-    content?: string | number | string[] | Date,
+    content?: string | number | string[] | Date, //Type for deepInspec input type: <FormikSelect/> or <Input> mutate Date type
 }

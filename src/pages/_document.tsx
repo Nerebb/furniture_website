@@ -6,7 +6,7 @@ export default function Document() {
       <Head >
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css"></link>
       </Head>
-      <body>
+      <body className='customScrollbar'>
         <Main />
         <NextScript />
       </body>

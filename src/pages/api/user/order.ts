@@ -1,11 +1,12 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient';
-import { isUUID, isValidNum, isValidStatus } from '@/libs/schemaValitdate';
-import { Product, Status } from '@prisma/client';
+import { NewOrderSchemaValidate, ShoppingCartCreateSchemaValidate, UserOrderSchemaValidate } from '@/libs/schemaValitdate';
+import { Order, OrderItem, Prisma, Status } from '@prisma/client';
 import { ApiMethod } from '@types';
 import { GetColorName } from 'hex-color-to-color-name';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getToken } from 'next-auth/jwt';
+import * as Yup from 'yup';
 
 export type OrderedItem = {
     id: string
@@ -14,6 +15,19 @@ export type OrderedItem = {
     colors: { id: string, quantities: number }[]
     orderId: string
     name: string
+}
+
+export type newOrder = Omit<Order, "createdDate" | "updatedAt" | "id" | "subTotal" | "total" | "shippingFee" | "status">
+    & {
+        subTotal: number
+        total: number
+        orderItems: newOrderItem[]
+    }
+
+export type newOrderItem = {
+    productId: string,
+    color: string,
+    quantities: number
 }
 
 export type UserOrder = {
@@ -40,13 +54,13 @@ type Data = {
  * @param productId req.query
  * @returns UserOrder[] & status
  */
-export async function getUserOrders(userId: string, take: number | undefined, skip: number | undefined, status: Status | undefined) {
+export async function getUserOrders(userId: string, limit: number | undefined, skip: number | undefined, status: Status | undefined) {
     const orders = await prismaClient.order.findMany({
         where: { ownerId: userId, status },
         include: {
             orderedProducts: { select: { id: true, } }
         },
-        take: take,
+        take: limit,
         skip,
     })
 
@@ -79,12 +93,14 @@ export async function getOrderedProducts(orderId: string) {
     const data = await prismaClient.orderItem.findMany({
         where: { orderId },
     })
+    console.log("🚀 ~ file: order.ts:83 ~ getOrderedProducts ~ data:", data)
 
     const productIds = data.map(i => i.productId)
 
     const productDetails = await prismaClient.product.findMany({
         where: { id: { in: productIds } }
     })
+    console.log("🚀 ~ file: order.ts:90 ~ getOrderedProducts ~ productDetails:", productDetails)
 
     const responseData: OrderedItem[] = data.map(product => ({
         id: product.id,
@@ -92,10 +108,78 @@ export async function getOrderedProducts(orderId: string) {
         totalQuantities: product.quantities,
         colors: product.color as Array<{ id: string, quantities: number }>,
         orderId: product.orderId,
-        name: productDetails.find(i => i.id === product.id)?.name || "Unknown",
+        name: productDetails.find(i => i.id === product.productId)?.name || "Unknown",
     }))
 
     return responseData
+}
+
+/**
+ * @method PUT
+ * @param query type Order
+ * @param req.body type OrderItem
+ * @return message
+ */
+
+export async function createOrder({ ...order }: newOrder) {
+
+    //Mutate Data shoppingCart :color:string > color:{id,qty}
+    type newOrderItem = Omit<OrderItem, "id" | "createdDate" | "updatedAt" | "color" | "orderId"> & {
+        color: { id: string, quantities: number }[]
+    }
+    const defaultShipFee = 20000
+    const productDb = await prismaClient.product.findMany({
+        where: {
+            id: { in: order.orderItems.map(i => i.productId) },
+            deleted: null,
+        }
+    })
+
+    let subTotal = 0;
+
+    const newOrderItems: newOrderItem[] = []
+
+    order.orderItems.forEach(product => {
+        const curProduct = productDb.find(i => i.id === product.productId)
+        const salePrice = curProduct?.price || 0
+        const productColor = curProduct?.JsonColor as string[]
+        if (!productColor.includes(product.color)) throw new Error(`${product.productId} don't have color:${product.color}`)
+        subTotal += (salePrice * product.quantities)
+
+        const curColor = {
+            id: GetColorName(product.color),
+            quantities: product.quantities
+        }
+        const itemIdx = newOrderItems.findIndex(i => i.productId === product.productId)
+        if (itemIdx > 0) {
+            newOrderItems[itemIdx].color.push(curColor)
+            newOrderItems[itemIdx].quantities += product.quantities
+        } else {
+            const newItem: newOrderItem = {
+                productId: product.productId,
+                salePrice,
+                quantities: product.quantities,
+                color: [curColor],
+            }
+            newOrderItems.push(newItem)
+        }
+    })
+
+    const total = subTotal + defaultShipFee
+
+    const newOrder = await prismaClient.order.create({
+        data: {
+            billingAddress: order.billingAddress,
+            shippingAddress: order.shippingAddress,
+            shippingFee: defaultShipFee,
+            subTotal,
+            total,
+            ownerId: order.ownerId,
+            orderedProducts: {
+                create: newOrderItems
+            }
+        }
+    })
 }
 
 /**
@@ -127,57 +211,63 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const token = await getToken({
-        req,
-        secret: process.env.SECRET
-    },)
-    if (!token?.userId || !token) return res.status(401).redirect('/login').json({ message: "Unauthorize User redirect to login page" })
+    //For testing api route
+    const { userId } = req.query
+    if (typeof userId !== 'string') throw new Error("Invalid UserId")
 
-    const userId = token.userId
-    const { orderId, take, skip, status, grid } = req.query;
+    // const token = await getToken({
+    //     req,
+    //     secret: process.env.SECRET
+    // },)
+    // if (!token?.userId || !token) return res.status(401).redirect('/login').json({ message: "Unauthorize User redirect to login page" })
 
-    let validatedSkip: number | undefined;
-    let validatedTake: number | undefined;
-    let validatedOrderId: string | undefined;
-    let validatedStatus: Status | undefined;
-    try {
-        if (orderId) validatedOrderId = await isUUID.validate(orderId)
-    } catch (error: any) {
-        return res.status(401).json({ message: error.message })
-    }
+    // const userId = token.userId
 
-    try {
-        if (skip && userId) validatedSkip = await isValidNum.validate(parseInt(skip as string))
-        if (take && userId) validatedTake = await isValidNum.validate(parseInt(take as string))
-        if (status) validatedStatus = await isValidStatus.validate(status)
-    } catch (error: any) {
-        return res.status(400).json({ message: error.message })
-    }
+    const schema = Yup.object(UserOrderSchemaValidate)
 
     switch (req.method) {
         case ApiMethod.GET:
             try {
+                //Validation
+                const { orderId, limit, skip, status } = await schema.validate(req.query)
+
                 async function switchGetMethod() {
-                    if (validatedOrderId) {
-                        return await getOrderedProducts(validatedOrderId)
-                    }
-                    if (userId) return await getUserOrders(userId, validatedTake, validatedSkip, validatedStatus)
+                    userId
+                    if (orderId) return await getOrderedProducts(orderId)
+                    return await getUserOrders(userId as string, limit, skip, status)
                 }
 
                 const data = await switchGetMethod()
+
                 return res.status(200).json({ data, message: "Get user Order success" })
             } catch (error: any) {
-                return res.status(422).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
-        case ApiMethod.POST:
         case ApiMethod.PUT:
             try {
-                await cancelUserOrder(userId as string, orderId as string)
+                //Validattion
+                const newOrderSchema = Yup.object(NewOrderSchemaValidate)
+
+                const newOrder = await newOrderSchema.validate(req.body)
+
+                //create Order include OrderItems
+                const data = await createOrder({ ...newOrder, ownerId: userId })
+                return res.status(200).json({ message: "New order created" })
+            } catch (error: any) {
+                return res.status(400).json({ message: error.message || "Unknown error" })
+            }
+        case ApiMethod.DELETE:
+            try {
+                //Validation
+                const { orderId } = await schema.validate(req.query)
+                if (!orderId) throw new Error("Invalid orderId")
+
+                await cancelUserOrder(userId, orderId)
                 return res.status(200).json({ message: "Order has been canceled by User" })
             } catch (error: any) {
-                return res.status(422).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         default:
-            return res.status(405).json({ message: 'UNKNOWN EROR' })
+            return res.status(400).json({ message: 'Invalid method' })
     }
 }

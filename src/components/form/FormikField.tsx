@@ -1,10 +1,7 @@
 
-import { useSearchContext } from '@/contexts/searchProductContext';
-import { ProductSearch } from '@/pages/api/products';
 import { FormRow } from '@types';
-import classNames from 'classnames';
 import { useField } from 'formik';
-import { HTMLInputTypeAttribute, useState } from 'react';
+import { HTMLInputTypeAttribute } from 'react';
 import FormikCheckbox from './customize/FormikCheckbox';
 import FormikDate from './customize/FormikDate';
 import FormikInput from './customize/FormikInput';
@@ -76,4 +73,5 @@ export default function FormikField({ type, modifyLabel, modifyInput, isEdit, ..
                 />
             )
     }
+
 }

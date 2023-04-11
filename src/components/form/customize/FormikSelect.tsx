@@ -15,8 +15,8 @@ export default function FormikSelect({ ...props }: CustomInput) {
                 'border-priBlue-500': props.meta.touched,
             }
         )}>
-            <label htmlFor='gender' className={'translate-y-1'}>{props.label}</label>
-            <select className='outline-none h-fit font-semibold pr-2 capitalize text-base border-none rounded focus:ring-priBlue-500 translate-y-1' id='gender' {...props.field}>
+            <label htmlFor={props.name} className={'translate-y-1'}>{props.label}</label>
+            <select className='outline-none h-fit font-semibold pr-2 capitalize text-base border-none rounded focus:ring-priBlue-500 translate-y-1' id={props.name} {...props.field}>
                 <option defaultValue='' disabled>Select your {`${props.name}`}</option>
                 {Array.isArray(props.content) &&
                     props.content.map((i) => (

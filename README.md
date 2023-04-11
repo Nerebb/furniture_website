@@ -85,9 +85,9 @@ yarn dev
 > [x] Login User: Credential(LoginID - password) - SignOn: Github - Google.\
 > [x] User can have many Account: each Account is a SignIn options: Credential, Github or Google.\
 > [x] Available Role : admin, creator, shipper, customer.\
-> [ ] Update owned profile.\
-> [ ] Delete - deactivate own's account.\
-> [ ] Product purchased History / on delivery / shipper info.\
+> [x] Update owned profile.\
+> [x] Delete - deactivate own's account.\
+> [x] Product purchased History / on delivery / shipper info.\
 > [ ] Follows others User.
 
 - Role : admin.
@@ -117,30 +117,30 @@ yarn dev
 
 - Hompage
 
-> [ ] TopCategory: Top sale products\
-> [ ] Featured : New products
+> [x] TopCategory: Top sale products\
+> [x] Featured : New products
 
 - Search
 
-> [ ] Filter by search Input: category, name, color\
-> [ ] Filter by color - checkboxes\
-> [ ] Filter by category - checkboxes\
-> [ ] Filter by price - checkboxes or input type select
+> [x] Filter by search Input
+> [x] Filter by color - checkboxes\
+> [x] Filter by category - checkboxes\
+> [x] Filter by price - checkboxes or input type select
 
 - Product detail
 
-> [ ] Product infomation: Images, description, available, price, etc...\
+> [x] Product infomation: Images, description, available, price, etc...\
 > [ ] Route history - viewed last product\
-> [ ] View products that have same category - color
+> [x] View products that have same category - color
 
 ### Category
 
-> [ ] GET - all category\
+> [x] GET - all category\
 > [ ] CREATE/POST/DELTE - Admin only
 
 ### Color
 
-> [ ] GET - Color of each products\
+> [x] GET - Color of each products\
 > [ ] CREATE/POST/DELETE - Admin only
 
 ### Reviews
@@ -151,15 +151,14 @@ yarn dev
 
 ### WishList
 
-> [ ] CRUD by all users\
-> [ ] Expired: 90days
+> [x] CRUD by all users\
 
 ### OrderItem
 
 > [ ] CRUD - Admin only\
-> [ ] Auth User: GET - owned purchased products\
-> [ ] purchasedPrice\
-> [ ] status - purchased Product status: 'Pending', 'On delivery', etc...
+> [x] Auth User: GET - owned purchased products\
+> [x] purchasedPrice\
+> [x] status - purchased Product status: 'Pending', 'On delivery', etc...
 
 ## Core feature
 

@@ -38,7 +38,7 @@ export default function FormikInput({ ...props }: CustomInput) {
             </label>
 
             {props.meta.touched && props.meta.error && <span className={classNames(
-                'absolute right-0 bottom-2 text-base text-red-600 peer-focus:-translate-y-8 peer-focus:text-base transition-all duration-300',
+                'absolute first-letter:capitalize right-0 bottom-2 text-base text-red-600 peer-focus:-translate-y-8 peer-focus:text-base transition-all duration-300',
                 props.meta.value ? '-translate-y-8' : 'translate-y-[3px]',
             )}>{props.meta.error}</span>}
         </div>

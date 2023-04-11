@@ -1,17 +1,16 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
-import { isUUID } from '@/libs/schemaValitdate'
-import { excludeField } from '@/libs/utils/excludeField'
+import { UserSchemaValidate, isUUID } from '@/libs/schemaValitdate'
 import { ApiMethod, UserProfile } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
-//Prisma -> types schema
+import * as Yup from 'yup'
 type Data = {
     data?: UserProfile
     message?: any
 }
 
 /**
- * @method GET :CRUDMethod.READ
+ * @method GET
  * @description Get login user profile
  * @response res.body userProfile
  */
@@ -33,7 +32,7 @@ async function getUser(id: string): Promise<UserProfile> {
         role: data.user.role,
         phoneNumber: data.user.phoneNumber ?? undefined,
         image: data.user.image ?? undefined,
-        birthDay: data.user.birthDay ?? undefined,
+        birthDay: data.user.birthDay?.toString() ?? undefined, //FormatType yyyy-MM-dd
         name: data.user.name ?? undefined,
         email: data.user.email ?? undefined,
         gender: data.user.gender,
@@ -43,22 +42,20 @@ async function getUser(id: string): Promise<UserProfile> {
 }
 
 /**
- * @method POST :CRUDMethod.UPDATE
+ * @method POST
  * @description Update login user profile only
  * @allowed { name, loginId, nickName, address, email, gender, phoneNumber, birthDay, wishList, purchased }
  * @response res.body message:"Update complete"
 */
-async function updateUser(id: string, data: UserProfile): Promise<void> {
-    try {
-        //Destructure req.body
-        const { name, nickName, address, email, gender, phoneNumber, birthDay } = data
+async function updateUser(id: string, data: Omit<UserProfile, 'id' | 'role'>): Promise<void> {
 
-        //SoftDelete problem: prisma.update {where: finds unique arg but deleted:false is not unique}
+    try {
         await prismaClient.user.update(
             {
-                where: { id: id as string },
+                where: { id },
                 data: {
-                    name, nickName, address, email, gender, phoneNumber, birthDay,
+                    ...data,
+                    birthDay: data.birthDay ? new Date(data.birthDay) : undefined,
                 }
             }
         )
@@ -103,16 +100,18 @@ export default async function handler(
                 const data = await getUser(id as string) as UserProfile //Prisma User types
                 return res.status(200).json({ message: "Get user success", data }) //Prisma User --- UserProfile
             } catch (error: any) {
-                return res.status(422).json({ message: error.name })
+                return res.status(400).json({ message: error.name })
             }
         case ApiMethod.PUT:
             try {
-                const { birthDay } = req.body
-                if (birthDay) req.body.birthDay = new Date(birthDay)
-                await updateUser(id as string, req.body)
+                // const { birthDay } = req.body
+                const schema = Yup.object(UserSchemaValidate)
+                const validatedField = await schema.validate(req.body)
+
+                await updateUser(id as string, { ...validatedField, birthDay: req.body.birthDay }) //Yup date mutate is wrong!!!
                 return res.status(200).json({ message: "Update user success" })
             } catch (error: any) {
-                return res.status(422).json({ message: error.message })
+                return res.status(400).json({ message: error.message })
             }
         case ApiMethod.DELETE:
             try {
@@ -122,6 +121,6 @@ export default async function handler(
                 return res.status(401).json({ message: `${error.meta.target}: ${error.meta.cause}` || error.name })
             }
         default:
-            return res.status(500).json({ message: "Invalid Method" })
+            return res.status(405).json({ message: "Invalid Method" })
     }
 }

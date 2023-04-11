@@ -1,6 +1,7 @@
 import classNames from 'classnames'
 import { FieldInputProps, FieldMetaProps } from 'formik'
 import { FormikField } from '../FormikField'
+import dateFormat from '@/libs/utils/dateFormat'
 
 export type CustomInput = {
     field: FieldInputProps<any>
@@ -8,6 +9,8 @@ export type CustomInput = {
 } & FormikField
 
 export default function FormikDate({ ...props }: CustomInput) {
+    props.field.value = dateFormat(props.field.value, 'yyyy-MM-dd')
+    props.meta.value = dateFormat(props.meta.value)
     return (
         <div className={classNames(
             'text-xl w-full py-1 h-fit border-b-[2.5px] font-semibold flex justify-between items-center',

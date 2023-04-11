@@ -32,7 +32,7 @@ const Button: React.FC<ButtonProps> = ({ type = 'button', text, modifier, childr
                         "noBg border border-priBlue-600": variant === 'outline',
                         'noBg': variant === 'plain',
                         'glow-effect': glowEffect,
-                        'bg-priBlack-200/50': buttonAtt.disabled
+                        'bg-priBlack-200/20': buttonAtt.disabled
                     },
                     glowEffect && glowModify ? glowModify : 'offset',
                     modifier ? modifier : 'px-9 py-1',

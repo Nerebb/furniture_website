@@ -1,15 +1,19 @@
-import ShoppingCart from '@/components/static/ShoppingCart'
+import Modal from '@/components/Modal'
+import CheckoutForm from '@/components/form/CheckoutForm'
+import CheckoutItem from '@/components/static/Checkout/CheckoutItem'
 import { CheckoutLayout } from '@/layouts/CheckoutLayout'
-import React from 'react'
 
 type Props = {}
 
-export default function checkout({ }: Props) {
+export default function Checkout({ }: Props) {
+
     return (
-        <CheckoutLayout
-            tabTitle='Order overview'
-            leftSide={<>LeftSide</>}
-            rightSide={<ShoppingCart />}
-        />
+        <>
+            <CheckoutLayout
+                tabTitle='Order overview'
+                leftSide={<CheckoutForm />}
+                rightSide={<CheckoutItem />}
+            />
+        </>
     )
 }

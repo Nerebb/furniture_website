@@ -1,8 +1,8 @@
 import { ProductCard, ProductSearch } from "@/pages/api/products"
 import { ProductDetail } from "@/pages/api/products/[productId]"
-import { OrderedItem, UserOrder } from "@/pages/api/user/order"
+import { OrderedItem, UserOrder, newOrder } from "@/pages/api/user/order"
 import { UserShoppingCart } from "@/pages/api/user/shoppingCart"
-import { Status } from "@prisma/client"
+import { Gender, Status } from "@prisma/client"
 import { UserProfile } from "@types"
 import axiosClient from "./axiosClient"
 import { buildQuery } from "./utils/buildQuery"
@@ -11,9 +11,11 @@ import { buildQuery } from "./utils/buildQuery"
 export type allowedField = Omit<UserProfile,
     | 'image'
     | 'id'
-    | 'email'
     | 'role'
->
+    | 'gender'
+> & {
+    gender?: Gender;
+}
 export const allowedFilter = ['category', 'color', 'room'] as const
 
 type AxiosApi = {
@@ -35,6 +37,7 @@ type AxiosApi = {
     //Orders
     getUserOrders: (skip?: number, status?: Status) => Promise<UserOrder[]>,
     getOrderedProducts: (orderId: string) => Promise<OrderedItem[]>,
+    createNewOrder: ({ ...params }: newOrder) => Promise<{ message: string }>
     cancelUserOrder: (orderId: string) => Promise<{ message: string }>,
 
 
@@ -54,12 +57,11 @@ const axios: AxiosApi = {
     //User
     getUser: async (id) => {
         try {
-            const data = await axiosClient
-                .get(`${API_USER}/${id}`)
-                .then(res => res.data)
-            return data
-        } catch (error) {
+            const res = await axiosClient.get(`${API_USER}/${id}`)
+            return res.data
+        } catch (error: any) {
             console.log('Axios-GetUser', error)
+            throw error.message
         }
     },
 
@@ -67,8 +69,9 @@ const axios: AxiosApi = {
         try {
             const res = await axiosClient.put(`${API_USER}/${id}`, data)
             return res.data
-        } catch (error) {
+        } catch (error: any) {
             console.log('Axios-UpdateUser', error)
+            throw error.message
         }
     },
 
@@ -79,14 +82,12 @@ const axios: AxiosApi = {
      */
 
     getFilter: async (filter: typeof allowedFilter[number]) => {
-        if (!allowedFilter.includes(filter)) throw new Error('Invalid Filter')
         try {
-            const data = await axiosClient
-                .get(`/api/${filter}`)
-                .then(res => res.data)
-            return data
-        } catch (error) {
-            console.log('Axios-GetFilter', error)
+            const res = await axiosClient.get(`/api/${filter}`)
+            return res.data
+        } catch (error: any) {
+            console.log('Axios-getFilter', error)
+            throw error.message
         }
     },
 
@@ -95,12 +96,11 @@ const axios: AxiosApi = {
         try {
             let query = buildQuery(API_PRODUCT, props);
 
-            const data = await axiosClient
-                .get(`${API_PRODUCT}?${query}`)
-                .then(res => res.data)
-            return data
-        } catch (error) {
+            const res = await axiosClient.get(`${query}`)
+            return res.data
+        } catch (error: any) {
             console.log("Axios-getProducts", error)
+            throw error.message
         }
     },
 
@@ -108,27 +108,30 @@ const axios: AxiosApi = {
         try {
             const res = await axiosClient.get(`${API_PRODUCT}/${productId}`)
             return res.data
-        } catch (error) {
+        } catch (error: any) {
             console.log("Axios-getProductById", error)
+            throw error.message
         }
     },
 
     //UserWishlist
     deleteWishlistProduct: async (productId) => {
         try {
-            const res = await axiosClient.delete(`${API_USER_WISHLIST}?productId=${productId}`)
-            return res.data
-        } catch (error) {
-            console.log("Axios-getWishList", error)
+            const res: { message: string } = await axiosClient.delete(`${API_USER_WISHLIST}?productId=${productId}`)
+            return { message: res.message }
+        } catch (error: any) {
+            console.log("Axios-deleteWishlistProduct", error)
+            throw error.message
         }
     },
 
     addToWishList: async (productId) => {
         try {
-            const res = await axiosClient.post(`${API_USER_WISHLIST}?productId=${productId}`)
-            return res.data
-        } catch (error) {
-            console.log("Axios-getWishList", error)
+            const res: { message: string } = await axiosClient.post(`${API_USER_WISHLIST}?productId=${productId}`)
+            return { message: res.message }
+        } catch (error: any) {
+            console.log("Axios-addToWishList", error)
+            throw error.message
         }
     },
 
@@ -136,20 +139,21 @@ const axios: AxiosApi = {
         try {
             const res = await axiosClient.get(API_USER_WISHLIST)
             return res.data
-        } catch (error) {
+        } catch (error: any) {
             console.log("Axios-getWishList", error)
+            throw error.message
         }
     },
 
     //UserOrder
     getUserOrders: async (skip, status) => {
         try {
-            let query = buildQuery(API_USER_ORDER, { skip, status })
-
+            const query = buildQuery(API_USER_ORDER, { skip, status })
             const res = await axiosClient.get(query)
             return res.data
-        } catch (error) {
-            console.log("Axios-getWishList", error)
+        } catch (error: any) {
+            console.log("Axios-getUserOrders", error)
+            throw error.message
         }
     },
 
@@ -158,8 +162,20 @@ const axios: AxiosApi = {
             const query = buildQuery(API_USER_ORDER, { orderId })
             const res = await axiosClient.get(query)
             return res.data
-        } catch (error) {
+        } catch (error: any) {
             console.log("Axios-getOrderedProducts", error)
+            throw error.message
+        }
+    },
+
+    createNewOrder: async ({ ...params }) => {
+        try {
+            const query = buildQuery(API_USER_ORDER, { ...params })
+            const res: { message: string } = await axiosClient.put(query, params.orderItems)
+            return { message: res.message }
+        } catch (error: any) {
+            console.log("Axios-createNewOrder", error)
+            throw error.message
         }
     },
 
@@ -167,8 +183,9 @@ const axios: AxiosApi = {
         try {
             const res = await axiosClient.delete(`${API_USER_ORDER}?orderId=${orderId}`)
             return res.data
-        } catch (error) {
-            console.log("Axios-getWishList", error)
+        } catch (error: any) {
+            console.log("Axios-cancelUserOrder", error)
+            throw error.message
         }
     },
 
@@ -179,6 +196,7 @@ const axios: AxiosApi = {
             return res.data
         } catch (error: any) {
             console.log("Axios-getShoppingCart", error)
+            throw error.message
         }
     },
 
@@ -196,10 +214,11 @@ const axios: AxiosApi = {
     updateShoppingCart: async (cartItemId, color, quantities) => {
         try {
             const query = buildQuery(API_USER_SHOPPINGCART, { cartItemId, color, quantities })
-            const res = await axiosClient.post(query)
-            return res.data
+            const res: { message: string } = await axiosClient.post(query)
+            return { message: res.message }
         } catch (error: any) {
             console.log("Axios-updateShoppingCart", error)
+            throw error.message
         }
     },
 
@@ -209,6 +228,7 @@ const axios: AxiosApi = {
             return res.data
         } catch (error: any) {
             console.log("Axios-removeShoppingCart", error)
+            throw error.message
         }
     },
 

@@ -1,6 +1,4 @@
-import { ProductSearch } from "@/pages/api/products";
-import { UserShoppingCart } from "@/pages/api/user/shoppingCart";
-import { UseQueryResult } from "@tanstack/react-query";
+import { ProductCard, ProductSearch } from "@/pages/api/products";
 import { createContext, Dispatch, SetStateAction } from "react";
 
 export type SearchContext = {
@@ -9,9 +7,8 @@ export type SearchContext = {
 }
 export const SearchProductContext = createContext<SearchContext | null>(null)
 
-type TShoppingCartContext = {
-    isLoading: boolean
-    setShoppingCartContext: Dispatch<SetStateAction<UserShoppingCart>>
-} & UserShoppingCart
-
-export const ShoppingCartContext = createContext<TShoppingCartContext | null>(null)
+export type wishlistContext = {
+    wishlistContext: ProductCard[]
+    setWishlistContext: Dispatch<SetStateAction<ProductCard[]>>
+}
+export const WishlistContext = createContext<wishlistContext | null>(null)

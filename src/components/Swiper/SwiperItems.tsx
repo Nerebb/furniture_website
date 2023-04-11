@@ -43,11 +43,8 @@ const SwiperItems: React.FC<SwiperItemsProps> = ({
           <ImageLost />
         )}
       </div>
-      <div className="w-full flex justify-between whitespace-nowrap space-x-2">
+      <div className="w-full flex-center whitespace-nowrap">
         <p className='capitalize text'>{product.name}</p>
-        <div className='font-semibold'>
-          {fCurrency(product.price as number)}
-        </div>
       </div>
     </Link>
 

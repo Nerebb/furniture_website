@@ -22,8 +22,7 @@ export default async function handler(
         console.log("CATEGORY", error)
         return res.status(400).json({ message: error.message || "Unknow error" })
       }
-
     default:
-      return res.status(500).json({ message: "Invalid Method" })
+      return res.status(405).json({ message: "Invalid Method" })
   }
 }

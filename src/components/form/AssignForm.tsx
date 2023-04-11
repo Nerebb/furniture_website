@@ -33,24 +33,24 @@ type InitForm = {
 }
 
 const registerUser: FormRow[] = [
-    { id: 0, label: "Login ID", name: 'loginId', inputType: 'text', content: 'Account ID' },
-    { id: 1, label: "Password", name: 'password', inputType: 'password', content: 'Account password' },
-    { id: 2, label: "Confirm password", name: 'confirmPassword', inputType: 'password', content: 'Confirm password' },
-    { id: 3, label: "Email", name: 'email', inputType: 'email', content: 'Account email' },
+    { id: 0, label: "Login ID", name: 'loginId', inputType: 'text' },
+    { id: 1, label: "Password", name: 'password', inputType: 'password' },
+    { id: 2, label: "Confirm password", name: 'confirmPassword', inputType: 'password' },
+    { id: 3, label: "Email", name: 'email', inputType: 'email' },
 ]
 
 const loginUser: FormRow[] = [
-    { id: 0, label: "Login ID", name: 'loginId', inputType: 'text', content: 'Account ID' },
-    { id: 1, label: "Password", name: 'password', inputType: 'password', content: 'Account password' },
+    { id: 0, label: "Login ID", name: 'loginId', inputType: 'text' },
+    { id: 1, label: "Password", name: 'password', inputType: 'password' },
 ]
 
 const moreInfo: FormRow[] = [
-    { id: 0, label: 'Name', name: 'name', inputType: 'text', content: '' },
-    { id: 1, label: 'Nick name', name: 'nickName', inputType: 'text', content: '' },
-    { id: 2, label: 'Address', name: 'address', inputType: 'text', content: '' },
+    { id: 0, label: 'Name', name: 'name', inputType: 'text' },
+    { id: 1, label: 'Nick name', name: 'nickName', inputType: 'text' },
+    { id: 2, label: 'Address', name: 'address', inputType: 'text' },
     { id: 3, label: "Gender", name: 'gender', inputType: 'select', content: Object.values(Gender) },
-    { id: 4, label: 'Phone number', name: 'phoneNumber', inputType: 'number', content: '' },
-    { id: 5, label: 'Birth day', name: 'birthDay', inputType: 'date', content: '' }
+    { id: 4, label: 'Phone number', name: 'phoneNumber', inputType: 'number' },
+    { id: 5, label: 'Birth day', name: 'birthDay', inputType: 'date' }
 ]
 
 
@@ -233,7 +233,7 @@ const AssignForm = ({ type, btnProps, keepOpen }: TFormProps) => {
                                             {submitError}
                                         </div>
                                     )}
-                                    {formType !== 'register' && <h1 className='flex-center'>Don{'\''}t have account ?<span className='hover:font-semibold underline text-priBlue-500 cursor-pointer' onClick={() => setFormType('register')}>Register here!</span></h1>}
+                                    {formType !== 'register' && <h1 className='flex-center'>Don{'\''}t have account ? <span className='hover:font-semibold underline text-priBlue-500 cursor-pointer' onClick={() => setFormType('register')}>Register here!</span></h1>}
                                     <Button text={initForm.btnText} type='submit' modifier='w-full flex justify-center py-4 gap-2 text-xl' />
                                     {type !== 'moreInfo' && (
                                         <>

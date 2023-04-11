@@ -74,9 +74,15 @@ export async function getWishList(loginId: string) {
  * @returns Message: "Add product comepleted"
  */
 export async function addToWishlist(userId: string, productId: string) {
-    await prismaClient.wishlist.update({
+    await prismaClient.wishlist.upsert({
         where: { ownerId: userId },
-        data: {
+        update: {
+            products: {
+                connect: { id: productId }
+            }
+        },
+        create: {
+            ownerId: userId,
             products: {
                 connect: { id: productId }
             }
@@ -133,14 +139,14 @@ export default async function handler(
                 const data = await getWishList(userId as string)
                 return res.status(200).json({ data, message: "Get User wishlist success" })
             } catch (error: any) {
-                return res.status(406).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.POST:
             try {
                 await addToWishlist(userId, productId as string)
                 return res.status(200).json({ message: "Add selected product to wishlist success" })
             } catch (error: any) {
-                return res.status(422).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.DELETE:
             try {
@@ -148,7 +154,7 @@ export default async function handler(
                 return res.status(200).json({ message: "Product has been removed from wishlist" })
             } catch (error: any) {
                 console.log(error)
-                return res.status(422).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         default:
             return res.status(405).json({ message: "Invalid request method" })
