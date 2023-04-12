@@ -3,6 +3,7 @@ import prismaClient from '@/libs/prismaClient'
 import { UserSchemaValidate, isUUID } from '@/libs/schemaValitdate'
 import { ApiMethod, UserProfile } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { getToken } from 'next-auth/jwt'
 import * as Yup from 'yup'
 type Data = {
     data?: UserProfile
@@ -115,10 +116,21 @@ export default async function handler(
             }
         case ApiMethod.DELETE:
             try {
+                const token = await getToken({
+                    req,
+                    secret: process.env.SECRET
+                },)
+
+                //CheckRoute token - id - role
+                if (
+                    token?.userId !== id //Current login userOnly
+                    || token?.role === 'admin' //Bypass if admin
+                ) throw new Error("Unauthorize User")
+
                 await deleteUser(id as string)
                 return res.status(200).json({ message: "Delete User successful" })
             } catch (error: any) {
-                return res.status(401).json({ message: `${error.meta.target}: ${error.meta.cause}` || error.name })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         default:
             return res.status(405).json({ message: "Invalid Method" })

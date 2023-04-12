@@ -94,7 +94,6 @@ function ProfileForm({ }: Props) {
         }
     })
 
-    // if (isError) return <NotFoundPage />
     if (isLoading || isError) return (
         <div className='w-full h-full flex-center'>
             <Loading />
@@ -143,7 +142,7 @@ function ProfileForm({ }: Props) {
             validationSchema={Yup.object(UserSchemaValidate)}
             onSubmit={handleSubmit}
         >
-            {({ handleReset, isSubmitting }) => (<Form className={classNames(
+            {({ handleReset, isSubmitting, dirty }) => (<Form className={classNames(
                 "border-t border-gray-200",
                 { "divide-y": isEdit }
             )}>
@@ -167,7 +166,7 @@ function ProfileForm({ }: Props) {
                     {isEdit ?
                         <>
                             <Button text='Close edit' variant='outline' modifier='h-9 w-[125px]' onClick={() => { setIsEdit(false); handleReset() }} />
-                            <Button type='submit' text={isSubmitting ? '' : 'Submit'} modifier='h-9 w-[125px]' >
+                            <Button type='submit' text={isSubmitting ? '' : 'Submit'} modifier='h-9 w-[125px]' disabled={!dirty}>
                                 {isSubmitting &&
                                     <div className='h-full w-full flex-center'>
                                         <Loading className='w-5 h-5 text-gray-200 dark:text-priBlack-100 fill-priBlue-500' />

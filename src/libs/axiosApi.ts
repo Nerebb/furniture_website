@@ -22,6 +22,7 @@ type AxiosApi = {
     //User
     getUser: (id: string) => Promise<UserProfile | undefined>,
     updateUser: (id: string, data: allowedField) => Promise<{ message: string }>,
+    deleteUser: (id: string) => Promise<{ message: string }>
 
     //ShoppingCart
     getShoppingCart: () => Promise<UserShoppingCart>
@@ -71,6 +72,16 @@ const axios: AxiosApi = {
             return res.data
         } catch (error: any) {
             console.log('Axios-UpdateUser', error)
+            throw error.message
+        }
+    },
+
+    deleteUser: async (id) => {
+        try {
+            const res: { message: string } = await axiosClient.delete(`${API_USER}/${id}`)
+            return { message: res.message }
+        } catch (error: any) {
+            console.log("Axios-deleteUser", error)
             throw error.message
         }
     },

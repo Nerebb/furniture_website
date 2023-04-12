@@ -94,16 +94,29 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials, req) {
                 // Add logic here to look up the user from the credentials supplied
-                //checkUser
-                const user: any = await prismaClient.account.findFirstOrThrow({
+
+                // checkUser
+                // const user1 = await prismaClient.account.findFirstOrThrow({
+                //     where: {
+                //         loginId: credentials?.loginId,
+                //     },
+                // })
+
+                const user = await prismaClient.user.findFirstOrThrow({
                     where: {
-                        loginId: credentials?.loginId,
+                        deleted: null
                     },
+                    include: {
+                        accounts: {
+                            where: { loginId: credentials?.loginId }
+                        }
+                    }
                 })
+
                 if (!user) throw new Error('Invalid User or password')
 
                 //checkPassword
-                const checkPassword = await compare(credentials!.password, user.password as string)
+                const checkPassword = await compare(credentials!.password, user.acccounts[0].password as string)
                 if (!checkPassword) throw new Error('Password is incorrect')
 
                 return user
