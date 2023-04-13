@@ -104,7 +104,10 @@ export const authOptions: NextAuthOptions = {
 
                 const user = await prismaClient.user.findFirstOrThrow({
                     where: {
-                        deleted: null
+                        deleted: null,
+                        accounts: {
+                            some: { loginId: credentials?.loginId }
+                        }
                     },
                     include: {
                         accounts: {
@@ -116,7 +119,7 @@ export const authOptions: NextAuthOptions = {
                 if (!user) throw new Error('Invalid User or password')
 
                 //checkPassword
-                const checkPassword = await compare(credentials!.password, user.acccounts[0].password as string)
+                const checkPassword = await compare(credentials!.password, user.accounts[0].password as string)
                 if (!checkPassword) throw new Error('Password is incorrect')
 
                 return user
@@ -158,7 +161,7 @@ export const authOptions: NextAuthOptions = {
             if (account && user) {
                 token.provider = account.provider
                 token.role = user.role
-                token.userId = user.userId
+                token.userId = account.provider === 'credentials' ? account.providerAccountId : user.userId
             }
 
             // //Refresh per SignOn response data
@@ -177,7 +180,7 @@ export const authOptions: NextAuthOptions = {
                 session.access_token = token.access_token;
                 session.error = token.error || null; // null: NextJS Bugs: undefined cannot be read as JSON
 
-                session.id = token.provider !== 'credentials' ? token.sub : token.userId; //AccountID
+                session.id = token.userId; //AccountID
             }
 
             return session

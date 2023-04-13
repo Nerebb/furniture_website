@@ -53,7 +53,7 @@ export default function ProductCard2({ product, modify }: ProductCardProps) {
     })
 
     function handleAddToWishList(e: React.SyntheticEvent) {
-        e.stopPropagation()
+        // e.stopPropagation()
         if (!userWishlist || userWishlist.length < 0) return toast.error("Invalid user")
         if (userWishlist.some(i => i.id === product.id)) return mutate()
 

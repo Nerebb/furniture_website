@@ -90,14 +90,11 @@ const AssignForm = ({ type, btnProps, keepOpen }: TFormProps) => {
             await new Promise(r => setTimeout(r, 2000)); // Debounce
 
             if (type === 'login') {
-                await signIn('credentials', { ...values, redirect: false })
-                    .then((res) => {
-                        if (res?.ok) {
-                            router.push("/");
-                        } else {
-                            setSubmitError("ID and password not match")
-                        }
-                    })
+                const res = await signIn('credentials', { ...values, redirect: false })
+                console.log("🚀 ~ file: AssignForm.tsx:94 ~ handleSubmit ~ res:", res)
+                if (!res) return setSubmitError("Cannot connect to database")
+                if (res.ok) return router.push('/')
+                if (res.error) return setSubmitError(res.error)
             }
 
             if (type === 'register') {

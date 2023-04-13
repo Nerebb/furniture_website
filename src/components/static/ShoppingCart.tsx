@@ -3,6 +3,7 @@ import { fCurrency } from '@/libs/utils/numberal'
 import { Dialog } from '@headlessui/react'
 import { ShoppingCartIcon } from '@heroicons/react/24/outline'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import Button from '../Button'
 import Modal from '../Modal'
@@ -14,26 +15,17 @@ type Props = {
 }
 
 export default function ShoppingCart({ keepOpen = false }: Props) {
+  const { data: session, status } = useSession()
   const queryClient = useQueryClient()
   const router = useRouter()
+
   const { data: Cart, isLoading, isError, isFetching } = useQuery({
     queryKey: ['ShoppingCart'],
-    queryFn: () => axios.getShoppingCart()
-  })
-
-  const { mutate } = useMutation({
-    mutationKey: ['ShoppingCart'],
-    mutationFn: (cartItemId: string) => axios.removeShoppingCart(cartItemId),
-    onSuccess: () => {
-      queryClient.invalidateQueries()
-    }
+    queryFn: () => axios.getShoppingCart(),
+    enabled: status === 'authenticated'
   })
 
   const subTotal = Cart?.subTotal ? fCurrency(parseInt(Cart?.subTotal)) : "None"
-
-  function handleRemoveProduct(cartItemId: string) {
-    mutate(cartItemId)
-  }
 
   return (
     <Modal
@@ -89,7 +81,7 @@ export default function ShoppingCart({ keepOpen = false }: Props) {
             <div className='font-semibold flex justify-between'>
               <p>Subtotal</p>
               {isFetching ? (
-                <Loading className='w-6 h-6' />
+                <Loading className='w-6 h-6 text-priBlack-200/50 fill-priBlue-500' />
               ) : (
                 <p>{subTotal}</p>
               )}

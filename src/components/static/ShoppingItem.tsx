@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import ImageLost from './ImageLost'
 import Image from 'next/image'
 import { shoppingCartItem } from '@/pages/api/user/shoppingCart'
@@ -9,18 +9,22 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from '@/libs/axiosApi'
 import Button from '../Button'
 import { fCurrency } from '@/libs/utils/numberal'
+import { Transition } from '@headlessui/react'
+import Loading from './Loading'
 
 type Props = shoppingCartItem
 
 // Input component
 function QtyInput({ ...product }: shoppingCartItem) {
-    const [itemQty, setItemQty] = useState<number>(product.quantities)
+    const [itemQty, setItemQty] = useState<string | number>(product.quantities)
+    const [error, setError] = useState<string>("")
+    const value = typeof itemQty !== 'number' ? parseInt(itemQty) : itemQty
 
-    const [error, setError] = useState<string>()
+    const dirty = value !== product.quantities ? true : false
 
     const queryClient = useQueryClient()
 
-    const { mutate } = useMutation({
+    const { mutate, isLoading } = useMutation({
         mutationKey: ['ShoppingCart'],
         mutationFn: (newQty: number) => axios.updateShoppingCart(product.id, undefined, newQty),
         onSuccess: () => {
@@ -28,32 +32,53 @@ function QtyInput({ ...product }: shoppingCartItem) {
         }
     })
 
-    async function handleOnChange(e: React.ChangeEvent<HTMLInputElement>) {
-        //Debounce
-        const value = parseInt(e.target.value)
-        setItemQty(value)
+    async function handleUpdateQty() {
         if (value > product.available) {
             setError("Product stock not meet requirements")
             return
         } else {
-            setError(undefined)
+            setError("")
             await new Promise(r => setTimeout(r, 2000)); // Debounce
             mutate(value)
         }
     }
 
-    return <label htmlFor={product.id} className="space-x-2">
-        <p className='text-red-500 first-letter:capitalize'>{error || ""}</p>
-        Qty:
-        <input
-            id={product.id}
-            className="border-none rounded-md focus:outline-none focus:ring-priBlue-500 p-1"
-            type='number'
-            inputMode="numeric"
-            value={itemQty}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleOnChange(e)}
-        />
-    </label>
+    return (
+        <div className="">
+            <p className='text-red-500 first-letter:capitalize'>{error || ""}</p>
+            <div className='flex items-center space-x-2'>
+                <label htmlFor={product.id}>Qty:</label>
+                <input
+                    id={product.id}
+                    className="transition-all grow w-full border-none rounded-md focus:outline-none focus:ring-priBlue-500 p-1"
+                    type='number'
+                    inputMode="numeric"
+                    value={itemQty}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setItemQty(e.target.value)}
+                />
+                <Transition
+                    show={dirty}
+                    className="transition-all duration-800 self-end"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <Button
+                        text={isLoading ? "" : 'Update'}
+                        variant='outline'
+                        modifier='px-9 py-1 min-w-[134px] flex-center'
+                        glowEffect={false}
+                        onClick={handleUpdateQty}
+                        disabled={isLoading}
+                    >
+                        {isLoading && <Loading className='w-6 h-6 fill-priBlue-500 text-priBlack-200/50' />}
+                    </Button>
+                </Transition>
+            </div>
+        </div>
+    )
+
 }
 
 export default function ShoppingItem({ ...product }: Props) {
@@ -108,7 +133,8 @@ export default function ShoppingItem({ ...product }: Props) {
                 <Button
                     text='Remove'
                     variant='outline'
-                    glowModify='noAnimation'
+                    modifier='px-9 py-1 border-red-500'
+                    glowEffect={false}
                     onClick={() => handleRemoveProduct(product.id)}
                     disabled={isLoading}
                 />

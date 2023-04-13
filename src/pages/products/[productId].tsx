@@ -24,7 +24,7 @@ type Props = {
 export default function ProductDetailPage({ }: Props) {
     const router = useRouter();
     const [selectedColor, setSelectedColor] = useState<string>()
-    const [selectedQty, setSelectedQty] = useState<number>(1)
+    const [selectedQty, setSelectedQty] = useState<string | number>(1)
     const [isWishlist, setIsWishlist] = useState<boolean>()
     const [error, setError] = useState<string>()
 
@@ -99,13 +99,18 @@ export default function ProductDetailPage({ }: Props) {
 
     if (isError) toast.error("Something went wrong!, please refesh the page")
 
+    function handleQtyOnChange(e: React.ChangeEvent<HTMLInputElement>) {
+        setSelectedQty(e.target.value)
+    }
+
     function handleAddToCart() {
         setError("")
+        const curQty = typeof selectedQty !== 'number' ? parseInt(selectedQty) : selectedQty
         if (!selectedColor) return setError("Please select provided color")
-        if (!selectedQty || selectedQty < 0) return setError("Quantities is missing")
+        if (!curQty || curQty < 0) return setError("Quantities is missing")
         if (product?.available && selectedQty > product?.available) return setError("Product stock not meet requirements")
 
-        mutateShoppingCart({ color: selectedColor, quantities: selectedQty }, {
+        mutateShoppingCart({ color: selectedColor, quantities: curQty }, {
             onError: (error: any) => {
                 toast.error(error)
             },
@@ -113,7 +118,7 @@ export default function ProductDetailPage({ }: Props) {
                 toast.success(res.message)
 
                 //Reset
-                setSelectedQty(0)
+                setSelectedQty(1)
                 setError(undefined)
                 setSelectedColor(undefined)
             }
@@ -196,7 +201,7 @@ export default function ProductDetailPage({ }: Props) {
                                 className='rounded-md ml-2 border-none ring-none focus:ring-priBlue-500'
                                 type='number'
                                 inputMode="numeric"
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedQty(parseInt(e.target.value))}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleQtyOnChange(e)}
                             />
                         </label>
 

@@ -107,7 +107,7 @@ export async function createShoppingCart(userId: string, req: NextApiRequest) {
 
     //Process queries data
     if (color && !chosenItem.colors?.includes(color)) throw new Error("Invalid product color")
-    if (quantities && (quantities <= chosenItem.available)) throw new Error("Chosen product stock not meet requirements")
+    if (quantities && (quantities >= chosenItem.available)) throw new Error("Chosen product stock not meet requirements")
     const curProductPrice = ((quantities || 1) * (chosenItem.price || 1))
 
     //Find or create shoppingcart - Manipulate upsert(which is update or create)

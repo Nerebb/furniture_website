@@ -211,9 +211,9 @@ const axios: AxiosApi = {
         }
     },
 
-    addToShoppingCart: async (productId, color, quanitities) => {
+    addToShoppingCart: async (productId, color, quantities) => {
         try {
-            const query = buildQuery(API_USER_SHOPPINGCART, { productId, color, quanitities })
+            const query = buildQuery(API_USER_SHOPPINGCART, { productId, color, quantities })
             const res: { message: string } = await axiosClient.put(query)
             return { message: res.message }
         } catch (error: any) {
