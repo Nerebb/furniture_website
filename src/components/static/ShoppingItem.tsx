@@ -89,6 +89,7 @@ function QtyInput({ type, ...product }: Props) {
 //ShoppingCartItem
 export default function ShoppingItem({ type = 'default', ...product }: Props) {
     const queryClient = useQueryClient()
+
     const { mutate, isLoading } = useMutation({
         mutationKey: ['ShoppingCart'],
         mutationFn: (cartItemId: string) => axios.removeShoppingCart(cartItemId),
@@ -96,6 +97,7 @@ export default function ShoppingItem({ type = 'default', ...product }: Props) {
             queryClient.invalidateQueries()
         }
     })
+
     function handleRemoveProduct(cartItemId: string) {
         mutate(cartItemId)
     }

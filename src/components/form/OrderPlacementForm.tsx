@@ -152,6 +152,7 @@ export default function OrderPlacementForm({ }: Props) {
                                             text: "Proceed to payment",
                                             glowModify: 'noAnimation',
                                             modifier: 'w-80 py-3',
+                                            disabled: Boolean(ShoppingCart.data)
                                         }}
                                         title='User info has been modified!'
                                         content='Do you want to update personal info'

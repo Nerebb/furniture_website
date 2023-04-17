@@ -1,14 +1,11 @@
-import React from 'react'
+import { useCheckoutContext } from '@/contexts/checkoutContext'
+import axios from '@/libs/axiosApi'
+import { fCurrency } from '@/libs/utils/numberal'
+import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
 import Card from '../../Card'
 import Loading from '../Loading'
 import ShoppingItem from '../ShoppingItem'
-import { useRouter } from 'next/router'
-import axios from '@/libs/axiosApi'
-import { useQuery } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
-import Button from '../../Button'
-import { fCurrency } from '@/libs/utils/numberal'
-import { useCheckoutContext } from '@/contexts/checkoutContext'
 
 type Props = {
 }
@@ -30,7 +27,6 @@ export default function CheckoutItem({ }: Props) {
     const total = fCurrency(parseInt(Cart?.subTotal ?? "0") + defaultShippingPrice)
 
     if (checkoutContext.checkoutStage !== 0) return <></>
-    if (isError) toast.error("ShoppingCart not found")
 
     return (
         <Card
@@ -76,7 +72,7 @@ export default function CheckoutItem({ }: Props) {
                     </div>
                 </aside>
 
-                <aside className='font-semibold flex justify-between border-t border-priBlack-200/50'>
+                <aside className='font-semibold flex justify-between border-t border-priBlack-200/50 pt-5'>
                     <p>Total</p>
                     {isFetching ? (
                         <Loading className='w-6 h-6 text-gray-200' />

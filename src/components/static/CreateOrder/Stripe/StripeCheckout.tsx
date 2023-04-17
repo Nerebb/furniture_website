@@ -30,14 +30,6 @@ export default function StripeCheckout() {
         checkoutContext.stripeClient.updateQty
     ]);
 
-    // const stripeQuery = useQuery({
-    //     queryKey: ['StripeClient'],
-    //     queryFn: () => axios.generateClient({ ...checkoutContext.stripeClient }),
-    //     onSuccess: (res) => {
-    //         if (res.clientSecret) setClientSecret(res.clientSecret)
-    //     }
-    // })
-
     const appearance: Appearance = {
         theme: 'stripe',
         variables: {
@@ -54,7 +46,7 @@ export default function StripeCheckout() {
     };
 
     return (
-        <div className="h-full w-full flex flex-col items-center">
+        <div className="flex flex-col items-center">
             <h1 className='text-3xl mb-12 font-semibold'>Card payment</h1>
             {isLoading && (
                 <div className="flex-center">
