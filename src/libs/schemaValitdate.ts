@@ -87,11 +87,9 @@ export const UserOrderSchemaValidate = {
 }
 
 export const NewOrderSchemaValidate = {
-    subTotal: isValidNum.required(),
-    total: isValidNum.required(),
+    shoppingCartId: Yup.string().uuid().required(),
     billingAddress: Yup.string().max(255).required(),
     shippingAddress: Yup.string().max(255).required(),
-    orderItems: Yup.array().of(Yup.object(ShoppingCartCreateSchemaValidate)).required()
 }
 
 export const CheckoutFormSchemaValidate = {

@@ -17,7 +17,7 @@ export default function WishListProvider({ children }: Props) {
 }
 
 export function useWishlistContext() {
-    const wishlist = useContext(WishlistContext)
-    if (!wishlist) throw new Error("searchContext must be used within <SearchProductContext.Provider/>")
-    return { ...wishlist }
+    const content = useContext(WishlistContext)
+    if (!content) throw new Error("searchContext must be used within <SearchProductContext.Provider/>")
+    return { ...content }
 }

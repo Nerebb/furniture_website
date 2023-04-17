@@ -135,12 +135,13 @@ input[type=number] {
   }
 }
 
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 @layer components {
-  .flex-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
 
   .img-contain-w {
     @apply w-full h-auto object-contain
@@ -152,6 +153,19 @@ input[type=number] {
 
   .customScrollbar {
     @apply scrollbar-thin scrollbar-track-priBlack-200/50 scrollbar-thumb-priBlue-300
+  }
+}
+
+.hideScrollbar {
+  /* IE and Edge */
+  -ms-overflow-style: none;
+
+  /* Firefox */
+  scrollbar-width: none;
+
+  /* Safari and Chrome */
+  &::-webkit-scrollbar {
+    display: none
   }
 }
 

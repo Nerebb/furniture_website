@@ -17,12 +17,17 @@ export type OrderedItem = {
     name: string
 }
 
-export type newOrder = Omit<Order, "createdDate" | "updatedAt" | "id" | "subTotal" | "total" | "shippingFee" | "status">
-    & {
-        subTotal: number
-        total: number
-        orderItems: newOrderItem[]
-    }
+export type newOrder = Omit<Order,
+    "createdDate"
+    | "updatedAt"
+    | "id"
+    | "subTotal"
+    | "total"
+    | "shippingFee"
+    | "status"
+> & {
+    shoppingCartId: string
+}
 
 export type newOrderItem = {
     productId: string,
@@ -43,7 +48,7 @@ export type UserOrder = {
 }
 
 type Data = {
-    data?: UserOrder[] | OrderedItem[]
+    data?: UserOrder[] | OrderedItem[] | { orderId: string }
     message?: string
 }
 
@@ -128,9 +133,15 @@ export async function createOrder({ ...order }: newOrder) {
         color: { id: string, quantities: number }[]
     }
     const defaultShipFee = 20000
+
+    const shoppingCart = await prismaClient.shoppingCart.findFirstOrThrow({
+        where: { id: order.shoppingCartId, ownerId: order.ownerId },
+        include: { shoppingCartItem: true }
+    })
+
     const productDb = await prismaClient.product.findMany({
         where: {
-            id: { in: order.orderItems.map(i => i.productId) },
+            id: { in: shoppingCart.shoppingCartItem.map(i => i.productId) },
             deleted: null,
         }
     })
@@ -139,7 +150,7 @@ export async function createOrder({ ...order }: newOrder) {
 
     const newOrderItems: newOrderItem[] = []
 
-    order.orderItems.forEach(product => {
+    shoppingCart.shoppingCartItem.forEach(product => {
         const curProduct = productDb.find(i => i.id === product.productId)
         const salePrice = curProduct?.price || 0
         const productColor = curProduct?.JsonColor as string[]
@@ -150,6 +161,7 @@ export async function createOrder({ ...order }: newOrder) {
             id: GetColorName(product.color),
             quantities: product.quantities
         }
+
         const itemIdx = newOrderItems.findIndex(i => i.productId === product.productId)
         if (itemIdx > 0) {
             newOrderItems[itemIdx].color.push(curColor)
@@ -180,6 +192,12 @@ export async function createOrder({ ...order }: newOrder) {
             }
         }
     })
+
+    if (newOrder) await prismaClient.shoppingCart.delete({
+        where: { id: order.shoppingCartId }
+    })
+
+    return { orderId: newOrder.id }
 }
 
 /**
@@ -212,16 +230,16 @@ export default async function handler(
     res: NextApiResponse<Data>
 ) {
     //For testing api route
-    const { userId } = req.query
-    if (typeof userId !== 'string') throw new Error("Invalid UserId")
+    // const { userId } = req.query
+    // if (typeof userId !== 'string') throw new Error("Invalid UserId")
 
-    // const token = await getToken({
-    //     req,
-    //     secret: process.env.SECRET
-    // },)
-    // if (!token?.userId || !token) return res.status(401).redirect('/login').json({ message: "Unauthorize User redirect to login page" })
+    const token = await getToken({
+        req,
+        secret: process.env.SECRET
+    },)
+    if (!token?.userId || !token) return res.status(401).redirect('/login').json({ message: "Unauthorize User redirect to login page" })
 
-    // const userId = token.userId
+    const userId = token.userId
 
     const schema = Yup.object(UserOrderSchemaValidate)
 
@@ -252,7 +270,7 @@ export default async function handler(
 
                 //create Order include OrderItems
                 const data = await createOrder({ ...newOrder, ownerId: userId })
-                return res.status(200).json({ message: "New order created" })
+                return res.status(200).json({ data, message: "New order created" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }

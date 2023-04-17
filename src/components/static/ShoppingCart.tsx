@@ -89,7 +89,7 @@ export default function ShoppingCart({ keepOpen = false }: Props) {
             <p className='text-gray-500'>Shipping and taxes calculated at checkout.</p>
           </div>
           <div className='flex-center w-full'>
-            <Button text='Checkout' modifier='px-40 py-4' />
+            <Button text='Checkout' modifier='px-40 py-4' onClick={() => router.push('/checkout')} />
           </div>
         </div>
       </Dialog.Panel>

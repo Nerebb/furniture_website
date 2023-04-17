@@ -6,6 +6,8 @@ import { Gender, Status } from "@prisma/client"
 import { UserProfile } from "@types"
 import axiosClient from "./axiosClient"
 import { buildQuery } from "./utils/buildQuery"
+import { stripeRes } from "@/pages/api/checkout"
+import build from "next/dist/build"
 
 
 export type allowedField = Omit<UserProfile,
@@ -30,6 +32,9 @@ type AxiosApi = {
     addToShoppingCart: (productId: string, color: string, quantities?: number) => Promise<{ message: string }>
     removeShoppingCart: (cartItemId: string) => Promise<{ message: string }>
 
+    //Checkout-stripe;
+    generateClient: ({ ...params }: { orderId: string, updateQty: boolean }) => Promise<stripeRes>
+
     //Wishlist
     getWishList: () => Promise<ProductCard[]>,
     addToWishList: (productId: string) => Promise<{ message: string }>,
@@ -38,7 +43,7 @@ type AxiosApi = {
     //Orders
     getUserOrders: (skip?: number, status?: Status) => Promise<UserOrder[]>,
     getOrderedProducts: (orderId: string) => Promise<OrderedItem[]>,
-    createNewOrder: ({ ...params }: newOrder) => Promise<{ message: string }>
+    createNewOrder: ({ ...params }: Omit<newOrder, "ownerId">) => Promise<{ orderId: string }>
     cancelUserOrder: (orderId: string) => Promise<{ message: string }>,
 
 
@@ -53,6 +58,7 @@ const API_USER_SHOPPINGCART = `${API_USER}/shoppingCart`
 const API_USER_WISHLIST = `${API_USER}/wishlist`
 const API_USER_ORDER = `${API_USER}/order`
 const API_PRODUCT = '/api/products'
+const API_CHECKOUT = 'api/checkout'
 
 const axios: AxiosApi = {
     //User
@@ -181,9 +187,8 @@ const axios: AxiosApi = {
 
     createNewOrder: async ({ ...params }) => {
         try {
-            const query = buildQuery(API_USER_ORDER, { ...params })
-            const res: { message: string } = await axiosClient.put(query, params.orderItems)
-            return { message: res.message }
+            const res = await axiosClient.put(API_USER_ORDER, { ...params })
+            return res.data
         } catch (error: any) {
             console.log("Axios-createNewOrder", error)
             throw error.message
@@ -242,6 +247,18 @@ const axios: AxiosApi = {
             throw error.message
         }
     },
+
+    //Checkout-Stripe
+    generateClient: async (params) => {
+        try {
+            const query = buildQuery(API_CHECKOUT, { ...params })
+            const res: stripeRes = await axiosClient.post(query)
+            return res
+        } catch (error: any) {
+            console.log("Axios-generateClient", error)
+            throw error.message
+        }
+    }
 
 }
 

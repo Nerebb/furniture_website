@@ -18,10 +18,11 @@ type Props = {
     dialogBtnText?: {
         accept: string,
         refuse: string,
-    }
+    },
+    isRefuse?: boolean,
     isLoading?: boolean,
-    acceptCallback?: (param?: any) => Promise<void>,
-    refuseCallback?: (param?: any) => Promise<void>
+    acceptCallback?: (param?: any) => void
+    refuseCallback?: (param?: any) => void
 }
 
 const Modal = ({
@@ -33,6 +34,7 @@ const Modal = ({
     content,
     dialogBtnText,
     isLoading,
+    isRefuse = true,
     acceptCallback,
     refuseCallback,
 }: Props) => {
@@ -91,7 +93,7 @@ const Modal = ({
     return (
         <article>
             {/* display */}
-            <Button onClick={openModal} {...btnProps} />
+            {!keepOpen && <Button onClick={openModal} {...btnProps} />}
 
             {/* Modal */}
             <Transition appear show={isOpen} as={Fragment}>
@@ -121,7 +123,7 @@ const Modal = ({
                                 {...ContentTransition}
                             >
                                 {children ? children : (
-                                    <Dialog.Panel className="p-5 w-full max-w-md transform overflow-hidden rounded-2xl bg-white p- text-left align-middle shadow-xl transition-all">
+                                    <Dialog.Panel className="relative p-5 w-full min-w-[350px] min-h-[180px] max-w-md transform overflow-hidden rounded-2xl bg-white p- text-left align-middle shadow-xl transition-all">
                                         <Dialog.Title
                                             as="h3"
                                             className="text-lg font-medium leading-6 text-gray-900"
@@ -134,11 +136,11 @@ const Modal = ({
                                             </p>
                                         </div>
 
-                                        <div className="mt-4 space-x-5 flex">
+                                        <div className="absolute bottom-5 mt-4 space-x-5 flex">
                                             <Button
                                                 text={isLoading ? ("") : (dialogBtnText?.accept ?? "Accept")}
                                                 onClick={handleAccept}
-                                                modifier='w-full max-w-md px-5 py-1 flex-center whitespace-nowrap'
+                                                modifier='max-w-md px-5 py-1 flex-center whitespace-nowrap'
                                                 variant='fill'
                                                 glowModify='noAnimation'
                                                 disabled={isLoading}
@@ -147,13 +149,13 @@ const Modal = ({
                                                     <Loading className='w-6 h-6 text-priBlack-200/50 fill-priBlue-500' />
                                                 }
                                             </Button>
-                                            <Button
+                                            {isRefuse && <Button
                                                 text={dialogBtnText?.refuse ?? "Refuse"}
                                                 onClick={handleRefuse}
-                                                modifier='w-full max-w-md px-5 border-red-500 border py-1 whitespace-nowrap'
+                                                modifier='max-w-md px-5 border-red-500 border py-1 whitespace-nowrap'
                                                 variant='plain'
                                                 glowModify='noAnimation'
-                                            />
+                                            />}
                                         </div>
                                     </Dialog.Panel>
                                 )}

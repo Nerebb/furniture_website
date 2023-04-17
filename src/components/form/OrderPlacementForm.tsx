@@ -10,8 +10,12 @@ import { toast } from 'react-toastify'
 import * as Yup from 'yup'
 import Button from '../Button'
 import Modal from '../Modal'
+import { Dispatch, SetStateAction, useState } from 'react'
+import { CheckoutStage } from '@/pages/checkout'
+import { useCheckoutContext } from '@/contexts/checkoutContext'
 
-type Props = {}
+type Props = {
+}
 
 type newOrderForm = Omit<newOrder,
     'ownerId'
@@ -27,14 +31,22 @@ type newOrderForm = Omit<newOrder,
 }
 
 
-export default function CheckoutForm({ }: Props) {
+export default function OrderPlacementForm({ }: Props) {
     const { data: session } = useSession()
-    const { mutate } = useMutation({
+    const [submitError, setSubmitError] = useState<string | undefined>()
+    const { checkoutContext, setCheckoutContext } = useCheckoutContext()
+    const { mutate: axiosUpdateUser } = useMutation({
         mutationKey: ['updateProfile', session?.id],
         mutationFn: (data: allowedField): Promise<{ message: String }> => axios.updateUser(session!.id as string, data),
         onSuccess: () => {
             toast.success('Update profile completed')
         }
+    })
+
+    const mutateCreateOrder = useMutation({
+        mutationKey: ['createOrder'],
+        mutationFn: (params: Omit<newOrder, "ownerId">) => axios.createNewOrder(params),
+        onSuccess: (data) => setCheckoutContext({ checkoutStage: 1, stripeClient: { orderId: data.orderId, updateQty: false } })
     })
 
     const UserProfile = useQuery({
@@ -57,15 +69,13 @@ export default function CheckoutForm({ }: Props) {
         { id: 5, label: 'Delivery address', name: 'shippingAddress', inputType: 'text' },
     ]
 
-    //Delivery
-    //CreditCard
-
     const initValue = {
         name: UserProfile.data?.name || "",
         phoneNumber: UserProfile.data?.phoneNumber || "",
         email: UserProfile.data?.email || "",
         billingAddress: UserProfile.data?.address || "",
         shippingAddress: UserProfile.data?.address || "",
+        shoppingCartId: ShoppingCart.data?.id || "",
     }
 
     function checkDirty(values: newOrderForm): boolean {
@@ -81,20 +91,22 @@ export default function CheckoutForm({ }: Props) {
         }
     }
 
-    function handleOnSubmit(values: newOrderForm, { setSubmitting, }: FormikHelpers<newOrderForm>) {
-        console.log("Form Submitted!!!")
-        const orderItems = ShoppingCart.data?.shoppingCartItem.map(i => ({
-            productId: i.productId,
-            color: i.color,
-            quantities: i.quantities
-        }))
+    async function handleOnSubmit(values: newOrderForm, { setSubmitting }: FormikHelpers<newOrderForm>) {
+        setSubmitting(true)
+        await new Promise(r => setTimeout(r, 2000)); //Debounce
 
+        try {
+            mutateCreateOrder.mutate({ ...values })
+        } catch (error: any) {
+            setSubmitError(error.message || "CreateOrder: Unknown error")
+        }
 
+        setSubmitting(false)
     }
 
-    async function acceptCallback(values: newOrderForm, props: FormikHelpers<newOrderForm>) {
+    async function updateUser(values: newOrderForm, props: FormikHelpers<newOrderForm>) {
         //Update User profile
-        mutate({ name: values.name, phoneNumber: values.phoneNumber, email: values.email, address: values.billingAddress })
+        axiosUpdateUser({ name: values.name, phoneNumber: values.phoneNumber, email: values.email, address: values.billingAddress })
         await new Promise(r => setTimeout(r, 2000)); // Debounce
 
         //CreateOrder
@@ -111,11 +123,11 @@ export default function CheckoutForm({ }: Props) {
             >
                 {({ values, ...props }) => (
                     <Form
-                        className=''
+                        className='w-full'
                     >
                         {/* User */}
-                        <div className='h-full w- w-3/4 space-y-8 flex flex-col justify-center'>
-                            <h1 className='text-3xl mb-12'>Order placement</h1>
+                        <div className='space-y-8'>
+                            <h1 className='text-3xl mb-12 font-semibold'>Order placement:</h1>
                             {userRow.map(row => (
                                 <FormikField
                                     key={row.id}
@@ -125,6 +137,7 @@ export default function CheckoutForm({ }: Props) {
                                     name={row.name}
                                 />
                             ))}
+                            {submitError && <p>{submitError}</p>}
                             <div className='flex-center'>
                                 {!checkDirty(values) ? (
                                     <Button
@@ -143,11 +156,11 @@ export default function CheckoutForm({ }: Props) {
                                         title='User info has been modified!'
                                         content='Do you want to update personal info'
                                         dialogBtnText={{
-                                            accept: "Update profile",
-                                            refuse: "Proceed to payment"
+                                            accept: "Update",
+                                            refuse: "Refuse"
                                         }}
-                                        acceptCallback={() => acceptCallback(values, props)}
-                                        refuseCallback={async () => handleOnSubmit(values, props)}
+                                        acceptCallback={() => updateUser(values, props)}
+                                        refuseCallback={() => handleOnSubmit(values, props)}
                                     />
                                 )}
                             </div>
@@ -155,8 +168,6 @@ export default function CheckoutForm({ }: Props) {
 
                         {/* Shipping */}
                         {/* <div className='text-2xl'>Available shipping option:</div> */}
-
-                        {/* Payment */}
                     </Form>
                 )}
             </Formik>

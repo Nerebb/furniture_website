@@ -103,12 +103,13 @@ export default function ProductDetailPage({ }: Props) {
         setSelectedQty(e.target.value)
     }
 
+
     function handleAddToCart() {
         setError("")
         const curQty = typeof selectedQty !== 'number' ? parseInt(selectedQty) : selectedQty
         if (!selectedColor) return setError("Please select provided color")
         if (!curQty || curQty < 0) return setError("Quantities is missing")
-        if (product?.available && selectedQty > product?.available) return setError("Product stock not meet requirements")
+        if (product?.available && curQty > product?.available) return setError("Product stock not meet requirements")
 
         mutateShoppingCart({ color: selectedColor, quantities: curQty }, {
             onError: (error: any) => {
@@ -206,7 +207,11 @@ export default function ProductDetailPage({ }: Props) {
                         </label>
 
                         <div className="flex space-x-5">
-                            <Button text='Buy now' variant='outline' modifier='w-[150px] py-1.5 font-semibold' />
+                            {/* <Button
+                                text='Buy now'
+                                variant='outline'
+                                modifier='w-[150px] py-1.5 font-semibold'
+                            /> */}
                             <Button
                                 text={isLoadingShoppingCart ? "" : 'Add to cart'}
                                 variant='fill'
@@ -215,7 +220,7 @@ export default function ProductDetailPage({ }: Props) {
                             >
                                 {isLoadingShoppingCart &&
                                     <div className='flex-center w-full'>
-                                        <Loading className='w-6 h-6' />
+                                        <Loading className='w-6 h-6 fill-priBlue-500' />
                                     </div>
                                 }
                             </Button>

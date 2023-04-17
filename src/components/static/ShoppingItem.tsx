@@ -12,10 +12,14 @@ import { fCurrency } from '@/libs/utils/numberal'
 import { Transition } from '@headlessui/react'
 import Loading from './Loading'
 
-type Props = shoppingCartItem
+type Props = shoppingCartItem & {
+    type?:
+    | 'default'
+    | 'checkoutItem'
+}
 
 // Input component
-function QtyInput({ ...product }: shoppingCartItem) {
+function QtyInput({ type, ...product }: Props) {
     const [itemQty, setItemQty] = useState<string | number>(product.quantities)
     const [error, setError] = useState<string>("")
     const value = typeof itemQty !== 'number' ? parseInt(itemQty) : itemQty
@@ -55,6 +59,7 @@ function QtyInput({ ...product }: shoppingCartItem) {
                     inputMode="numeric"
                     value={itemQty}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setItemQty(e.target.value)}
+                    disabled={type === 'checkoutItem'}
                 />
                 <Transition
                     show={dirty}
@@ -81,7 +86,8 @@ function QtyInput({ ...product }: shoppingCartItem) {
 
 }
 
-export default function ShoppingItem({ ...product }: Props) {
+//ShoppingCartItem
+export default function ShoppingItem({ type = 'default', ...product }: Props) {
     const queryClient = useQueryClient()
     const { mutate, isLoading } = useMutation({
         mutationKey: ['ShoppingCart'],
@@ -125,7 +131,7 @@ export default function ShoppingItem({ ...product }: Props) {
 
                 <p className='text-gray-500'>OnStock: {product.available}</p>
                 <p className='grow'></p>
-                <QtyInput {...product} />
+                <QtyInput type={type} {...product} />
             </div>
             <div className='items-end flex flex-col'>
                 <h1 className='font-semibold'>{fCurrency(product.price)}</h1>
