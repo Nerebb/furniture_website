@@ -5,6 +5,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getToken } from 'next-auth/jwt'
 import * as Yup from 'yup'
 import { getProductById } from '../products/[productId]'
+import { Prisma } from '@prisma/client'
 
 export type shoppingCartItem = {
     id: string
@@ -49,7 +50,7 @@ const shoppingCartIncludes = {
                     totalRating: true,
                     totalComments: true,
                     totalSale: true,
-                    image: true
+                    imageIds: true,
                 }
             }
         },
@@ -80,7 +81,7 @@ export async function getShoppingCart(userId: string) {
         totalRating: i.product.totalRating,
         totalComments: i.product.totalComments,
         totalSale: i.product.totalSale,
-        imageUrl: i.product.image.map(i => i.imageUrl)
+        imageUrl: i.product.imageIds.map(i => i.imageUrl)
     }))
 
     return {
@@ -252,7 +253,7 @@ export default async function handler(
         secret: process.env.SECRET
     },)
 
-    if (!token?.userId || !token) return res.redirect('/login') //Already check in middleware - this just for userId is specified - no undefined
+    if (!token?.userId || !token) return res.status(400).json({ message: "Invalid user" }) //Already check in middleware - this just for userId is specified - no undefined
 
     const userId = token.userId
 
@@ -276,7 +277,6 @@ export default async function handler(
                 await updateShoppingCart(userId as string, req)
                 return res.status(200).json({ message: "Update product completed" })
             } catch (error: any) {
-                console.log("🚀 ~ file: shoppingCart.ts:144 ~ error:", error)
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.DELETE:

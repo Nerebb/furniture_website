@@ -1,0 +1,333 @@
+// // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+// import prismaClient from '@/libs/prismaClient';
+// import { CreateProductReviewSchemaValidate, GetProductReviewSchemaValidate, UpdateProductReviewSchemaValidate, UpdateReviewLikeSchemaValidate, isUUID } from '@/libs/schemaValitdate';
+// import { Prisma, Product, ProductReview, Role } from '@prisma/client';
+// import { ApiMethod } from '@types';
+// import type { NextApiRequest, NextApiResponse } from 'next';
+// import { JWT, getToken } from 'next-auth/jwt';
+// import * as Yup from 'yup';
+// import { SignedUserData, verifyToken } from '../auth/customLogin';
+
+
+
+// type Data = {
+//     data?: ResponseReview | ResponseReview[]
+//     message: string
+// }
+
+
+// type reviewResponse = {
+//     owner: {
+//         name: string | null;
+//         nickName: string | null;
+//         createdDate: Date;
+//     };
+//     likedUsers: {
+//         id: string;
+//     }[]
+// } & ProductReview
+// function santinizeReview(role: Role, data: reviewResponse, userId?: string): ResponseReview {
+//     switch (role) {
+//         case 'admin':
+//         default:
+//             return {
+//                 id: data.id,
+//                 content: data.content,
+//                 productId: data.productId,
+//                 rating: data.rating,
+//                 ownerId: data.ownerId,
+//                 name: data.owner.name ?? "",
+//                 nickName: data.owner.nickName ?? undefined,
+//                 userCreatedDate: data.owner.createdDate,
+//                 totalLike: data.totalLike,
+//                 createdDate: data.createdDate,
+//                 updatedAt: data.updatedAt,
+//                 isLiked: data.likedUsers.some(i => i.id === userId),
+//             };
+//     }
+// }
+
+// /**
+//  * @method GET
+//  * @query productId UUID
+//  * @query ownerId UUID f
+//  * @returns ProductReview[]
+//  */
+// export type GetReviewsByIdProps = {
+//     productId?: string
+//     ownerId?: string
+//     userId?: string
+//     skip?: number
+//     limit?: number
+//     rate?: number[]
+// }
+// export async function getReviewsById({ ...props }: GetReviewsByIdProps) {
+//     if (!props.ownerId && !props.productId) throw new Error("Query params missing")
+
+//     const data = await prismaClient.productReview.findMany({
+//         where: {
+//             productId: props.productId,
+//             ownerId: props.ownerId,
+//             rating: { in: props.rate || [0, 1, 2, 3, 4, 5] }
+//         },
+//         skip: props.skip || 0,
+//         take: props.limit || 2,
+//         include: {
+//             owner: {
+//                 select: {
+//                     name: true,
+//                     nickName: true,
+//                     createdDate: true,
+//                 }
+//             },
+//             likedUsers: { select: { id: true } }
+//         }
+//     })
+//     if (!data || data.length === 0) throw new Error("No product found")
+
+//     const response = data.map(i => santinizeReview(role, i, userId)) satisfies ResponseReview[]
+
+//     return response
+// }
+
+// /**
+//  * @method PUT
+//  * @body review {content,rating,ownerId,productId}
+//  * @return message
+//  */
+// export type NewReviewProps = Omit<ProductReview, 'id' | 'totalLike' | 'createdDate' | 'updatedAt' | 'ownerId'> & { ownerId?: string }
+// export async function createProductReview(review: NewReviewProps) {
+//     try {
+//         if (!review.ownerId) throw new Error("Unauthorize User")
+//         const orderItem = await prismaClient.orderItem.findMany({
+//             where: {
+//                 productId: review.productId,
+//                 order: { ownerId: review.ownerId }
+//             }
+//         })
+//         if (!orderItem || orderItem.length <= 0) throw new Error("User haven't purchased product")
+
+//         const data = await prismaClient.productReview.create({
+//             data: {
+//                 content: review.content,
+//                 rating: review.rating,
+//                 totalLike: 0,
+//                 owner: {
+//                     connect: { id: review.ownerId }
+//                 },
+//                 product: {
+//                     connect: { id: review.productId }
+//                 }
+//             },
+//         })
+//     } catch (error: any) {
+//         if (error.code === 'P2002') throw new Error("Review already exist")
+//         throw error
+//     }
+
+//     //Update productDetail
+//     const product = await prismaClient.product.findUniqueOrThrow({
+//         where: { id: review.productId }
+//     })
+
+
+//     const update = await prismaClient.product.update({
+//         where: { id: review.productId },
+//         data: {
+//             totalRating: product.totalRating + 1,
+//             totalComments: product.totalComments + 1,
+//             avgRating: Math.ceil((product.avgRating * product.totalRating + review.rating) / (product.totalRating + 1))
+//         }
+//     })
+// }
+
+// /**
+//  * @method POST
+//  * @body review {id,ownerId,productId,content,rating}
+//  * @return message
+//  */
+// export type UpdateReview = Omit<ProductReview, "content" | "rating" | 'totalLike' | 'createdDate' | 'updatedAt'> & {
+//     content?: string,
+//     rating?: number
+// }
+// export async function updateProductReview(review: UpdateReview) {
+//     let prevRating;
+//     if (review.rating) {
+//         prevRating = await prismaClient.productReview.findUniqueOrThrow({
+//             where: { id: review.id },
+//             select: { rating: true }
+//         })
+//     }
+
+//     const data = await prismaClient.productReview.updateMany({
+//         where: {
+//             id: review.id,
+//             ownerId: review.ownerId,
+//             productId: review.productId
+//         },
+//         data: {
+//             content: review.content,
+//             rating: review.rating
+//         }
+//     })
+
+//     if (data.count <= 0) throw new Error("Product review not found or User is not authorized")
+
+//     if (review.rating && prevRating?.rating) {
+//         //Update
+//         const product = await prismaClient.product.findUniqueOrThrow({
+//             where: { id: review.productId }
+//         })
+//         await prismaClient.product.update({
+//             where: { id: review.productId },
+//             data: {
+//                 avgRating: Math.ceil(((product.avgRating * product.totalRating) - prevRating.rating + review.rating) / product.totalRating)
+//             }
+//         })
+//     }
+// }
+
+
+// /**
+//  * @method POST
+//  * @body reviewId
+//  * @body likeUser
+//  * @return message
+//  */
+// export async function updateReviewLike(reviewId: string, likeUser: string) {
+//     const review = await prismaClient.productReview.findUniqueOrThrow({
+//         where: { id: reviewId },
+//         include: {
+//             likedUsers: {
+//                 select: { id: true }
+//             }
+//         }
+//     })
+
+//     if (likeUser === review.ownerId) throw new Error("This review belongs to current User!")
+
+//     if (review.likedUsers.some(like => like.id === likeUser)) {
+//         await prismaClient.productReview.update({
+//             where: { id: reviewId },
+//             data: {
+//                 totalLike: review.totalLike - 1,
+//                 likedUsers: {
+//                     disconnect: { id: likeUser }
+//                 }
+//             }
+//         })
+//     } else {
+//         await prismaClient.productReview.update({
+//             where: { id: reviewId },
+//             data: {
+//                 totalLike: review.totalLike + 1,
+//                 likedUsers: {
+//                     connect: { id: likeUser }
+//                 }
+//             }
+//         })
+//     }
+// }
+
+// /**
+//  * @method DELETE
+//  * @query reviewId UUID
+//  * @query userId from JWT Tokens
+//  */
+// export async function deleteReviewById(reviewId: string, userId: string) {
+//     const review = await prismaClient.productReview.findFirstOrThrow({
+//         where: { id: reviewId, ownerId: userId }
+//     })
+
+
+//     await prismaClient.productReview.deleteMany({
+//         where: { id: reviewId, ownerId: userId },
+//     })
+
+
+//     //Update
+//     const product = await prismaClient.product.findUniqueOrThrow({
+//         where: { id: review.productId }
+//     })
+
+//     await prismaClient.product.update({
+//         where: { id: review.productId },
+//         data: {
+//             avgRating: Math.ceil(((product.avgRating * product.totalRating) - review.rating) / (product.totalRating - 1)),
+//             totalRating: product.totalRating - 1,
+//             totalComments: product.totalComments - 1
+//         }
+//     })
+// }
+
+// export default async function handler(
+//     req: NextApiRequest,
+//     res: NextApiResponse<Data>
+// ) {
+//     const { id } = await Yup.object({ id: isUUID }).validate(req.query)
+
+//     let token: JWT | SignedUserData | void;
+//     try {
+//         token = await verifyToken(req)
+//         if (!token || !token.userId) throw new Error("Unauthorize user")
+//     } catch (error: any) {
+//         return res.status(405).json({ message: error.message || error })
+//     }
+
+//     switch (req.method) {
+//         case ApiMethod.GET:
+//             try {
+//                 const schema = Yup.object(GetProductReviewSchemaValidate)
+//                 const validatedQuery = await schema.validate(req.query)
+
+//                 const data = await getReviewsById(validatedQuery)
+//                 return res.status(200).json({ data, message: "Get reviews success" })
+//             } catch (error: any) {
+//                 return res.status(400).json({ message: error.message || "Unknown error" })
+//             }
+//         case ApiMethod.PUT:
+//             try {
+//                 const ownerId = token.userId
+//                 const schema = Yup.object(CreateProductReviewSchemaValidate)
+
+//                 const validated = await schema.validate(req.body)
+
+//                 const data = await createProductReview({ ...validated, ownerId })
+//                 return res.status(200).json({ data, message: "Product review created" })
+//             } catch (error: any) {
+//                 return res.status(400).json({ message: error.message || "Unknown error" })
+//             }
+//         case ApiMethod.POST:
+//             try {
+//                 const token = await getToken({ req, secret: process.env.SECRET })
+//                 if (!token?.userId) throw new Error("UserId missing, please re-login")
+//                 const userId = token.userId
+
+//                 if (req.body.likedUser) {
+//                     const schema = Yup.object(UpdateReviewLikeSchemaValidate)
+//                     const validated = await schema.validate(req.body)
+//                     await updateReviewLike(validated.id, userId as string)
+//                 } else {
+//                     const schema = Yup.object(UpdateProductReviewSchemaValidate)
+//                     const validated = await schema.validate(req.body)
+//                     await updateProductReview({ ...validated, ownerId: userId as string })
+//                 }
+//                 return res.status(200).json({ message: "Product review updated" })
+//             } catch (error: any) {
+//                 return res.status(400).json({ message: error.message || "Unknown error" })
+//             }
+//         case ApiMethod.DELETE:
+//             try {
+//                 const token = await getToken({ req, secret: process.env.SECRET })
+//                 if (!token?.userId) throw new Error("UserId missing, please re-login")
+
+//                 const reviewId = await isUUID.validate(req.query.reviewId)
+//                 const data = await deleteReviewById(reviewId, token.userId as string)
+//                 return res.status(200).json({ message: "Product review deleted" })
+//             } catch (error: any) {
+//                 return res.status(400).json({ message: error.message || "Unknown error" })
+//             }
+//         default:
+//             return res.status(405).json({ message: "Invalid Method" })
+//     }
+// }

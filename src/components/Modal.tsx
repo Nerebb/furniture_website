@@ -14,7 +14,7 @@ type Props = {
     keepOpen?: boolean
     children?: ReactNode
     title?: string
-    content?: string
+    content?: ReactNode
     dialogBtnText?: {
         accept: string,
         refuse: string,
@@ -131,9 +131,13 @@ const Modal = ({
                                             {title ?? "Payment successful"}
                                         </Dialog.Title>
                                         <div className="mt-2">
-                                            <p className="text-sm text-gray-500">
-                                                {content ?? "Your payment has been successfully submitted. We’ve sent you an email with all of the details of your order."}
-                                            </p>
+                                            {typeof content === "string" ? (
+                                                <p className="text-sm text-gray-500">
+                                                    {content ?? "Your payment has been successfully submitted. We’ve sent you an email with all of the details of your order."}
+                                                </p>
+                                            ) : (
+                                                content
+                                            )}
                                         </div>
 
                                         <div className="absolute bottom-5 mt-4 space-x-5 flex">

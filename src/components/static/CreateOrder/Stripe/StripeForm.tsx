@@ -60,13 +60,13 @@ export default function StripeForm() {
 
         setIsLoading(true);
 
-        const { error, paymentIntent } = await stripe.confirmPayment({
+        const { error } = await stripe.confirmPayment({
             elements,
             confirmParams: {
                 // Make sure to change this to your payment completion page
-                // return_url: "http://localhost:3000/checkout",
+                return_url: "http://localhost:3000/checkout",
             },
-            redirect: 'if_required'
+            // redirect: 'if_required'
         });
 
 

@@ -1,7 +1,7 @@
 import FormikField from '@/components/form/FormikField'
 import axios, { allowedField } from '@/libs/axiosApi'
 import { CheckoutFormSchemaValidate, UserSchemaValidate } from '@/libs/schemaValitdate'
-import { newOrder } from '@/pages/api/user/order'
+import { newOrder } from '@/pages/api/order/order'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { FormRow } from '@types'
 import { Form, Formik, FormikHelpers } from 'formik'
@@ -152,7 +152,7 @@ export default function OrderPlacementForm({ }: Props) {
                                             text: "Proceed to payment",
                                             glowModify: 'noAnimation',
                                             modifier: 'w-80 py-3',
-                                            disabled: Boolean(ShoppingCart.data)
+                                            // disabled: Boolean(ShoppingCart.data)
                                         }}
                                         title='User info has been modified!'
                                         content='Do you want to update personal info'

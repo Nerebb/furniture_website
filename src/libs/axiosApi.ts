@@ -1,13 +1,13 @@
+import { stripeRes } from "@/pages/api/checkout"
 import { ProductCard, ProductSearch } from "@/pages/api/products"
 import { ProductDetail } from "@/pages/api/products/[productId]"
-import { OrderedItem, UserOrder, newOrder } from "@/pages/api/user/order"
+import { GetReviewsByIdProps, NewReviewProps, TReview, UpdateReview } from "@/pages/api/review/[id]"
+import { OrderedItem, UserOrder, newOrder } from "@/pages/api/order/order"
 import { UserShoppingCart } from "@/pages/api/user/shoppingCart"
 import { Gender, Status } from "@prisma/client"
 import { UserProfile } from "@types"
 import axiosClient from "./axiosClient"
 import { buildQuery } from "./utils/buildQuery"
-import { stripeRes } from "@/pages/api/checkout"
-import build from "next/dist/build"
 
 
 export type allowedField = Omit<UserProfile,
@@ -31,6 +31,12 @@ type AxiosApi = {
     updateShoppingCart: (cartItemId: string, color?: string, quantities?: number) => Promise<{ message: string }>
     addToShoppingCart: (productId: string, color: string, quantities?: number) => Promise<{ message: string }>
     removeShoppingCart: (cartItemId: string) => Promise<{ message: string }>
+
+    //ProductCmt
+    getReviewsById: (props: GetReviewsByIdProps) => Promise<TReview[]>
+    createProductReview: (review: NewReviewProps) => Promise<{ message: string }>
+    updateProductReview: (review: UpdateReview, likedUser?: boolean) => Promise<{ message: string }>
+    deleteProductReview: (id: string) => Promise<{ message: string }>
 
     //Checkout-stripe;
     generateClient: ({ ...params }: { orderId: string, updateQty: boolean }) => Promise<stripeRes>
@@ -59,6 +65,7 @@ const API_USER_WISHLIST = `${API_USER}/wishlist`
 const API_USER_ORDER = `${API_USER}/order`
 const API_PRODUCT = '/api/products'
 const API_CHECKOUT = 'api/checkout'
+const API_PRODUCT_REVIEW = `${API_PRODUCT}/review`
 
 const axios: AxiosApi = {
     //User
@@ -244,6 +251,49 @@ const axios: AxiosApi = {
             return res.data
         } catch (error: any) {
             console.log("Axios-removeShoppingCart", error)
+            throw error.message
+        }
+    },
+
+    //ProducReviews
+    getReviewsById: async (body) => {
+        try {
+            const query = buildQuery(API_PRODUCT_REVIEW, body)
+            const res = await axiosClient.get(query)
+            return res.data
+        } catch (error: any) {
+            console.log("Axios-getReviewsById", error)
+            throw error.message
+        }
+    },
+
+    createProductReview: async (body) => {
+        try {
+            const res: { message: string } = await axiosClient.put(API_PRODUCT_REVIEW, body)
+            return { message: res.message }
+        } catch (error: any) {
+            console.log("Axios-createProductReview", error)
+            throw error.message
+        }
+
+    },
+
+    updateProductReview: async (body, likedUser) => {
+        try {
+            const res: { message: string } = await axiosClient.post(API_PRODUCT_REVIEW, { ...body, likedUser })
+            return { message: res.message }
+        } catch (error: any) {
+            console.log("Axios-updateProductReview", error)
+            throw error.message
+        }
+    },
+
+    deleteProductReview: async (id) => {
+        try {
+            const res: { message: string } = await axiosClient.delete(`${API_PRODUCT_REVIEW}?reviewId=${id}`)
+            return { message: res.message }
+        } catch (error: any) {
+            console.log("Axios-deleteProductReview", error)
             throw error.message
         }
     },

@@ -6,7 +6,6 @@ type Props = {}
 export default function CheckoutProvider({ children }: PropsWithChildren<Props>) {
     const [checkoutContext, setCheckoutContext] = useState({ checkoutStage: 0, stripeClient: { orderId: "", updateQty: false } })
     const values = useMemo(() => ({ checkoutContext, setCheckoutContext }), [checkoutContext, setCheckoutContext])
-    console.log("🚀 ~ file: checkoutContext.tsx:8 ~ CheckoutProvider ~ checkoutContext:", checkoutContext)
     return (
         <CheckoutContext.Provider value={values}>
             {children}
@@ -17,5 +16,5 @@ export default function CheckoutProvider({ children }: PropsWithChildren<Props>)
 export function useCheckoutContext() {
     const content = useContext(CheckoutContext)
     if (!content) throw new Error("checkoutContext must be used within <SearchProductContext.Provider/>")
-    return { ...content }
+    return content
 }

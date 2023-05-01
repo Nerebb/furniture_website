@@ -3,6 +3,7 @@ import Chip from '@/components/Chip';
 import Loading from '@/components/static/Loading';
 import ProductComment from '@/components/static/ProductDetail/ProductComment';
 import ProductImages from '@/components/static/ProductDetail/ProductImages';
+import ProductReview from '@/components/static/ProductDetail/ProductReview';
 import ProductSimilar from '@/components/static/ProductDetail/ProductSimilar';
 import { StarRating } from '@/components/static/StarRating';
 import SwiperContainer from '@/components/Swiper/SwiperContainer';
@@ -10,30 +11,44 @@ import BaseLayout from '@/layouts/BaseLayout';
 import Section from '@/layouts/Section';
 import axios from '@/libs/axiosApi';
 import { fCurrency } from '@/libs/utils/numberal';
+import { Transition } from '@headlessui/react';
 import { HeartIcon as HeartIconOutline } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { GetColorName } from 'hex-color-to-color-name';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
+import { TReview } from '../api/review/[id]';
 
 type Props = {
 }
 
 export default function ProductDetailPage({ }: Props) {
+    const { data: session } = useSession()
     const router = useRouter();
+    const productId = router.query.productId as string;
+    const [error, setError] = useState<string>()
+    const queryClient = useQueryClient()
+
+    //AddToCart
     const [selectedColor, setSelectedColor] = useState<string>()
     const [selectedQty, setSelectedQty] = useState<string | number>(1)
-    const [isWishlist, setIsWishlist] = useState<boolean>()
-    const [error, setError] = useState<string>()
 
-    const { productId } = router.query;
-    const queryClient = useQueryClient()
+    //NewCmt
+    const [createCmt, setCreateCmt] = useState<boolean>(false)
+
+    //AddToWishlist
+    const [isWishlist, setIsWishlist] = useState<boolean>(false)
+
+    //FetchProductReview
+    const [loadReview, setLoadReview] = useState<boolean>(false)
 
     const userWishist = useQuery({
         queryKey: ['UserWishlist'],
-        queryFn: () => axios.getWishList()
+        queryFn: () => axios.getWishList(),
+        enabled: !!session?.id
     })
 
     useEffect(() => {
@@ -78,14 +93,20 @@ export default function ProductDetailPage({ }: Props) {
 
     const sameCateProducts = useQuery({
         queryKey: ['sameCateProducts', productId],
-        queryFn: () => axios.getProducts({ limit: 10, cateId: product?.cateIds?.map(i => i.id) }),
+        queryFn: () => axios.getProducts({ limit: 10, cateId: product?.cateIds }),
         enabled: Boolean(product),
     })
 
     const sameRoomProducts = useQuery({
         queryKey: ['sameRoomProducts', productId],
-        queryFn: () => axios.getProducts({ limit: 10, roomId: product?.roomIds?.map(i => i.id) }),
+        queryFn: () => axios.getProducts({ limit: 10, roomId: product?.roomIds }),
         enabled: Boolean(product),
+    })
+
+    const topReviews = useQuery({
+        queryKey: ['TopReviews', productId],
+        queryFn: () => axios.getReviewsById({ productId, limit: 2 }),
+        enabled: Boolean(productId),
     })
 
     //Controlling DisplayedData on client
@@ -151,13 +172,13 @@ export default function ProductDetailPage({ }: Props) {
                     <aside className='flex flex-col w-1/2 pl-5 py-5 border-l space-y-8'>
                         <div className='flex items-center justify-between'>
                             <h1 className="text-[32px] font-bold first-letter:capitalize">{product.name}</h1>
-                            <button onClick={updateUserWishlist}>
+                            <div onClick={updateUserWishlist}>
                                 {isWishlist ? (
                                     <HeartIconSolid className='w-12 h-12 text-priBlue-300 hover:text-priBlack-50' />
                                 ) : (
                                     <HeartIconOutline className='w-12 h-12 text-priBlack-50 hover:text-priBlue-300' />
                                 )}
-                            </button>
+                            </div>
                         </div>
 
                         {/* Description */}
@@ -174,7 +195,7 @@ export default function ProductDetailPage({ }: Props) {
                             <div className="flex mr-3">
                                 <StarRating ProductRating={product.avgRating} />
                             </div>
-                            <span className='underline'>{product.ratedUsers} reviews</span>
+                            <span className='underline'>{product.totalRating} reviews</span>
                         </div>
 
 
@@ -193,18 +214,24 @@ export default function ProductDetailPage({ }: Props) {
                                 ))}
                             </div>}
 
-                        <label
-                            htmlFor={'quantities'}
-                        >
-                            Quantity:
-                            <input
-                                value={selectedQty}
-                                className='rounded-md ml-2 border-none ring-none focus:ring-priBlue-500'
-                                type='number'
-                                inputMode="numeric"
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleQtyOnChange(e)}
-                            />
-                        </label>
+                        <div>
+                            <label
+                                htmlFor='quantities'
+                            >
+                                Quantity:
+                                <input
+                                    value={selectedQty}
+                                    className='rounded-md max-w-[80px] ml-2 border-none ring-none hover:ring-1 hover:ring-priBlue-500 focus:ring-priBlue-500'
+                                    type='number'
+                                    min={1}
+                                    inputMode="numeric"
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleQtyOnChange(e)}
+                                />
+                            </label>
+                            {error &&
+                                <span className='text-red-500 first-letter:capitalize font-semibold ml-2'>{error}</span>
+                            }
+                        </div>
 
                         <div className="flex space-x-5">
                             {/* <Button
@@ -224,37 +251,56 @@ export default function ProductDetailPage({ }: Props) {
                                     </div>
                                 }
                             </Button>
+                            <Button
+                                text={createCmt ? "Close" : "Add review"}
+                                variant='outline'
+                                modifier='w-[150px] py-1.5 font-semibold'
+                                onClick={() => setCreateCmt(prev => !prev)}
+                            />
                         </div>
 
-                        {error &&
-                            <div className='text-red-500 first-letter:capitalize font-semibold'>{error}</div>
-                        }
+                        <Transition
+                            show={createCmt}
+                            as='div'
+                            className='space-y-3'
+                            enter="transition-all duration-700"
+                            enterFrom='opacity-0'
+                            enterTo='opacity-100'
+                        >
+                            <ProductComment productId={productId} newReview={true} />
+                        </Transition>
 
-                        <div className='space-y-3'>
-                            {product.totalComments >= 0 && (
-                                <>
-                                    <ProductComment content={false} />
-                                    <ProductComment content={false} />
-                                </>
-                            )}
-                        </div>
+                        <Transition
+                            show={!createCmt}
+                            as='div'
+                            className='space-y-3'
+                            enter="transition-all duration-700"
+                            enterFrom='opacity-0'
+                            enterTo='opacity-100'
+                        >
+                            {topReviews.data && topReviews.data.map(review => (
+                                <button
+                                    key={`top-${review.id}`}
+                                    onClick={() => setLoadReview(true)}
+                                    className='w-full'
+                                >
+                                    <ProductComment productId={productId} viewContent={false} review={review} />
+                                </button>
+                            ))}
+                        </Transition>
                     </aside>
                 </article>
             }
 
             {/* ProductReview */}
-            <Section title='Product reviews'>
-                <div className='space-y-5 border-b border-priBlack-200/50 pb-5'>
-                    <ProductComment />
-                    <ProductComment />
-                    <ProductComment />
-                    <ProductComment />
-                    <ProductComment />
-                    <div className='w-full flex-center'>
-                        <Button text='Load more' glowModify='noAnimation' />
-                    </div>
-                </div>
-            </Section>
+            <Transition
+                show={loadReview}
+                enter="transition-all duration-700"
+                enterFrom='opacity-0 translate-y-5 h-0'
+                enterTo='opacity-100 translate-y-0 h-full'
+            >
+                <ProductReview productId={productId} loadReview={loadReview} />
+            </Transition>
 
 
             {/* OtherProducts */}

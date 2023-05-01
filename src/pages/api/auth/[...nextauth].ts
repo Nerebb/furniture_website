@@ -7,6 +7,7 @@ import FacebookProvider from "next-auth/providers/facebook"
 import GithubProvider from "next-auth/providers/github"
 import GoogleProvider from "next-auth/providers/google"
 import prismaClient from "../../../libs/prismaClient"
+import { credentialLogin } from "./customLogin"
 
 //Google
 const GOOGLE_AUTHORIZATION_URL =
@@ -93,35 +94,7 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials, req) {
-                // Add logic here to look up the user from the credentials supplied
-
-                // checkUser
-                // const user1 = await prismaClient.account.findFirstOrThrow({
-                //     where: {
-                //         loginId: credentials?.loginId,
-                //     },
-                // })
-
-                const user = await prismaClient.user.findFirstOrThrow({
-                    where: {
-                        deleted: null,
-                        accounts: {
-                            some: { loginId: credentials?.loginId }
-                        }
-                    },
-                    include: {
-                        accounts: {
-                            where: { loginId: credentials?.loginId }
-                        }
-                    }
-                })
-
-                if (!user) throw new Error('Invalid User or password')
-
-                //checkPassword
-                const checkPassword = await compare(credentials!.password, user.accounts[0].password as string)
-                if (!checkPassword) throw new Error('Password is incorrect')
-
+                const user = await credentialLogin({ loginId: credentials?.loginId, password: credentials?.password })
                 return user
             },
         }),

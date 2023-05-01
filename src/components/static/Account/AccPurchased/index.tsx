@@ -1,7 +1,7 @@
 import Button from '@/components/Button';
 import axios from '@/libs/axiosApi';
 import { fCurrency } from '@/libs/utils/numberal';
-import { UserOrder } from '@/pages/api/user/order';
+import { UserOrder } from '@/pages/api/order/order';
 import { Transition } from '@headlessui/react';
 import { Status } from '@prisma/client';
 import { useQuery } from '@tanstack/react-query';
@@ -21,7 +21,6 @@ export default function AccPurchased() {
 
     //AG-GRID
     const [rowData, setRowData] = useState<UserOrder[]>();
-    console.log("🚀 ~ file: index.tsx:24 ~ AccPurchased ~ rowData:", rowData)
     const gridRef = useRef<AgGridReact<UserOrder>>(null);
 
     const { data: userOrder, isLoading, isError } = useQuery({

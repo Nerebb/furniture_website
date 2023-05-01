@@ -3,7 +3,6 @@ import Card from '@/components/Card'
 import axios from '@/libs/axiosApi'
 import bigIntStringToNumber from '@/libs/utils/bigIntStringToNumber'
 import { fCurrency } from '@/libs/utils/numberal'
-import { OrderedItem, UserOrder } from '@/pages/api/user/order'
 import { Disclosure, Transition } from '@headlessui/react'
 import { XCircleIcon } from '@heroicons/react/24/outline'
 import { Status } from '@prisma/client'
@@ -16,9 +15,10 @@ import { toast } from 'react-toastify'
 import ImageLost from '../../ImageLost'
 import Loading from '../../Loading'
 import OrderDropMenu from './OrderDropMenu'
+import { OrderedItem, ResponseOrder } from '@/pages/api/order'
 
 type Props = {
-    order: UserOrder
+    order: ResponseOrder
     productStatus?: boolean
     isLoading?: boolean
 }

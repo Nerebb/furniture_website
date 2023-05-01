@@ -91,7 +91,6 @@ const AssignForm = ({ type, btnProps, keepOpen }: TFormProps) => {
 
             if (type === 'login') {
                 const res = await signIn('credentials', { ...values, redirect: false })
-                console.log("🚀 ~ file: AssignForm.tsx:94 ~ handleSubmit ~ res:", res)
                 if (!res) return setSubmitError("Cannot connect to database")
                 if (res.ok) return router.push('/')
                 if (res.error) return setSubmitError(res.error)

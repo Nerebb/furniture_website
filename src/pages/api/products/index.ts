@@ -1,10 +1,12 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
 import { ProductSearchSchemaValidate } from '@/libs/schemaValitdate'
-import { MediaGallery, Prisma, Product, Status } from '@prisma/client'
+import { MediaGallery, Prisma, Product, Role, Status } from '@prisma/client'
 import { ApiMethod } from '@types'
 import * as Yup from 'yup'
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { SignedUserData, verifyToken } from '../auth/customLogin'
+import { JWT } from 'next-auth/jwt'
 
 export type ProductCard = {
     id: string,
@@ -12,20 +14,24 @@ export type ProductCard = {
     price: Product['price']
     description?: string,
     available: Product['available']
-    cateIds?: { id: number }[],
-    roomIds?: { id: number }[]
+    cateIds?: number[],
+    roomIds?: number[]
     colors: string[],
     avgRating: number,
-    totalSale: number,
-    ratedUsers: number,
     creatorId: string,
     imageUrl?: MediaGallery['imageUrl'][],
+
     createdDate: string,
-    updatedDate: string,
+    updatedAt: string,
+
     totalProduct: number,
+    totalSale: number,
+    totalRating: number,
+    totalComments: number,
 }
 
 export type ProductSearch = {
+    id?: string | string[],
     limit?: number,
     skip?: number,
     rating?: number,
@@ -33,12 +39,14 @@ export type ProductSearch = {
     toPrice?: number,
     available?: boolean,
     name?: string,
-    cateId?: number[],
+    cateId?: number | number[],
     colorHex?: string[],
-    roomId?: number[],
+    roomId?: number | number[],
     createdDate?: Date,
     creatorName?: string,
     isFeatureProduct?: boolean,
+    filter?: keyof Omit<ProductCard, 'totalProduct'>,
+    sort?: 'asc' | 'desc'
 }
 
 type Data = {
@@ -50,56 +58,58 @@ type Data = {
  * @query type ProductSearch
  * @returns type ProductCard
  */
-export async function getProducts({ ...props }: ProductSearch): Promise<ProductCard[]> {
+export async function getProducts(role: Role, props: ProductSearch): Promise<ProductCard[]> {
     try {
-        let creatorId;
-        if (props.creatorName) {
-            creatorId = await prismaClient.user.findFirst({
-                where: {
-                    nickName: {
-                        contains: props.creatorName
-                    },
-                },
-                select: {
-                    id: true,
-                }
-            })
-        }
-
-        const searchProductParams: Prisma.ProductFindManyArgs = {
-            where: {
-                deleted: null,
-                isFeatureProduct: props.isFeatureProduct || undefined,
-                price: {
-                    gte: props.fromPrice,
-                    lte: props.toPrice
-                },
-                available: {
-                    gt: props.available ? 0 : undefined //Boolean Type
-                },
-                name: {
-                    contains: props.name
-                },
-                category: {
-                    some: { id: { in: props.cateId } }
-                },
-                room: {
-                    some: { id: { in: props.roomId } }
-                },
-                JsonColor: {
-                    array_contains: props.colorHex
-                },
-                avgRating: { gte: props.rating },
-                createdDate: props.createdDate
+        let orderBy: Prisma.ProductOrderByWithRelationInput = {};
+        if (props.sort && props.filter) {
+            switch (props.filter) {
+                case 'imageUrl':
+                    orderBy['imageIds'] = { _count: props.sort }
+                    break;
+                case 'cateIds':
+                    orderBy['cateIds'] = { _count: props.sort }
+                    break;
+                case 'roomIds':
+                    orderBy['roomIds'] = { _count: props.sort }
+                    break;
+                case 'colors':
+                    orderBy['JsonColor'] = props.sort
+                    break;
+                default:
+                    orderBy[props.filter] = props.sort
             }
         }
 
+        const searchProductParams: Prisma.ProductWhereInput = {
+            id: { in: props.id },
+            isFeatureProduct: props.isFeatureProduct || undefined,
+            price: {
+                gte: props.fromPrice,
+                lte: props.toPrice
+            },
+            available: {
+                gte: props.available ? 0 : undefined //Boolean Type
+            },
+            name: {
+                contains: props.name
+            },
+            JsonColor: {
+                array_contains: props.colorHex
+            },
+            avgRating: { gte: props.rating },
+            createdDate: props.createdDate
+        }
+
+        if (props.cateId) searchProductParams.cateIds = { some: { id: { in: props.cateId } } }
+        if (props.roomId) searchProductParams.roomIds = { some: { id: { in: props.roomId } } }
+        if (role !== 'admin') searchProductParams.deleted = null
+
         const searchProductIncludes: Prisma.ProductInclude =
         {
-            category: {
+            cateIds: {
                 select: { id: true }
             },
-            room: {
+            roomIds: {
                 select: { id: true }
             },
             creator: {
@@ -108,7 +118,7 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
                     nickName: true,
                 }
             },
-            image: {
+            imageIds: {
                 select: {
                     imageUrl: true,
                 }
@@ -116,14 +126,15 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
         }
 
         const totalProduct = await prismaClient.product.count({
-            where: searchProductParams.where
+            where: searchProductParams
         })
 
         const data = await prismaClient.product.findMany({
-            ...searchProductParams,
+            where: searchProductParams,
             include: searchProductIncludes,
             skip: props.skip || 0,
             take: props.limit || 12,
+            orderBy,
         })
 
         //Santinize Data
@@ -133,32 +144,32 @@ export async function getProducts({ ...props }: ProductSearch): Promise<ProductC
                 name: product.name,
                 available: product.available,
                 description: product.description ?? undefined,
-                cateIds: product.category?.map(i => ({ id: i.id })),
-                roomIds: product.room?.map(i => ({ id: i.id })),
+                cateIds: product.cateIds?.map(i => i.id),
+                roomIds: product.roomIds?.map(i => i.id),
                 colors: product.JsonColor as string[],
                 price: product.price,
                 creatorId: product.creatorId,
-                imageUrl: product?.image?.map(i => i.imageUrl),
+                imageUrl: product?.imageIds?.map(i => i.imageUrl),
                 createdDate: product.createdDate.toString(),
-                updatedDate: product.updatedAt.toString(),
+                updatedAt: product.updatedAt.toString(),
                 avgRating: product.avgRating,
-                ratedUsers: product.totalRating,
+                totalRating: product.totalRating,
                 totalSale: product.totalSale,
                 totalProduct,
+                totalComments: product.totalComments
             }
         })
 
-        //Categories
-        if (props.cateId?.length) {
-            responseData = responseData.filter(product => props.cateId?.every(i => product.cateIds?.map(v => v.id).includes(i)))
-        }
-        if (props.roomId?.length) {
-            responseData = responseData.filter(product => props.roomId?.every(i => product.roomIds?.map(v => v.id).includes(i)))
-        }
+        // //Categories
+        // if (props.cateId?.length) {
+        //     responseData = responseData.filter(product => props.cateId?.every(i => product.cateIds?.includes(i)))
+        // }
+        // if (props.roomId?.length) {
+        //     responseData = responseData.filter(product => props.roomId?.every(i => product.roomIds?.includes(i)))
+        // }
 
         return responseData
     } catch (error) {
-        console.log("GetProduct", error)
         throw error
     }
 }
@@ -167,48 +178,53 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
+    let token: JWT | SignedUserData | void;
+    try {
+        token = await verifyToken(req)
+        if (!token || !token.userId) throw new Error("Unauthorize user")
+    } catch (error: any) {
+        token = {
+            userId: '',
+            role: 'customer',
+            provider: "",
+        }
+    }
+
     switch (req.method) {
         case ApiMethod.GET:
             try {
-                const { limit, skip, name, fromPrice, toPrice, available, creatorName, rating, cateId, colorHex, roomId, createdDate } = req.query
-                //MiddleWare validation and santinization
-                if (name && Array.isArray(name)) throw new Error("Name: Array not allowed")
+                const schema = Yup.object(ProductSearchSchemaValidate).typeError("Request data not found or Invalid")
+                //SantinizeData
+                if (req.query.colorHex && typeof req.query.colorHex === 'string') req.query.colorHex = [req.query.colorHex]
+                if (req.query.cateId && typeof req.query.cateId === 'string') req.query.cateId = [req.query.cateId]
+                if (req.query.roomId && typeof req.query.roomId === 'string') req.query.roomId = [req.query.roomId]
 
-                if (creatorName && Array.isArray(creatorName)) throw new Error("CreatorName: Array not allowed")
-
-                /**
-                 * @SantinizeData
-                 * @description turn data to correct prisma form for queries - data received from req.query: string | string [] | undefine
-                 * @typeString queryUrl example : /products?cateId=2 => req.query.cateId = 2
-                 * @typeStringArray queryUrl example: /products?cateId=2&cateId=3 =>  req.query.cateId = [2,3]
-                 */
-                const filterProduct: ProductSearch = {
-                    limit: limit ? parseInt(limit as string) : 12,
-                    skip: skip ? parseInt(skip as string) : undefined,
-                    name,
-                    fromPrice: fromPrice ? parseInt(fromPrice as string) : undefined,
-                    toPrice: toPrice ? parseInt(toPrice as string) : undefined,
-                    available: available ? Boolean(available) : false,
-                    creatorName,
-                    rating: rating ? parseInt(rating as string) : undefined,
-                    cateId: typeof cateId === 'string' ? [parseInt(cateId)] : Array.isArray(cateId) ? cateId.map(i => parseInt(i)) : undefined,
-                    colorHex: typeof colorHex === 'string' ? [colorHex] : Array.isArray(colorHex) ? colorHex.map(i => i.toString()) : undefined,
-                    roomId: typeof roomId === 'string' ? [parseInt(roomId)] : Array.isArray(roomId) ? roomId.map(i => parseInt(i)) : undefined,
-                    createdDate: createdDate ? new Date(createdDate as string) : undefined,
-                }
-
-                const YupValidator: Yup.ObjectSchema<ProductSearch> = Yup.object(ProductSearchSchemaValidate).typeError("Invalid Request - request.query must be object type")
-
-                const validateResult = await YupValidator.validate(filterProduct)
+                const validateResult = await schema.validate(req.query)
 
                 //Queries
-                const data = await getProducts({ ...validateResult })
-
-                return res.status(200).json({ message: "Get product success", data })
+                const data = await getProducts(token.role, validateResult)
+                return res.status(200).json({ data, message: "Get product success" })
             } catch (error: any) {
-                return res.status(400).json({ message: error.message })
+                return res.status(400).json({ message: error.message || "Unknown error" })
+            }
+        case ApiMethod.DELETE:
+            try {
+                const schema = Yup.object({ id: Yup.array().of(Yup.string().uuid().required()).required() }).typeError("Request query must be Array type")
+
+                const { id } = await schema.validate(req.query)
+
+                const data = await prismaClient.product.deleteMany({
+                    where: { id: { in: id } }
+                })
+
+                if (!data.count) throw new Error("No product found")
+
+                return res.status(200).json({ message: "Delete many product success" })
+
+            } catch (error: any) {
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         default:
-            return res.status(405).json({ message: 'UNKNOWN EROR' })
+            return res.status(405).json({ message: 'Invalid method' })
     }
 }

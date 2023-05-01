@@ -80,7 +80,7 @@ export default function WishListProduct({ product, isLoading = true }: Props) {
 
                             <dd className='text-gray-500 flex space-x-2'>
                                 <StarRating ProductRating={product.avgRating} />
-                                <p className='text-sm'>({product.ratedUsers})</p>
+                                <p className='text-sm'>({product.totalRating})</p>
                             </dd>
                             <dd className='flex-grow text-gray-500 first-letter:capitalize overflow-hidden'>{product.description}</dd>
                             <dd className='flex-grow'></dd>

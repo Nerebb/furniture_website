@@ -66,3 +66,11 @@ export interface FormRow {
     inputType?: HTMLInputTypeAttribute,
     content?: string | number | string[] | Date, //Type for deepInspec input type: <FormikSelect/> or <Input> mutate Date type
 }
+
+export interface contentRange {
+    filter: string,
+    curPage: number,
+    totalPage: number,
+}
+
+export interface JsonColor { id: string, quantities: number }

@@ -27,14 +27,13 @@ function UserField({ type = 'text', isEdit, ...props }: userField) {
     const [field, meta] = useField(props.name);
 
     let displayContent: string | undefined;
-    if (type === 'date') {
+    if (type === 'date' && meta.value && field.value) {
         displayContent = dateFormat(meta.value)
         meta.value = dateFormat(meta.value, 'yyyy-MM-dd') //Actual value type
         field.value = dateFormat(field.value, 'yyyy-MM-dd') //Showed value
     } else {
         displayContent = field.value
     }
-
     return (
         <div className={classNames(
             "px-4 h-[70px] sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 items-center",
@@ -58,7 +57,8 @@ function UserField({ type = 'text', isEdit, ...props }: userField) {
                 ) : (
                     <input type={type} {...field} name={props.name} className={classNames(
                         "w-full sm:px-3 h-[calc(100%-1em)] col-span-2 shadow-md rounded-md border-b-2 transition-all duration-150 focus:ring-0 focus:border-priBlue-400 outline-none",
-                        meta.touched && meta.error ? "border-red-500" : 'border-priBlue-400'
+                        meta.touched && meta.error ? "border-red-500" : 'border-priBlue-400',
+                        { 'noSpin': type === 'number' }
                     )} />
                 )
             ) : (

@@ -14,6 +14,7 @@ export default function FormikInput({ ...props }: CustomInput) {
             {
                 'border-red-500': props.meta.touched && props.meta.error,
                 'border-priBlue-500': props.meta.value && !props.meta.error,
+                'noSpin': props.type === 'number'
             }
         )}>
             <input id={props.name}

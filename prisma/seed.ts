@@ -1,4 +1,4 @@
-import { Category, Color, Gender, MediaGallery, Prisma, PrismaClient, Product, ProductRating, OrderItem, Role, Room, User, Order, Status, ShoppingCartItem, ShoppingCart } from "@prisma/client";
+import { Category, Color, Gender, MediaGallery, Prisma, PrismaClient, Product, OrderItem, Role, Room, User, Order, Status, ShoppingCartItem, ShoppingCart, ProductReview } from "@prisma/client";
 import { hash } from "bcrypt";
 import { GetColorName } from "hex-color-to-color-name";
 import { generateString } from "../src/libs/utils/generateString";
@@ -22,7 +22,7 @@ async function main() {
     await prisma.shoppingCart.deleteMany()
     await prisma.orderItem.deleteMany()
     await prisma.order.deleteMany()
-    await prisma.productRating.deleteMany()
+    await prisma.productReview.deleteMany()
     await prisma.product.deleteMany()
     await prisma.user.deleteMany()
     await prisma.account.deleteMany()
@@ -126,6 +126,7 @@ async function main() {
         UserPromise.push(promise)
     }
     const userDb = await Promise.all(UserPromise)
+    const userDbById = userDb.map(i => i.id)
 
     console.log("Add testUser completed: password:test")
 
@@ -187,6 +188,10 @@ async function main() {
         'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.'
     ]
 
+    const generatedProductCmt = [
+        'Very useful', 'Life changer', 'Such detail!!!', 'You should have one!!!', 'etc.....'
+    ]
+
     const productDb: Product[] = [];
     for (let i = 0; i < 100; i++) {
         let name = 'testProduct' + generateString(5)
@@ -208,13 +213,13 @@ async function main() {
         const prom = await prisma.product.create({
             data: {
                 ...testProduct,
-                category: {
+                cateIds: {
                     connect: randomField("id", cateDbById, true, randomNum(cateDbById.length, true)).map(i => { return { id: i } }) as Prisma.CategoryWhereUniqueInput
                 },
-                image: {
+                imageIds: {
                     connect: randomField("id", mediaDbById, true).map(i => { return { id: i } }) as Prisma.MediaGalleryWhereUniqueInput
                 },
-                room: {
+                roomIds: {
                     connect: randomField('id', roomsDbById, true, randomNum(5, true)).map(i => { return { id: i } }) as Prisma.RoomWhereUniqueInput
                 }
             }
@@ -252,7 +257,7 @@ async function main() {
         const productbyId = randomField("id", productDb, true)
 
         //CreatePurchasedItems
-        const OrderItems: Omit<OrderItem, 'id' | 'orderId' | 'createdDate' | 'updatedAt'>[] = productbyId.map(i => {
+        const OrderItems: Omit<OrderItem, 'id' | 'orderId' | 'createdDate' | 'updatedAt'>[] = productbyId.map((i, idx) => {
             let quantities = 0;
             const color: { id: string, quantities: number }[] = randomField('hex', colorDb, true).map((i, idx) => {
                 const colorQuantities = randomNum(10, true);
@@ -301,22 +306,40 @@ async function main() {
     console.log("Orders created")
 
 
-    //Product rating
-    const ratingDb: Omit<ProductRating, 'id'>[] = [];
-    for (let i = 0; i < 10000; i++) {
-        const fakeRating: Omit<ProductRating, 'id'> = {
-            ownerId: userDb[randomNum(userDb.length)].id,
+
+    // Product comment - rating
+
+
+    function generateProductCmt(): Prisma.ProductReviewCreateArgs['data'] {
+        const ownerId = userDb[randomNum(userDb.length)].id
+        const likedUsers = [...new Set(randomField("id", userDb.filter(i => i.id !== ownerId), true, randomNum(10, true)))]
+        return {
+            ownerId,
             productId: productDb[randomNum(productDb.length)].id,
-            rating: randomNum(5, true)
+            content: generatedProductCmt[randomNum(generatedProductCmt.length)],
+            rating: randomNum(5, true),
+            totalLike: likedUsers.length,
+            likedUsers: { connect: likedUsers.map(i => ({ id: i })) }
+        }
+    }
+
+    const ratingDb: Prisma.ProductReviewCreateArgs['data'][] = [];
+    for (let i = 0; i < 1000; i++) {
+        let fakeRating = generateProductCmt()
+        while (ratingDb.some(i => i.ownerId === fakeRating.ownerId && i.productId === fakeRating.productId)) {
+            fakeRating = generateProductCmt()
         }
         ratingDb.push(fakeRating)
     }
 
-    await prisma.productRating.createMany({
-        data: ratingDb
+    const promReviews = ratingDb.map(i => {
+        return prisma.productReview.create({
+            data: i
+        })
     })
 
-    console.log("ProductRating created")
+    await Promise.all(promReviews)
+    console.log("ProductCmt created")
 
     //ShoppingCart
     const shoppingCartDb = [];
@@ -364,13 +387,12 @@ async function main() {
     console.log("ShoppingCart created")
 
 
-    //Update Product - ratings comments
+    //Update Product - ratings comments - Cron job
     const updateProducts = productDb.map(product => {
         const productRating = ratingDb.filter(i => i.productId === product.id)
         const productRate = Math.floor(productRating.reduce((total, rate) => total + rate.rating, 0) / productRating.length)
-
         const productOrdered = orderItemsDb.filter(i => i.productId === product.id)
-
+        const productComments = productRating
         const totalSale = productOrdered.reduce((total, sale) => total + sale.quantities, 0)
 
         return {
@@ -378,6 +400,7 @@ async function main() {
             productRate,
             totalRate: productRating.length,
             totalSale,
+            totalComments: productComments.length
         }
     })
 
@@ -387,13 +410,13 @@ async function main() {
             data: {
                 avgRating: product.productRate,
                 totalSale: product.totalSale,
-                totalRating: product.totalRate
+                totalRating: product.totalRate,
+                totalComments: product.totalComments,
             }
         })
     ))
 
     await Promise.all(updateProductsProms)
-
 }
 
 main()

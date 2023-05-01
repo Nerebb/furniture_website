@@ -1,21 +1,20 @@
 import useProductFilter from '@/hooks/useProductFilter'
+import axios from '@/libs/axiosApi'
 import { fCurrency } from '@/libs/utils/numberal'
 import { ProductCard } from '@/pages/api/products'
+import { HeartIcon as HeartIconOutline } from '@heroicons/react/24/outline'
+import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import classNames from 'classnames'
 import { GetColorName } from 'hex-color-to-color-name'
+import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { Fragment } from 'react'
+import { toast } from 'react-toastify'
 import Card from './Card'
 import Chip from './Chip'
 import Loading from './static/Loading'
-import { HeartIcon as HeartIconOutline } from '@heroicons/react/24/outline'
-import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
-import { getToken } from 'next-auth/jwt'
-import { useSession } from 'next-auth/react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import axios from '@/libs/axiosApi'
-import { toast } from 'react-toastify'
 
 export type ProductCardProps = {
     type?:
@@ -40,7 +39,7 @@ export default function ProductCard2({ product, modify }: ProductCardProps) {
     const { data: userWishlist, isLoading, isError } = useQuery({
         queryKey: ['UserWishlist'],
         queryFn: () => axios.getWishList(),
-        enabled: !!session
+        enabled: !!session?.id
     })
 
     const { mutate } = useMutation({

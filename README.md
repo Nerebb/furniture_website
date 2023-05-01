@@ -110,7 +110,7 @@ yarn dev
 
 ### Session
 
-> [ ] Store JWT token data - client cookies only show session token
+> [x] Store JWT token data - client cookies only show session token
 > [ ] an F2A auth for multiple devices
 
 ### Product
@@ -145,8 +145,8 @@ yarn dev
 
 ### Reviews
 
-> [ ] List of product's reviews.\
-> [ ] Auth User: CREATE - POST - DELETE owned reviews\
+> [x] List of product's reviews.\
+> [x] Auth User: CREATE - POST - DELETE owned reviews\
 > [ ] Admin : DELETE any reviews
 
 ### WishList
@@ -155,7 +155,6 @@ yarn dev
 
 ### OrderItem
 
-> [ ] CRUD - Admin only\
 > [x] Auth User: GET - owned purchased products\
 > [x] purchasedPrice\
 > [x] status - purchased Product status: 'Pending', 'On delivery', etc...
