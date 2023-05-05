@@ -19,19 +19,16 @@ const Banner = () => {
         onSuccess: (data) => setSelectedProduct(data[0])
     })
 
-    const { data: creator, isLoading: creatorLoading } = useQuery({
-        queryKey: ['BannerCreator'],
-        queryFn: () => axios.getUser(selectedProduct!.creatorId),
-        enabled: !!selectedProduct?.creatorId
-    })
-
     function handleAddWishList() {
 
     }
 
     return (
         <section className="rounded-3xl relative h-[calc(100vh-80px)] w-full mb-8">
-            {isLoading && <Loading />}
+            {isLoading &&
+                <div className='w-full h-full flex-center'>
+                    <Loading />
+                </div>}
             {selectedProduct && (
                 <>
                     <article className='relative h-full w-full overflow-hidden'>
@@ -42,26 +39,11 @@ const Banner = () => {
                         )}
                     </article>
                     <article className={classNames(
-                        "group flex justify-between items-center w-full h-20 absolute px-5 bottom-0 rounded-b-3xl",
+                        "group flex justify-end items-center w-full h-20 absolute px-5 bottom-0 rounded-b-3xl",
                         "transition-colors duration-300",
                         "hover:bg-priBlack-200/40 hover:backdrop-blur-1",
                     )}>
-                        {creator && (
-                            <aside className="h-[60px] flex items-center space-x-3">
-                                {creator.image ? (
-                                    <Image className='rounded-full mr-5 w-[60px] h-[60px]' alt='' src={creator.image} width={60} height={60} />
-                                ) : (
-                                    <ImageLost className='rounded-full mr-5 w-[60px] h-[60px]' />
-                                )}
-                                <div className='flex flex-col justify-between'>
-                                    <p className='title text-lg font-semibold text-black'>Nereb</p>
-                                    <p className='text-black flex items-center group-hover:text-white'>
-                                        <span className='mr-2'>Created on: 03/01/2023</span>
-                                    </p>
-                                </div>
-                            </aside>
-                        )}
-                        <aside>
+                        <aside >
                             <div className="Creator-contact flex items-center space-x-3">
                                 <HandThumbUpIcon className='w-9 h-9 p-1 text-white bg-priBlue-200 rounded-full cursor-pointer' />
                                 <ChatBubbleBottomCenterTextIcon className='w-9 h-9 p-1 text-white transition-colors duration-300 hover:bg-priBlue-200 rounded-full cursor-pointer' />
