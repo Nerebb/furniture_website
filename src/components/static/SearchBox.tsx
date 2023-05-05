@@ -1,19 +1,30 @@
+import { useSearchContext } from '@/contexts/searchProductContext'
 import useBrowserWidth from '@/hooks/useBrowserWidth'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import classNames from 'classnames'
-import React from 'react'
+import { useRouter } from 'next/router'
+import React, { ChangeEvent } from 'react'
 
 interface SearchBoxProps {
     modifier?: string,
-    onChange?: () => string
-    onClick?: () => void
 }
 
 const SearchBox: React.FC<SearchBoxProps> = ({
     modifier,
-    onClick,
-    onChange,
 }) => {
+    const { searchContext, setSearchContext } = useSearchContext()
+    const router = useRouter()
+
+    async function handleOnchange(e: React.ChangeEvent<HTMLInputElement>) {
+        await new Promise(r => setTimeout(r, 1000))//Debounce
+        setSearchContext({ ...searchContext, name: e.target.value })
+    }
+
+    function handleOnClickIcon() {
+        if (!searchContext.name) return
+        router.push('/products')
+    }
+
     return (
         <div className="relative mx-3 w-full h-[36px] flex-1 flex justify-end group">
             <input
@@ -24,14 +35,20 @@ const SearchBox: React.FC<SearchBoxProps> = ({
                     'focus:opacity-100 focus:w-full focus:xl:w-4/5',
                     //Darkmode,
                     'dark:outline-priBlack-500 dark:text-black',
+                    {
+                        'w-4/5 opacity-100': searchContext.name
+                    }
                 )}
                 placeholder='Type keywords ...'
-                onClick={onClick}
-                onChange={onChange}
+                // onClick={handleOnClick}
+                onChange={handleOnchange}
             >
             </input>
             <label htmlFor='searchbox'>
-                <MagnifyingGlassIcon className='w-6 h-6 absolute right-2 top-[6px] text-priBlack cursor-pointer' />
+                <MagnifyingGlassIcon
+                    className='w-6 h-6 absolute right-2 top-[6px] text-priBlack cursor-pointer'
+                    onClick={handleOnClickIcon}
+                />
             </label>
         </div>
     )
