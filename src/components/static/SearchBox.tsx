@@ -13,11 +13,17 @@ const SearchBox: React.FC<SearchBoxProps> = ({
     modifier,
 }) => {
     const { searchContext, setSearchContext } = useSearchContext()
+    console.log("🚀 ~ file: SearchBox.tsx:16 ~ searchContext:", searchContext)
     const router = useRouter()
 
     async function handleOnchange(e: React.ChangeEvent<HTMLInputElement>) {
         await new Promise(r => setTimeout(r, 1000))//Debounce
         setSearchContext({ ...searchContext, name: e.target.value })
+
+    }
+
+    function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+        if (e.key === 'Enter' && router.asPath !== '/products') handleOnClickIcon()
     }
 
     function handleOnClickIcon() {
@@ -40,8 +46,8 @@ const SearchBox: React.FC<SearchBoxProps> = ({
                     }
                 )}
                 placeholder='Type keywords ...'
-                // onClick={handleOnClick}
                 onChange={handleOnchange}
+                onKeyDown={handleKeyDown}
             >
             </input>
             <label htmlFor='searchbox'>
