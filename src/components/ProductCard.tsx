@@ -30,7 +30,7 @@ export type ProductCardProps = {
     }
 }
 
-export default function ProductCard2({ product, modify }: ProductCardProps) {
+export default function ProductCard({ product, modify }: ProductCardProps) {
     const { data: session } = useSession()
     const queryClient = useQueryClient()
     const categories = useProductFilter({ filter: 'category' })
@@ -52,7 +52,7 @@ export default function ProductCard2({ product, modify }: ProductCardProps) {
     })
 
     function handleAddToWishList(e: React.SyntheticEvent) {
-        // e.stopPropagation()
+        e.preventDefault()
         if (!userWishlist || userWishlist.length < 0) return toast.error("Invalid user")
         if (userWishlist.some(i => i.id === product.id)) return mutate()
 
@@ -86,21 +86,20 @@ export default function ProductCard2({ product, modify }: ProductCardProps) {
                                 <div className='relative flex justify-end mt-2 group/wishlist'>
                                     {userWishlist && userWishlist.some(i => i.id === product.id) ? (
                                         <HeartIconSolid
-                                            className='absolute w-6 h-6 text-priBlue-500 group-hover/wishlist:text-gray-500'
+                                            className='absolute w-10 h-10 text-priBlue-500 group-hover/wishlist:text-gray-500'
                                             onClick={(e: React.SyntheticEvent) => handleAddToWishList(e)}
                                         />
                                     ) : (
                                         <HeartIconOutline
-                                            className='absolute w-6 h-6 text-gray-500 group-hover/wishlist:text-priBlue-500'
-                                            onClick={handleAddToWishList}
+                                            className='absolute w-10 h-10 text-gray-500 group-hover/wishlist:text-priBlue-500'
+                                            onClick={(e: React.SyntheticEvent) => handleAddToWishList(e)}
+
                                         />
                                     )}
                                 </div>
                                 <div className='row-span-2'></div>
-                                <div className='w-full self-end flex justify-between flex-wrap'>
-                                    <span className='capitalize'>
-                                        <p>{product.name}</p>
-                                    </span>
+                                <div className='w-full self-end flex justify-between flex-wrap mb-2'>
+                                    <span className='first-letter:capitalize'>{product.name}</span>
                                     <span className='text-priBlue-700'>{price}</span>
                                 </div>
                                 <div>

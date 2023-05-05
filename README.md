@@ -34,35 +34,6 @@ Others packages:
 
 ## Setup
 
-1. Enviroment schema
-
-```console
-# Connect prisma to database: https://www.prisma.io/docs/guides/development-environment/environment-variables#expanding-variables
-
-DATANEXT_PUBLIC_BASE_URL=
-
-# Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
-
-NEXT_PUBLIC_BASE_URL="http://localhost:3000"
-
-# NextAuth Sign-on
-# See the documentation for more detail:
- - GitHub: https://next-auth.js.org/providers/github
- - Goolge: https://next-auth.js.org/providers/google
-
-GITHUB_ID=
-GITHUB_SECRET=
-
-GOOGLE_ID=
-GOOGLE_SECRET=
-
-# NEXT_AUTH JWT KEY
-SECRET= superandomkey
-```
-
-2. Termninal
-
 yarn install - install dependencies\
 npx prisma generate - create prismaClient\
 npx prisma migrate dev --name init - create SQL tables with names init\
@@ -88,14 +59,12 @@ yarn dev
 > [x] Update owned profile.\
 > [x] Delete - deactivate own's account.\
 > [x] Product purchased History / on delivery / shipper info.\
-> [ ] Follows others User.
 
 - Role : admin.
 
-> [ ] Dashboard info: total sale, product, etc...\
-> [ ] Set User Role\
-> [ ] Re-write any products, account, description, ...\
-> [ ] Delete - deactivate others account - products
+> [x] Set User Role\
+> [x] Re-write any products, account, description, ...\
+> [x] Delete - deactivate others account - products
 
 - Role : creator
 
@@ -136,18 +105,18 @@ yarn dev
 ### Category
 
 > [x] GET - all category\
-> [ ] CREATE/POST/DELTE - Admin only
+> [x] CREATE/POST/DELTE - Admin only
 
 ### Color
 
 > [x] GET - Color of each products\
-> [ ] CREATE/POST/DELETE - Admin only
+> [x] CREATE/POST/DELETE - Admin only
 
 ### Reviews
 
 > [x] List of product's reviews.\
 > [x] Auth User: CREATE - POST - DELETE owned reviews\
-> [ ] Admin : DELETE any reviews
+> [x] Admin : DELETE any reviews
 
 ### WishList
 

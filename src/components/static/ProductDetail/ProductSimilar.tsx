@@ -11,7 +11,7 @@ type Props = {
 export default function ProductSimilar({ products, isLoading }: Props) {
     return (
         <Card type='SearchCard'>
-            <div className='font-semibold text-xl mb-3 border-b border-priBlack-200/50'>Things you may like</div>
+            <div className='font-semibold text-xl mb-3 border-b border-priBlack-200/50 dark:text-white'>Things you may like</div>
             <div className='min-w-full px-2'>
                 {isLoading &&
                     <div className='w-full flex-center'>

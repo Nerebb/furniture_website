@@ -4,12 +4,13 @@ import React from 'react'
 
 type Props = {
     filter: typeof allowedFilter[number]
+    limit?: number
 }
 
-export default function useProductFilter({ filter }: Props) {
+export default function useProductFilter({ filter, limit }: Props) {
     const { data, isError, error, isLoading } = useQuery({
         queryKey: [filter],
-        queryFn: () => axios.getFilter(filter)
+        queryFn: () => axios.getFilter(filter, limit)
     })
     return { data, isError, error, isLoading }
 }

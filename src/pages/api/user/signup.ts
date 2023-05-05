@@ -1,12 +1,12 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient';
-import { SeverRegisterSchemaValidate } from '@/libs/schemaValitdate';
+import { RegisterByAdminSchemaValidate, RegisterSchemaValidate } from '@/libs/schemaValitdate';
 import { generateString } from '@/libs/utils/generateString';
 import { Prisma } from '@prisma/client';
 import { ApiMethod } from '@types';
 import { hash } from 'bcrypt';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import * as Yup from 'yup';
+import { verifyToken } from '../auth/customLogin';
 
 type Data = {
   message: string
@@ -19,13 +19,9 @@ type Data = {
  * @param req body: {loginId, password, email}
  * @param res message
  */
+export async function clientRegister(req: NextApiRequest) {
 
-const credentialsConfig = {
-  type: 'credentials',
-  provider: process.env.CREDENTIAL_SECRET,
-  providerId: process.env.CREDENTIAL_ID
 }
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
@@ -33,15 +29,18 @@ export default async function handler(
   switch (req.method) {
     case ApiMethod.POST:
       //Req data
-      const schema = Yup.object(SeverRegisterSchemaValidate)
+      const token = await verifyToken(req)
+
+      const clientSchema = Yup.object(RegisterSchemaValidate)
+      const adminRegisterSchema = Yup.object(RegisterByAdminSchemaValidate)
 
       const validateSchema = async () => {
         try {
-          const validated = await schema.validate(req.body)
+          const validated = await clientSchema.validate(req.body)
           return validated
         } catch (error) {
           try {
-            const validated = await schema.validate(JSON.parse(req.body))
+            const validated = await clientSchema.validate(JSON.parse(req.body))
             return validated
           } catch (error) {
             throw error
@@ -49,7 +48,7 @@ export default async function handler(
         }
       }
 
-      const { loginId, email, password, name, nickName, address, gender, phoneNumber, birthDay, role } = await validateSchema()
+      const { loginId, email, password } = await validateSchema()
 
       //Check email
       const checkUser = await prismaClient.user.findUnique({ where: { email }, select: { accounts: { select: { loginId: true } } } })
@@ -64,19 +63,36 @@ export default async function handler(
       const providerAccountId = generateString(10)
 
       try {
-        const newUser = await prismaClient.user.create({
-          data: {
-            email, name, nickName, address, gender, phoneNumber, birthDay, role,
-            accounts: {
-              create: {
-                loginId,
-                password: hashPassword,
-                type: 'credentials',
-                provider,
-                providerAccountId
-              }
+        let createUserData: Prisma.UserCreateInput = {
+          email,
+          accounts: {
+            create: {
+              loginId,
+              password: hashPassword,
+              type: 'credentials',
+              provider,
+              providerAccountId
             }
-          },
+          }
+        }
+
+        if (token?.role === 'admin') {
+          try {
+            const userInfo = await adminRegisterSchema.validate(JSON.parse(req.body))
+            createUserData = {
+              ...createUserData,
+              ...userInfo,
+              userVerified: userInfo.userVerified ? new Date() : null,
+              emailVerified: userInfo.emailVerified ? new Date() : null,
+              deleted: userInfo.deleted ? new Date() : null,
+            }
+          } catch (error: any) {
+            return res.status(400).json({ message: error.message || "CreateUserAsAdmin - FieldValidation error" })
+          }
+        }
+
+        const newUser = await prismaClient.user.create({
+          data: createUserData,
         })
 
         return res.status(200).json({ message: 'User created', data: newUser.id })

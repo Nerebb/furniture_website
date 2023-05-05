@@ -46,7 +46,15 @@ type UserFilter = {
     sort?: "asc" | "desc"
     limit?: number
 }
-export async function getManyUsers({ ...props }: UserSearch & UserFilter) {
+
+/**
+ * @method GET
+ * @description get users by filter/search 
+ * @param props req.query - searchUser
+ * @returns User[]
+ * @access admin only
+ */
+export async function getUsers({ ...props }: UserSearch & UserFilter) {
     let orderBy: Prisma.UserOrderByWithRelationInput = {};
 
     if (props.filter && props.sort) {
@@ -80,6 +88,15 @@ export async function getManyUsers({ ...props }: UserSearch & UserFilter) {
     return data
 }
 
+
+export async function deleteUsers(ids: string | string[]) {
+    const data = await prismaClient.user.deleteMany({
+        where: { id: { in: ids } }
+    })
+
+    if (!data.count) throw new Error("No users found")
+}
+
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
@@ -90,22 +107,29 @@ export default async function handler(
                 const schema = Yup.object(SearchUserSchemaValidate)
                 const validated = await schema.validate(req.query)
 
-                const data = await getManyUsers(validated)
-                const totalUsers = await prismaClient.user.count()
-                res.setHeader('content-range', JSON.stringify({ totalUsers }))
+                const data = await getUsers(validated)
+                const totalRecord = await prismaClient.user.count()
+                res.setHeader('content-range', JSON.stringify({ totalRecord }))
                 return res.status(200).json({ data, message: "Get user success" })
-            } catch (error: any) {
-                return res.status(400).json({ message: error.message || "Unknown error" })
-            }
-        case ApiMethod.POST:
-            try {
-                return res.status(200).json({ message: "Update user succe" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.DELETE:
             try {
-                const id = await isUUID.validate(req.query)
+                const schema = Yup.object({
+                    id: Yup.lazy((value) => {
+                        switch (typeof value) {
+                            case 'string':
+                                return Yup.string().uuid().required()
+                            default:
+                                return Yup.array().of(Yup.string().uuid().required()).required()
+                        }
+                    })
+                })
+                const { id } = await schema.validate(req.query)
+
+                await deleteUsers(id)
+                return res.status(200).json({ message: "Delete users success" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }

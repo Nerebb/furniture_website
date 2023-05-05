@@ -22,7 +22,6 @@ export type ProductDetail = Omit<ProductCard, 'totalProduct'> & {
     image: { id: number, imageUrl: string }[]
 }
 
-//SantinizeDAta
 const ProductIncludesQuery = {
     cateIds: {
         select: { id: true }
@@ -42,7 +41,10 @@ const ProductIncludesQuery = {
 
 /**
  * @method GET
- * @description get product by Id
+ * @description Get one ProductDetail by id
+ * @param id req.query as productId
+ * @access login required
+ * @return ProductDetail
 */
 export async function getProductById(id: string): Promise<ProductDetail> {
     const data = await prismaClient.product.findUniqueOrThrow({
@@ -76,10 +78,12 @@ export async function getProductById(id: string): Promise<ProductDetail> {
 
 /**
  * @method PUT
- * @description Update login user profile only
+ * @description Update product by id
+ * @param id req.query as productId
+ * @access login required
  * @isAdmin @allowed All
  * @isCreator only Description
- * @response res.body message:"Update complete"
+ * @response message
 */
 type AllowedProductField = {
     name?: string,
@@ -166,15 +170,17 @@ export async function updateProductById({ userId, userRole, updateProduct }: upd
 
 /**
  * @method DELETE
- * @description SoftDelete products - only Admin
- * @response res.body message:"Update complete"
+ * @description SoftDelete product by id - only Admin
+ * @param id req.query as productId
+ * @access login required
+ * @response message
 */
 type deleteProduct = {
     userRole: Role
     productId: string,
 }
 export async function deleteProductById({ userRole, productId }: deleteProduct) {
-    // if (userRole !== 'admin') throw Error("Unauthorize User")
+    if (userRole !== 'admin') throw Error("Unauthorize User")
 
     await prismaClient.product.delete({
         where: { id: productId }
@@ -182,8 +188,9 @@ export async function deleteProductById({ userRole, productId }: deleteProduct) 
 }
 
 /**
- * @method PUT
+ * @method POST
  * @description Create new product - only Admin
+ * @access login required
  * @response message
 */
 type newProduct = {
@@ -197,16 +204,10 @@ type newProduct = {
     roomIds: number[],
     imageIds: number[],
     creatorId: string
-}
+} & { role: Role }
 
-export async function createProduct({ ...newProduct }: newProduct) {
-    // if (userRole !== 'admin') throw Error("Unauthorize User")
-
-    // if (!userId) throw Error("Invalid user please login again")
-
-    // //SantinizeData
-    // const schema = Yup.object(ProductCreateSchemaValidate)
-    // const { name, description, price, available, creatorId, colors, cateIds, roomIds, imageIds } = await schema.validate(req.body)
+export async function createProduct({ role, ...newProduct }: newProduct) {
+    if (role !== 'admin') throw Error("Unauthorize User")
 
     try {
         const data = await prismaClient.product.create({
@@ -316,7 +317,7 @@ export default async function handler(
                     }
                 }
                 const validated = await validateSchema()
-                const data = await createProduct(validated)
+                const data = await createProduct({ role: userRole, ...validated })
 
                 return res.status(200).json({ data, message: "Product created" })
             } catch (error: any) {

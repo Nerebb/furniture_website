@@ -55,8 +55,10 @@ type Data = {
 }
 /**
  * @method GET
- * @query type ProductSearch
- * @returns type ProductCard
+ * @description get Products witch filter/search params
+ * @param role JWT token
+ * @param props searchParams of product
+ * @returns ProductCard[]
  */
 export async function getProducts(role: Role, props: ProductSearch): Promise<ProductCard[]> {
     try {
@@ -104,8 +106,7 @@ export async function getProducts(role: Role, props: ProductSearch): Promise<Pro
         if (props.roomId) searchProductParams.roomIds = { some: { id: { in: props.roomId } } }
         if (role !== 'admin') searchProductParams.deleted = null
 
-        const searchProductIncludes: Prisma.ProductInclude =
-        {
+        const searchProductIncludes: Prisma.ProductInclude = {
             cateIds: {
                 select: { id: true }
             },
@@ -174,11 +175,26 @@ export async function getProducts(role: Role, props: ProductSearch): Promise<Pro
     }
 }
 
+/**
+ * @method DELETE
+ * @description SoftDelete products
+ * @param ids req.query as Array of productId
+ * @return message
+ */
+
+export async function deleteProducts(ids: string[]) {
+    const data = await prismaClient.product.deleteMany({
+        where: { id: { in: ids } }
+    })
+
+    if (!data.count) throw new Error("No product found")
+}
+
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let token: JWT | SignedUserData | void;
+    let token: JWT | SignedUserData | null;
     try {
         token = await verifyToken(req)
         if (!token || !token.userId) throw new Error("Unauthorize user")
@@ -213,14 +229,9 @@ export default async function handler(
 
                 const { id } = await schema.validate(req.query)
 
-                const data = await prismaClient.product.deleteMany({
-                    where: { id: { in: id } }
-                })
-
-                if (!data.count) throw new Error("No product found")
+                await deleteProducts(id)
 
                 return res.status(200).json({ message: "Delete many product success" })
-
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }

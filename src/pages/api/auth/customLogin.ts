@@ -22,6 +22,11 @@ export interface SignedUserData extends JwtPayload {
     provider: string,
 }
 
+/**
+ * @method POST
+ * @body loginId, password
+ * @returns JWT Token
+ */
 export async function credentialLogin({ loginId, password }: Partial<Login>) {
     const user = await prismaClient.user.findFirst({
         where: {
@@ -52,10 +57,10 @@ export function generateToken(user: SignedUserData) {
     return access_token
 }
 
-export async function verifyToken(req: NextApiRequest): Promise<JWT | SignedUserData | void> {
+export async function verifyToken(req: NextApiRequest): Promise<JWT | SignedUserData | null> {
     try {
         const token = await getToken({ req, secret: process.env.SECRET })
-        if (!token?.userId || !token) throw new Error("Unauthorize user")
+        if (!token) throw new Error
         return token
     } catch (error) {
         if (!req.headers.authorization) throw error
@@ -91,10 +96,6 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const token = await getToken({
-        req,
-        secret: process.env.SECRET
-    },)
     switch (req.method) {
         case ApiMethod.POST:
             try {

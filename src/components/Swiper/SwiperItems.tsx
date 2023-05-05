@@ -20,15 +20,18 @@ const SwiperItems: React.FC<SwiperItemsProps> = ({
 }) => {
 
   const Default =
-    <Link href={`/products/${product.id}`} className='flex flex-col justify-between items-center rounded-3xl'>
-      <div className='relative w-full h-full aspect-3/4 '>
+    <Link
+      href={`/products/${product.id}`}
+      className='flex flex-col justify-between items-center rounded-xl md:rounded-3xl'
+    >
+      <div className='relative w-full h-full aspect-3/4'>
         {product.imageUrl ? (
-          <Image className='rounded-3xl' alt='' src={product.imageUrl[0]} fill priority={true} />
+          <Image className='rounded-xl md:rounded-3xl' alt='' src={product.imageUrl[0]} fill priority={true} />
         ) : (
           <ImageLost />
         )}
       </div>
-      <div className='w-full px-4 flex justify-between first-letter:capitalize absolute py-2 bottom-0 rounded-b-3xl bg-priBlack-200/20 backdrop-blur-sm'>
+      <div className='w-full px-4 flex-col md:flex-col justify-between first-letter:capitalize absolute py-2 bottom-0 rounded-b-3xl bg-priBlack-200/20 backdrop-blur-sm'>
         <h1 className='first-letter:capitalize'>{product.name}</h1>
         <div className='text-priBlue-600'>{fCurrency(product.price as number)}</div>
       </div>
@@ -44,7 +47,7 @@ const SwiperItems: React.FC<SwiperItemsProps> = ({
         )}
       </div>
       <div className="w-full flex-center whitespace-nowrap">
-        <p className='capitalize text'>{product.name}</p>
+        <p className='capitalize dark:text-white'>{product.name}</p>
       </div>
     </Link>
 

@@ -20,7 +20,6 @@ export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'classNa
 
 const Button: React.FC<ButtonProps> = ({ type = 'button', text, modifier, children, variant = 'fill', glowEffect = true, glowModify, ...buttonAtt }) => {
     if (buttonAtt.disabled) glowEffect = false
-
     return (
         <button
             {...buttonAtt}
@@ -29,10 +28,11 @@ const Button: React.FC<ButtonProps> = ({ type = 'button', text, modifier, childr
                 classNames(`rounded-lg`,
                     {
                         'flex items-center': children,
+                        'text-white': variant === 'fill',
                         "noBg border border-priBlue-600": variant === 'outline',
                         'noBg': variant === 'plain',
                         'glow-effect': glowEffect,
-                        'bg-priBlack-200/20': buttonAtt.disabled
+                        'bg-priBlack-200/20': buttonAtt.disabled,
                     },
                     glowEffect && glowModify ? glowModify : 'offset',
                     modifier ? modifier : 'px-9 py-1',
@@ -42,7 +42,7 @@ const Button: React.FC<ButtonProps> = ({ type = 'button', text, modifier, childr
 
             {children}
 
-            {text}
+            <p >{text}</p>
 
             {
                 glowEffect &&

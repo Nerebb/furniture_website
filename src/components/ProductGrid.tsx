@@ -4,8 +4,9 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { Dispatch, Fragment, SetStateAction } from 'react'
 import { toast } from 'react-toastify'
 import Button from './Button'
-import ProductCard2, { ProductCardProps } from './ProductCard2'
+import ProductCard, { ProductCardProps } from './ProductCard'
 import Loading from './static/Loading'
+import useBrowserWidth from '@/hooks/useBrowserWidth'
 
 type Props = ProductSearch & {
     cardProps?: Omit<ProductCardProps, 'type' | 'product'>
@@ -13,7 +14,6 @@ type Props = ProductSearch & {
     loadMore: number,
     setLoadMore: Dispatch<SetStateAction<number>>
 }
-const productsPerLoad = 12
 
 export default function ProductGrid({
     queryKey,
@@ -21,7 +21,7 @@ export default function ProductGrid({
     setLoadMore,
     cateId = [0],
     skip = 0,
-    limit = productsPerLoad,
+    limit,
     available = false,
     colorHex,
     createdDate,
@@ -33,9 +33,11 @@ export default function ProductGrid({
     roomId,
     cardProps
 }: Props) {
+    const browserWidth = useBrowserWidth()
+    const productsPerLoad = browserWidth > 1028 ? 12 : browserWidth > 768 ? 8 : 6
     const { data: fetchedProducts, isError, error, isLoading, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
         queryKey: queryKey,
-        queryFn: ({ pageParam = { cateId, skip, limit, available, colorHex, createdDate, creatorName, name, fromPrice, toPrice, rating, roomId } as ProductSearch }) => axios.getProducts({
+        queryFn: ({ pageParam = { cateId, skip, limit: productsPerLoad, available, colorHex, createdDate, creatorName, name, fromPrice, toPrice, rating, roomId } as ProductSearch }) => axios.getProducts({
             limit: pageParam.limit,
             skip: pageParam.skip,
             cateId: pageParam.cateId.includes(0) ? undefined : pageParam.cateId,
@@ -53,7 +55,7 @@ export default function ProductGrid({
 
     function handleLoadMore() {
         const curPage = loadMore + productsPerLoad;
-        fetchNextPage({ pageParam: { skip: curPage, cateId } })
+        fetchNextPage({ pageParam: { skip: curPage, limit: productsPerLoad, cateId } })
         setLoadMore(curPage)
     }
 
@@ -70,11 +72,11 @@ export default function ProductGrid({
                 </div>
             ) : (
                 <>
-                    <div className='grid gap-5 grid-cols-4 mb-5'>
+                    <div className='grid gap-5 mb-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4'>
                         {fetchedProducts && fetchedProducts.pages.flat().map((item) => (
                             item &&
-                            <Fragment key={item.id}>
-                                <ProductCard2 type='horizontal' {...cardProps} product={item} />
+                            <Fragment key={item.id} >
+                                <ProductCard type='horizontal' {...cardProps} product={item} />
                             </Fragment>
                         ))}
                     </div>
@@ -85,14 +87,15 @@ export default function ProductGrid({
                             <Button text='Loading...' disabled />
                         ) : (
                             fetchedProducts && fetchedProducts.pages[fetchedProducts.pages.length - 1] && fetchedProducts.pages[fetchedProducts.pages.length - 1].length ? (
-                                <Button text='Load more' onClick={handleLoadMore} />
+                                <Button text='Load more' onClick={handleLoadMore} modifier='px-9 py-1 dark:text-white' />
                             ) : (
                                 ""
                             )
                         )}
                     </div>
                 </>
-            )}
+            )
+            }
 
         </>
     )

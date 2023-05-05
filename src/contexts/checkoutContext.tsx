@@ -1,10 +1,19 @@
 import React, { PropsWithChildren, useContext, useMemo, useState } from 'react'
-import { CheckoutContext } from '.'
+import { CheckoutContext, CheckoutContextData } from '.'
+import { CheckoutStage } from '@/pages/checkout'
 
 type Props = {}
 
+export const initCheckoutContext: CheckoutContextData = {
+    checkoutStage: 0,
+    stripeClient: {
+        orderDetail: undefined,
+        updateQty: false
+    }
+}
+
 export default function CheckoutProvider({ children }: PropsWithChildren<Props>) {
-    const [checkoutContext, setCheckoutContext] = useState({ checkoutStage: 0, stripeClient: { orderId: "", updateQty: false } })
+    const [checkoutContext, setCheckoutContext] = useState(initCheckoutContext)
     const values = useMemo(() => ({ checkoutContext, setCheckoutContext }), [checkoutContext, setCheckoutContext])
     return (
         <CheckoutContext.Provider value={values}>

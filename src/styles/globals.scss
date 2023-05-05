@@ -1,7 +1,4 @@
 //root config
-* {
-  // user-select: none;
-}
 
 // config VScode Usersetting to eliminate Unknow at rule @apply
 // "scss.lint.unknownAtRules": "ignore"
@@ -21,11 +18,11 @@
   position: relative;
 
   font-weight: 500;
-  color: white;
+  // color: white;
   background-image: linear-gradient(to bottom right, var(--glow-line-color), var(--glow-line-color2));
 
   &.noBg {
-    color: black;
+    // color: black;
     background-image: none;
   }
 
@@ -170,29 +167,6 @@ input[type=number].noSpin {
 }
 
 //------------------------------------Keyframes-----------------------------------------
-@keyframes SearchBox {
-  from {
-    opacity: 0;
-    -webkit-transform: translate(50px);
-    transform: translate(50px);
-  }
-
-  to {
-    opacity: 1;
-    -webkit-transform: translate(0);
-    transform: translate(0);
-  }
-}
-
-@keyframes searchBar {
-  from {
-    width: 20ch
-  }
-
-  to {
-    width: 35ch
-  }
-}
 
 @keyframes glow-effect {
   0% {

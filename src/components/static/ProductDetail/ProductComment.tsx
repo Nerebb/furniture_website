@@ -1,20 +1,20 @@
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import Modal from '@/components/Modal'
 import axios from '@/libs/axiosApi'
 import dateFormat from '@/libs/utils/dateFormat'
-import { NewReviewProps, TReview, UpdateReview } from '@/pages/api/review/[id]'
+import { NewReviewProps, ResponseReview } from '@/pages/api/review'
 import { useMutation } from '@tanstack/react-query'
 import classNames from 'classnames'
 import Image from 'next/image'
-import { useReducer, useMemo } from 'react'
+import { useMemo, useReducer } from 'react'
 import { toast } from 'react-toastify'
 import { StarRating } from '../StarRating'
 import CommentDropMenu from './CommentDropMenu'
-import Modal from '@/components/Modal'
-import { Dialog } from '@headlessui/react'
+import { UpdateReview } from '@/pages/api/review/[id]'
 
 type Props = {
-    review?: TReview
+    review?: ResponseReview
     viewContent?: boolean
     newReview?: boolean
     productId: string,
@@ -70,13 +70,8 @@ const initState = {
     isLiked: false,
 }
 export default function ProductComment({ viewContent = true, productId, newReview = false, review }: Props) {
-    // const [isLiked, setIsLiked] = useState<boolean>(review.isLiked)
-    // const [isEdited, setIsEdited] = useState<boolean>(false)
-    // const [curRate, setCurRate] = useState<number>(review.rating)
-    // const [reviewContent, setReviewContent] = useState<string>(review.content)
-    // const [displayTotalLikes, setDisplayTotalLikes] = useState<number>(review.totalLike)
 
-    const [comment, updateComment] = useReducer((prev: TReview, next: CommentState) => {
+    const [comment, updateComment] = useReducer((prev: ResponseReview, next: CommentState) => {
         const updateCmt = { ...prev, ...next }
         return updateCmt
     }, {
@@ -118,7 +113,7 @@ export default function ProductComment({ viewContent = true, productId, newRevie
     })
 
     const mutateComment = useMutation({
-        mutationKey: ['ProductComment'],
+        mutationKey: ['ProductReviews'],
         mutationFn: (data: UpdateReview) => axios.updateProductReview(data),
         onMutate: () => {
             updateComment({ isLoading: true })
@@ -126,7 +121,7 @@ export default function ProductComment({ viewContent = true, productId, newRevie
         onSuccess: (res) => {
             toast.success(res.message)
             updateComment({ isEdited: false, isLoading: false })
-        }
+        },
     })
 
     const createComment = useMutation({
@@ -160,8 +155,6 @@ export default function ProductComment({ viewContent = true, productId, newRevie
         if (comment.isEdited) {
             mutateComment.mutate({
                 id: comment.id,
-                ownerId: comment.ownerId,
-                productId: comment.productId,
                 content: comment.content,
                 rating: comment.rating
             })
@@ -171,10 +164,16 @@ export default function ProductComment({ viewContent = true, productId, newRevie
             mutateLike.mutate()
         }
     }
+
     return (
         <Card type='SearchCard' modify='p-5 relative'>
             {!newReview && viewContent && <div className='hidden group-hover:block absolute top-2 right-2'>
-                <CommentDropMenu ownerId={comment.ownerId} isEdited={comment.isEdited} setIsEdited={(value) => updateComment({ isEdited: value })} />
+                <CommentDropMenu
+                    ownerId={comment.ownerId}
+                    isEdited={comment.isEdited}
+                    reviewId={comment.id}
+                    setIsEdited={(value) => updateComment({ isEdited: value })}
+                />
             </div>}
 
             {/* User */}
@@ -183,7 +182,7 @@ export default function ProductComment({ viewContent = true, productId, newRevie
                     <div className="flex items-center mb-4 space-x-4">
                         <Image className="w-10 h-10 rounded-full border border-priBlack-200/50" src="/docs/images/people/profile-picture-5.jpg" alt="" width={50} height={50} />
                         <div className="space-y-1 font-medium dark:text-white">
-                            <p className='text-black first-letter:capitalize'>{comment.nickName ?? comment.name}</p>
+                            <p className='text-black first-letter:capitalize dark:text-white'>{comment.nickName ?? comment.name}</p>
                             <time
                                 className="block text-sm text-gray-500 dark:text-gray-400"
                             >
@@ -206,7 +205,7 @@ export default function ProductComment({ viewContent = true, productId, newRevie
             {viewContent &&
                 <>
                     {!comment.isEdited ? (
-                        <p className="mb-2 font-light text-gray-500 dark:text-gray-800">{comment.content}</p>
+                        <p className="mb-2 font-light text-gray-500 dark:text-gray-300">{comment.content}</p>
                     ) : (
                         <textarea
                             inputMode='text'
@@ -245,13 +244,12 @@ export default function ProductComment({ viewContent = true, productId, newRevie
                             ) : (
                                 <Button
                                     text={comment.isEdited ? "Update" : "Helpful"}
-                                    modifier='bg-priBlue-400 text-white py-1.5 px-2 rounded-lg text-xs'
+                                    modifier='bg-priBlue-400 text-white py-1.5 px-2 rounded-lg text-xs dark:text-white'
                                     glowEffect={false}
                                     onClick={handleUpdateComment}
                                     disabled={comment.isLoading}
                                 />
                             )}
-                            {/* <a href="#" className="pl-4 text-sm font-medium text-blue-600 hover:underline dark:text-blue-500">Report abuse</a> */}
                         </div>
                     </aside>
                 </>

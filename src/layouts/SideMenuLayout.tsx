@@ -3,6 +3,12 @@ import React, { Fragment } from 'react'
 import Container from './Container'
 import MainFooter from './MainFooter'
 import MainHeader from './MainHeader'
+import useBrowserWidth from '@/hooks/useBrowserWidth'
+import Modal from '@/components/Modal'
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import ProductSideMenu from '@/components/static/ProductSideMenu'
+import { Dialog } from '@headlessui/react'
+import { useRouter } from 'next/router'
 
 type Props = {
     tabTitle: string,
@@ -12,7 +18,8 @@ type Props = {
 }
 
 const SideMenuLayout = ({ tabTitle, tabDescription, sideMenu, children }: Props) => {
-
+    const browserWidth = useBrowserWidth()
+    const router = useRouter()
     return (
         <Fragment>
             <Head>
@@ -24,10 +31,15 @@ const SideMenuLayout = ({ tabTitle, tabDescription, sideMenu, children }: Props)
             <Container >
                 <MainHeader />
                 <section className='flex-grow flex '>
-                    <article className='max-w-[420px] py-5 pr-5 border-r border-priBlack-100'>
-                        {sideMenu}
-                    </article>
-                    <article className='flex-grow p-5'>
+                    {browserWidth > 400 || (router.pathname === '/account/[[...account]]' && browserWidth > 1200) ?
+                        (
+                            <article className='max-w-[420px] py-5 sm:pr-5 sm:border-r border-priBlack-100'>
+                                {sideMenu}
+                            </article>
+                        ) : (
+                            <></>
+                        )}
+                    <article className='flex-grow p-2 md:p-5'>
                         {children}
                     </article>
                 </section>

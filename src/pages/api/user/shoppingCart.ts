@@ -55,7 +55,7 @@ const shoppingCartIncludes = {
             }
         },
     }
-}
+} satisfies Prisma.ShoppingCartInclude
 
 /**
  * @method GET
@@ -93,6 +93,7 @@ export async function getShoppingCart(userId: string) {
 
 /**
  * @method PUT
+ * @description create new Shoppingcart
  * @param userId from JWT Token
  * @param req client request {productId,color,quantities} in query params
  * @returns message
@@ -265,14 +266,14 @@ export default async function handler(
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
-        case ApiMethod.PUT:
+        case ApiMethod.POST:
             try {
                 await createShoppingCart(userId as string, req)
                 return res.status(200).json({ message: "Create/Add to cart success" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
-        case ApiMethod.POST:
+        case ApiMethod.PUT:
             try {
                 await updateShoppingCart(userId as string, req)
                 return res.status(200).json({ message: "Update product completed" })

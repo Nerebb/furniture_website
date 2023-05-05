@@ -58,7 +58,12 @@ export default function FilterForm({ classname, children }: Props) {
                                 <Loading className='w-6 h-6 fill-priBlue-500' />
                             </Button>
                         ) : (
-                            <Button type='submit' text='Submit' glowModify='noAnimation' modifier='w-32 h-8' />
+                            <Button
+                                type='submit'
+                                text='Submit'
+                                glowModify='noAnimation'
+                                modifier='w-32 h-8 dark:text-white'
+                            />
                         )}
                     </div>
                 </Form>

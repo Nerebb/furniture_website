@@ -13,7 +13,7 @@ export default function FormikPass({ ...props }: CustomInput) {
     const [showPass, setShowPass] = useState<boolean>(false)
     return (
         <div className={classNames(
-            'relative text-xl py-1 w-full h-fit border-b-[2.5px] font-semibold',
+            'relative text-xl py-1 w-full h-fit border-b-[2.5px] font-semibold ',
             {
                 'border-red-500': props.meta.touched && props.meta.error,
                 'border-priBlue-500': props.meta.value && !props.meta.error,
@@ -22,13 +22,17 @@ export default function FormikPass({ ...props }: CustomInput) {
             <input id={props.name} type={showPass ? 'text' : 'password'} {...props.field} name={props.name}
                 className={classNames(
                     props.modifyInput,
-                    'peer w-full font-normal outline-none py-1 focus:text-priBlue-500 border-none focus:ring-priBlue-500 rounded',
-                    { '': props.meta.error }
+                    'peer w-full font-normal outline-none py-1 focus:text-priBlue-500 border-none bg-white focus:ring-priBlue-500 rounded',
+                    'dark:text-white dark:bg-priBlack-400 dark:focus:text-priBlue-100',
+                    {
+                        '': props.meta.error,
+                    }
                 )} />
             <label htmlFor={props.name} className={
                 classNames(
                     props.modifyLabel,
-                    'absolute left-0 bottom-1 peer-focus:-translate-y-8 peer-focus:text-base transition-all duration-300',
+                    'absolute left-2 bottom-1 peer-focus:-translate-y-8 peer-focus:text-base transition-all duration-300',
+                    'dark:text-white',
                     {
                         '-translate-y-8 text-base': props.meta.value,
                     }
@@ -45,6 +49,7 @@ export default function FormikPass({ ...props }: CustomInput) {
 
             <span className={classNames(
                 'w-6 h-6 absolute right-1 bottom-2 opacity-0 transition-opacity duration-500',
+                'dark:text-white',
                 {
                     'opacity-100': props.meta.value
                 }

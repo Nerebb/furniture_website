@@ -1,7 +1,6 @@
 import Button from '@/components/Button';
 import axios from '@/libs/axiosApi';
 import { fCurrency } from '@/libs/utils/numberal';
-import { UserOrder } from '@/pages/api/order/order';
 import { Transition } from '@headlessui/react';
 import { Status } from '@prisma/client';
 import { useQuery } from '@tanstack/react-query';
@@ -12,18 +11,25 @@ import {
 import { AgGridReact } from 'ag-grid-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import OrderProductsGrid from './OrderProductsGrid';
+import { ResponseOrder } from '@/pages/api/order';
+import dateFormat from '@/libs/utils/dateFormat';
+import classNames from 'classnames';
+import { useTheme } from "next-themes";
 
 
 export default function AccPurchased() {
+    //theme
+    const { theme } = useTheme()
+
     //CustomState
     const [detailOrder, setDetailOrder] = useState<boolean>(false);
     const [selectedRow, setSelectedRow] = useState<{ id: string, updateAt: string }>()
 
     //AG-GRID
-    const [rowData, setRowData] = useState<UserOrder[]>();
-    const gridRef = useRef<AgGridReact<UserOrder>>(null);
+    const [rowData, setRowData] = useState<ResponseOrder[]>();
+    const gridRef = useRef<AgGridReact<ResponseOrder>>(null);
 
-    const { data: userOrder, isLoading, isError } = useQuery({
+    const UserOrders = useQuery({
         queryKey: ['PurchasedOrders'],
         queryFn: () => axios.getUserOrders(0, Status.completed),
         onSuccess: (data) => setRowData(data)
@@ -36,41 +42,59 @@ export default function AccPurchased() {
         {
             headerName: 'Shipping',
             field: 'shippingFee',
-            valueFormatter: (params: ValueFormatterParams<UserOrder, number>) => {
+            filter: "agNumberColumnFilter",
+            width: 125,
+            cellStyle: { textAlign: 'end' },
+            valueFormatter: (params: ValueFormatterParams<ResponseOrder, number>) => {
                 // params.value: number
                 const formatedNum = fCurrency(params.value)
                 return formatedNum;
             },
-            filter: "agNumberColumnFilter",
-            width: 125,
-            cellStyle: { textAlign: 'end' }
         },
         {
             headerName: 'Sub total',
             field: 'subTotal',
-            valueFormatter: (params: ValueFormatterParams<UserOrder, number>) => {
-                // params.value: number
+            filter: "agNumberColumnFilter",
+            width: 150,
+            cellStyle: { textAlign: 'end' },
+            valueFormatter: (params: ValueFormatterParams<ResponseOrder, number>) => {
                 const formatedNum = fCurrency(params.value)
                 return formatedNum;
             },
-            filter: "agNumberColumnFilter",
-            width: 150,
-            cellStyle: { textAlign: 'end' }
         },
         {
             headerName: 'Total',
             field: 'total',
-            valueFormatter: (params: ValueFormatterParams<UserOrder, number>) => {
-                // params.value: number
+            filter: "agNumberColumnFilter",
+            width: 150,
+            cellStyle: { textAlign: 'end' },
+            valueFormatter: (params: ValueFormatterParams<ResponseOrder, number>) => {
                 const formatedNum = fCurrency(params.value)
                 return formatedNum;
             },
-            filter: "agNumberColumnFilter",
-            width: 150,
-            cellStyle: { textAlign: 'end' }
         },
-        { headerName: 'Purchased date', field: 'createdDate', filter: "agDateColumnFilter", width: 200, cellStyle: { textAlign: "center" } },
-        { headerName: 'Completed date', field: 'updatedAt', filter: "agDateColumnFilter", width: 200, cellStyle: { textAlign: "center" } },
+        {
+            headerName: 'Purchased date',
+            field: 'createdDate',
+            filter: "agDateColumnFilter",
+            width: 200,
+            cellStyle: { textAlign: "center" },
+            valueFormatter: (params: ValueFormatterParams<ResponseOrder, number>) => {
+                const formatedDate = dateFormat(params.value)
+                return formatedDate;
+            },
+        },
+        {
+            headerName: 'Completed date',
+            field: 'updatedAt',
+            filter: "agDateColumnFilter",
+            width: 200,
+            cellStyle: { textAlign: "center" },
+            valueFormatter: (params: ValueFormatterParams<ResponseOrder, number>) => {
+                const formatedDate = dateFormat(params.value)
+                return formatedDate;
+            },
+        },
     ]);
 
     const defaultColDef = useMemo<ColDef>(() => {
@@ -82,7 +106,7 @@ export default function AccPurchased() {
     }, []);
 
     const getRowId = useMemo<GetRowIdFunc>(() => {
-        return (params: GetRowIdParams<UserOrder>) => {
+        return (params: GetRowIdParams<ResponseOrder>) => {
             // params.data : UserOrder
             return params.data.id;
         };
@@ -104,8 +128,13 @@ export default function AccPurchased() {
     return (
         <div className='h-full w-full space-y-8'>
             {/* UserOrders - paginated on clientside */}
-            <div className="relative ag-theme-material w-full border rounded-lg shadow-lg">
-                <AgGridReact<UserOrder>
+            <div className={classNames(
+                "relative ag-theme-material w-full border rounded-lg shadow-lg",
+                {
+                    "dark": theme === 'dark'
+                }
+            )}>
+                <AgGridReact<ResponseOrder>
                     //Data
                     ref={gridRef}
                     rowData={rowData}
@@ -132,9 +161,6 @@ export default function AccPurchased() {
                 </Transition>
             </div>
 
-
-            {/* Selected detailOrders */}
-            {/* {selectedRow && <OrderProductsGrid orderId={selectedRow} />} */}
             <Transition
                 show={detailOrder}
                 enter='transform transition duration-300'
@@ -145,9 +171,9 @@ export default function AccPurchased() {
                 leaveTo='opacity-0'
             >
                 {selectedRow && <div>
-                    <div className='mb-2 flex justify-between text-lg font-semibold'>
-                        <p>Detail Orders: {selectedRow.id}</p>
-                        <p>Compeleted Date: {new Date(selectedRow.updateAt).toISOString().substring(0, 10)}</p>
+                    <div className='mb-2 flex justify-between text-lg font-semibold dark:text-white'>
+                        <p>Detail Orders: <span className='dark:text-gray-400'>{selectedRow.id}</span></p>
+                        <p>Compeleted Date: <span className='dark:text-gray-400'>{dateFormat(selectedRow.updateAt)}</span></p>
                     </div>
                     <OrderProductsGrid orderId={selectedRow.id} defaultColDef={defaultColDef} />
                 </div>}

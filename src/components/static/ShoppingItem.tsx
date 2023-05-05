@@ -11,6 +11,7 @@ import Button from '../Button'
 import { fCurrency } from '@/libs/utils/numberal'
 import { Transition } from '@headlessui/react'
 import Loading from './Loading'
+import { toast } from 'react-toastify'
 
 type Props = shoppingCartItem & {
     type?:
@@ -31,8 +32,12 @@ function QtyInput({ type, ...product }: Props) {
     const { mutate, isLoading } = useMutation({
         mutationKey: ['ShoppingCart'],
         mutationFn: (newQty: number) => axios.updateShoppingCart(product.id, undefined, newQty),
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries()
+            toast.success(data.message)
+        },
+        onError: (error: any) => {
+            toast.error(error)
         }
     })
 
@@ -48,13 +53,13 @@ function QtyInput({ type, ...product }: Props) {
     }
 
     return (
-        <div className="">
+        <div className="w-full">
             <p className='text-red-500 first-letter:capitalize'>{error || ""}</p>
-            <div className='flex items-center space-x-2'>
+            <div className='flex items-center space-x-2 dark:text-white'>
                 <label htmlFor={product.id}>Qty:</label>
                 <input
                     id={product.id}
-                    className="transition-all grow w-full border-none rounded-md focus:outline-none focus:ring-priBlue-500 p-1"
+                    className="transition-all grow max-w-[80px] border-none rounded-md focus:outline-none focus:ring-priBlue-500 p-1 dark:bg-priBlack-400"
                     type='number'
                     inputMode="numeric"
                     value={itemQty}
@@ -120,7 +125,7 @@ export default function ShoppingItem({ type = 'default', ...product }: Props) {
                 )}
             </div>
             <div className='col-span-2 flex flex-col'>
-                <h1 className='font-semibold first-letter:capitalize'>{product.name}</h1>
+                <h1 className='font-semibold first-letter:capitalize dark:text-white'>{product.name}</h1>
 
                 <div>
                     <Chip label={GetColorName(product.color)} color={product.color} />
@@ -128,20 +133,20 @@ export default function ShoppingItem({ type = 'default', ...product }: Props) {
 
                 <div className='flex space-x-2'>
                     <StarRating ProductRating={product.avgRating} />
-                    <div className='text-gray-500'>{`(${product.totalRating})`}</div>
+                    <div className='text-gray-500 dark:text-white'>{`(${product.totalRating})`}</div>
                 </div>
 
-                <p className='text-gray-500'>OnStock: {product.available}</p>
+                <p className='text-gray-500 dark:text-white'>OnStock: {product.available}</p>
                 <p className='grow'></p>
                 <QtyInput type={type} {...product} />
             </div>
             <div className='items-end flex flex-col'>
-                <h1 className='font-semibold'>{fCurrency(product.price)}</h1>
+                <h1 className='font-semibold dark:text-white'>{fCurrency(product.price)}</h1>
                 <p className='grow'></p>
                 <Button
                     text='Remove'
                     variant='outline'
-                    modifier='px-9 py-1 border-red-500'
+                    modifier='px-9 py-1 border-red-500 dark:text-white hover:text-red-500'
                     glowEffect={false}
                     onClick={() => handleRemoveProduct(product.id)}
                     disabled={isLoading}

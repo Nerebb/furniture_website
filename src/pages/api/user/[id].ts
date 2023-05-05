@@ -34,8 +34,10 @@ function responseUserProfile(role: Role, data: User): UserProfile | User {
 
 /**
  * @method GET
- * @description Get login user profile
- * @response res.body userProfile
+ * @description Get one user profile
+ * @param role JWT token
+ * @param userId JWT token - if admin -> userId from req.query
+ * @response UserProfile
  */
 async function getUser(role: Role, userId: string): Promise<User | UserProfile> {
     const data = await prismaClient.user.findFirstOrThrow({
@@ -48,7 +50,10 @@ async function getUser(role: Role, userId: string): Promise<User | UserProfile> 
 /**
  * @method POST
  * @description Update login user profile only
- * @allowed { name, loginId, nickName, address, email, gender, phoneNumber, birthDay, wishList, purchased }
+ * @param role JWT token
+ * @param userId JWT token - if admin -> userId from req.query
+ * @param data req.body - updated data
+ * @access login required
  * @response res.body message:"Update complete"
 */
 async function updateUser(role: Role, userId: string, data: Partial<Omit<UserProfile, 'id'>>): Promise<UserProfile | User> {
@@ -66,6 +71,9 @@ async function updateUser(role: Role, userId: string, data: Partial<Omit<UserPro
                         role: data.role,
                         phoneNumber: data.phoneNumber,
                         birthDay: data.birthDay ? new Date(data.birthDay) : undefined,
+                        emailVerified: data.emailVerified ? new Date() : null,
+                        userVerified: data.userVerified ? new Date() : null,
+                        deleted: data.deleted ? new Date() : null
                     }
                 })
                 return responseUserProfile(role, updateUser)
@@ -92,8 +100,9 @@ async function updateUser(role: Role, userId: string, data: Partial<Omit<UserPro
 }
 
 /**
- * @method DELETE soft delete
+ * @method DELETE soft delete a user
  * @description using middleware mutate prismaClient.delete to .update (@/libs/prismadb)
+ * @param userId JWT token - if admin -> userId from req.query
  * @response message
 */
 async function deleteUser(userId: string) {
@@ -107,7 +116,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let token: JWT | SignedUserData | void;
+    let token: JWT | SignedUserData | null;
     let id: string;
     let role: Role = 'customer';
     try {
@@ -123,7 +132,6 @@ export default async function handler(
         return res.status(405).json({ message: error.message || error })
     }
 
-    //Response
     switch (req.method) {
         case ApiMethod.GET:
             try {
@@ -149,7 +157,6 @@ export default async function handler(
                     }
                 }
                 const validatedField = await validateSchema()
-                // const validatedField = await verifySchema<Omit<UserProfile, "id" | "role">>(req.body, schema)
 
                 const data = await updateUser(role, id, { ...validatedField, birthDay: req.body.birthDay })
                 return res.status(200).json({ data, message: "Update user success" })

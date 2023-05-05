@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React from 'react';
 
 interface SectionProps {
@@ -20,7 +21,15 @@ const Section = ({ type = "Default", title = type, children }: SectionProps) => 
   }
   return (
     <section className='py-8'>
-      <h1 className='w-full text-center text-2xl text-priBlack-500 font-bold underline underline-offset-8 mb-8'>{title}</h1>
+      <h1
+        className={classNames(
+          'w-full text-center text-2xl text-priBlack-500 font-bold underline underline-offset-8 mb-8',
+          //Darkmode,
+          'dark:text-white'
+        )}
+      >
+        {title}
+      </h1>
       <>{children}</>
     </section>
   )

@@ -64,9 +64,9 @@ export default function StripeForm() {
             elements,
             confirmParams: {
                 // Make sure to change this to your payment completion page
-                return_url: "http://localhost:3000/checkout",
+                // return_url: "http://localhost:3000/products",
             },
-            // redirect: 'if_required'
+            redirect: 'if_required'
         });
 
 
@@ -109,7 +109,7 @@ export default function StripeForm() {
                 text={isLoading ? "" : "Pay now"}
                 glowModify="noAnimation"
                 disabled={isLoading || !stripe || !elements}
-                modifier="px-9 py-1 w-[140px] flex-center mt-5"
+                modifier="px-9 py-1 w-[140px] flex-center mt-5 dark:text-white"
             >
                 {isLoading && <Loading className="w-6 h-6 fill-priBlue-500 text-white" />}
             </Button>

@@ -14,7 +14,7 @@ export default function FormikInput({ ...props }: CustomInput) {
             {
                 'border-red-500': props.meta.touched && props.meta.error,
                 'border-priBlue-500': props.meta.value && !props.meta.error,
-                'noSpin': props.type === 'number'
+
             }
         )}>
             <input id={props.name}
@@ -25,12 +25,17 @@ export default function FormikInput({ ...props }: CustomInput) {
                 className={classNames(
                     props.modifyInput,
                     'peer w-full font-normal outline-none py-1 focus:text-priBlue-500 border-none bg-white focus:ring-priBlue-500 rounded',
-                    { '': props.meta.error }
+                    'dark:text-white dark:bg-priBlack-400 dark:focus:text-priBlue-100',
+                    {
+                        '': props.meta.error,
+                        'noSpin': props.type === 'number' && props.name === 'phoneNumber',
+                    }
                 )} />
             <label htmlFor={props.name} className={
                 classNames(
                     props.modifyLabel,
-                    'absolute left-0 bottom-1 peer-focus:-translate-y-8 peer-focus:text-base transition-all duration-300',
+                    'absolute left-2 bottom-1 peer-focus:-translate-y-8 peer-focus:text-base transition-all duration-300',
+                    'dark:text-white',
                     {
                         '-translate-y-8 text-base': props.meta.value,
                     }

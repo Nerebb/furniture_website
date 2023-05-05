@@ -1,9 +1,7 @@
-import { Gender, Prisma, Status, Product, Role, User, ProductReview, Order } from '@prisma/client'
-import * as Yup from 'yup'
 import { ProductCard } from '@/pages/api/products'
 import { UserRelation } from '@/pages/api/user'
-import { ReviewSearch } from '@/pages/api/review'
-import { OrderSearch } from '@/pages/api/order'
+import { Gender, Order, ProductReview, Role, Status, User } from '@prisma/client'
+import * as Yup from 'yup'
 
 
 export const AllowedUserSearch = ['id', 'name', 'nickName', 'address', 'email', 'gender', 'role', 'phoneNumber', 'birthDay', 'createdDate', 'updatedAt', 'userVerified', 'emailVerified', 'deleted', 'image'] satisfies Array<keyof User>
@@ -42,17 +40,10 @@ export const RegisterSchemaValidate = {
     email: Yup.string().email().typeError("Invalid email").required("Email field missing"),
 }
 
-export const LoginSchemaValidate = {
-    loginId: RegisterSchemaValidate.loginId,
-    password: RegisterSchemaValidate.password,
-}
-
-export const SeverRegisterSchemaValidate = {
-    ...RegisterSchemaValidate,
+export const RegisterByAdminSchemaValidate = {
     name: Yup.string().lowercase().max(20),
     nickName: Yup.string().lowercase().max(20),
     address: Yup.string().lowercase().max(255),
-    email: Yup.string().email().typeError("Invalid email"),
     gender: Yup.string().oneOf(Object.values(Gender), "Invalid gender"),
     phoneNumber: Yup.string().required("Phone number required"),
     birthDay: Yup.date().max(new Date()).typeError("Invalid date"),
@@ -62,6 +53,17 @@ export const SeverRegisterSchemaValidate = {
     deleted: Yup.boolean(),
 }
 
+export const LoginSchemaValidate = {
+    loginId: RegisterSchemaValidate.loginId,
+    password: RegisterSchemaValidate.password,
+}
+
+export const AdminUserUpdateSchemaValidate = {
+    ...UserSchemaValidate,
+    userVerified: Yup.boolean(),
+    emailVerified: Yup.boolean(),
+    deleted: Yup.boolean(),
+}
 export const isUUID: Yup.StringSchema<string> =
     Yup.string().uuid('BAD REQUEST - Invalid Object ID').required('Object ID not found')
 
@@ -240,13 +242,13 @@ export const SearchFilterSchemaValidate = {
     }),
     filter: Yup.string().lowercase().oneOf(['id', 'label']),
     sort: Yup.string().lowercase().oneOf(['asc', 'desc']),
-    limit: Yup.number().min(5).max(50),
+    limit: Yup.number().min(1).max(50),
     skip: Yup.number().moreThan(-1),
 }
 
 export const CreateFilterSchemaValidate = {
     id: Yup.number().min(1),
-    label: Yup.string().required().max(20),
+    label: Yup.string().required().max(20).required(),
 }
 
 export const CreateColorSchemaValidate = {
@@ -316,7 +318,7 @@ export const SearchProductReviewSchemaValidate = {
     updatedAt: Yup.date(),
     filter: Yup.string().oneOf(AllowedProductReviewFilters),
     sort: Yup.string().lowercase().oneOf(['asc', 'desc']),
-    limit: Yup.number().min(5).max(50),
+    limit: Yup.number().integer().min(0).max(50),
     skip: Yup.number().moreThan(-1),
 }
 
@@ -329,6 +331,45 @@ export const DeleteProductReviewSchemaValidate = {
                 return Yup.string().uuid().required()
         }
     })
+}
+
+const NewOrderItemSchemaValidateByAdmin = {
+    ...ShoppingCartCreateSchemaValidate,
+    salePrice: Yup.number().integer().min(0)
+}
+
+export const NewOrderSchemaValidateByAdmin = {
+    userId: Yup.string().uuid().required(),
+    billingAddress: Yup.string().max(255).required(),
+    shippingAddress: Yup.string().max(255).required(),
+    products: Yup.array().of(Yup.object(NewOrderItemSchemaValidateByAdmin).required()).required(),
+}
+
+export const DeleteColorsSchemaValidate = {
+    id: Yup.lazy(value => {
+        switch (typeof value) {
+            case 'object':
+                return Yup.array().of(Yup.string().max(7).required()).required()
+            default:
+                return Yup.string().max(7).required()
+        }
+    })
+}
+
+export const DeleteFilterSchemaValidate = {
+    id: Yup.lazy(value => {
+        switch (typeof value) {
+            case 'object':
+                return Yup.array().of(Yup.number().integer().min(1).required()).required()
+            default:
+                return Yup.number().integer().min(1).required()
+        }
+    })
+}
+
+export const UpdateFilterSchemaValidate = {
+    id: CreateFilterSchemaValidate.id.required(),
+    label: CreateFilterSchemaValidate.label.required()
 }
 
 //Shorten Validations

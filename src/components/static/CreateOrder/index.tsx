@@ -1,15 +1,16 @@
 import OrderPlacementForm from '@/components/form/OrderPlacementForm'
-import { useCheckoutContext } from '@/contexts/checkoutContext'
 import { Transition } from '@headlessui/react'
-import { Fragment } from 'react'
 import CheckoutItem from './CheckoutItem'
+import useBrowserWidth from '@/hooks/useBrowserWidth'
+import { useCheckoutContext } from '@/contexts/checkoutContext'
 
 type Props = {}
 export default function CreateOrder({ }: Props) {
-    const { checkoutContext, setCheckoutContext } = useCheckoutContext()
-    if (checkoutContext.checkoutStage !== 0) return <></>
+    const browserWidth = useBrowserWidth()
+    const { checkoutContext } = useCheckoutContext()
+    if (checkoutContext.checkoutStage !== 0) return null
     return (
-        <div className='grow grid grid-cols-2 p-5'>
+        <div className='grow grid grid-cols-1 xl:grid-cols-2 p-5'>
             {/* UserProfile */}
             <Transition
                 appear={true}
@@ -26,7 +27,7 @@ export default function CreateOrder({ }: Props) {
             </Transition>
 
             {/* Items */}
-            <CheckoutItem />
+            {browserWidth > 1024 && <CheckoutItem />}
         </div>
     )
 }

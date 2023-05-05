@@ -13,10 +13,6 @@ import { UserSchemaValidate } from '@/libs/schemaValitdate';
 import * as Yup from 'yup'
 import dateFormat from '@/libs/utils/dateFormat';
 
-
-type Props = {
-}
-
 type userField = {
     type?: FormRow['inputType']
     idx: number,
@@ -37,16 +33,19 @@ function UserField({ type = 'text', isEdit, ...props }: userField) {
     return (
         <div className={classNames(
             "px-4 h-[70px] sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 items-center",
-            props.idx % 2 === 0 && !isEdit ? "bg-priBlue-100" : "",
+            props.idx % 2 === 0 && !isEdit ? "bg-priBlue-100 dark:bg-priBlack-700/80" : "",
         )}>
-            <label htmlFor={props.name} className="text-sm font-medium text-gray-900">
+            <label htmlFor={props.name} className="text-sm font-medium text-gray-900 dark:text-white">
                 <p>{props.label}</p>
                 {isEdit && meta.touched && meta.error ? <span className='text-sm text-red-600'>{meta.error}</span> : ""}
             </label>
             {isEdit ? (
                 type === 'select' ? (
                     <select
-                        className='w-full capitalize sm:px-3 h-[calc(100%-1em)] col-span-2 shadow-md rounded-md border-b-2 transition-all duration-150 border-priBlue-400 focus:ring-0 outline-none focus:border-priBlue-400'
+                        className={classNames(
+                            'w-full capitalize sm:px-3 h-[calc(100%-1em)] col-span-2 shadow-md rounded-md border-b-2 transition-all duration-150 border-priBlue-400 focus:ring-0 outline-none focus:border-priBlue-400',
+                            "dark:bg-priBlack-400/50 dark:text-white dark:border-white"
+                        )}
                         id='gender'
                         {...field}>
                         <option defaultValue='' disabled>Select your {`${props.name}`}</option>
@@ -57,6 +56,7 @@ function UserField({ type = 'text', isEdit, ...props }: userField) {
                 ) : (
                     <input type={type} {...field} name={props.name} className={classNames(
                         "w-full sm:px-3 h-[calc(100%-1em)] col-span-2 shadow-md rounded-md border-b-2 transition-all duration-150 focus:ring-0 focus:border-priBlue-400 outline-none",
+                        "dark:bg-priBlack-400/80 dark:text-white dark:border-white",
                         meta.touched && meta.error ? "border-red-500" : 'border-priBlue-400',
                         { 'noSpin': type === 'number' }
                     )} />
@@ -64,7 +64,7 @@ function UserField({ type = 'text', isEdit, ...props }: userField) {
             ) : (
                 displayContent &&
                 <p
-                    className="mt-1 capitalize sm:pl-3 text-sm text-gray-500 sm:col-span-2 sm:mt-0"
+                    className="mt-1 capitalize sm:pl-3 text-sm text-gray-500 sm:col-span-2 sm:mt-0 dark:text-white"
                 >
                     {displayContent}
                 </p>
@@ -73,7 +73,7 @@ function UserField({ type = 'text', isEdit, ...props }: userField) {
     )
 }
 
-function ProfileForm({ }: Props) {
+function ProfileForm() {
     const { data: session } = useSession()
     const [isEdit, setIsEdit] = useState(false)
     const queryClient = useQueryClient();
@@ -165,17 +165,17 @@ function ProfileForm({ }: Props) {
                 )}>
                     {isEdit ?
                         <>
-                            <Button text='Close edit' variant='outline' modifier='h-9 w-[125px]' onClick={() => { setIsEdit(false); handleReset() }} />
-                            <Button type='submit' text={isSubmitting ? '' : 'Submit'} modifier='h-9 w-[125px]' disabled={!dirty}>
+                            <Button text='Close edit' variant='outline' modifier='h-9 w-[125px] dark:text-white' onClick={() => { setIsEdit(false); handleReset() }} />
+                            <Button type='submit' text={isSubmitting ? '' : 'Submit'} modifier='h-9 w-[125px] dark:text-white' disabled={!dirty}>
                                 {isSubmitting &&
                                     <div className='h-full w-full flex-center'>
-                                        <Loading className='w-5 h-5 text-gray-200 dark:text-priBlack-100 fill-priBlue-500' />
+                                        <Loading className='w-5 h-5 text-gray-200 dark:text-white fill-priBlue-500' />
                                     </div>
                                 }
                             </Button>
                         </>
                         :
-                        <Button text="Edit profile" modifier='h-9 w-[125px]' onClick={() => setIsEdit(true)} />}
+                        <Button text="Edit profile" modifier='h-9 w-[125px] dark:text-white' onClick={() => setIsEdit(true)} />}
                 </div>
             </Form>)}
         </Formik>

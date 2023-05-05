@@ -15,7 +15,7 @@ export default function ProductReview({ productId, loadReview }: Props) {
 
     const { data: reviews, isLoading, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
         queryKey: ['ProductComment'],
-        queryFn: ({ pageParam = { skip: 0, limit: 4 } }) => axios.getReviewsById({
+        queryFn: ({ pageParam = { productId, skip: 0, limit: 4 } }) => axios.getReviews({
             productId,
             limit: pageParam.limit,
             skip: pageParam.skip,
@@ -24,7 +24,7 @@ export default function ProductReview({ productId, loadReview }: Props) {
     })
 
     function handleLoadMore() {
-        fetchNextPage({ pageParam: { skip: loadMore + 4, limit: 4 } })
+        fetchNextPage({ pageParam: { productId, skip: loadMore + 4, limit: 4 } })
         setLoadMore(prev => prev + 4)
     }
 
@@ -36,14 +36,11 @@ export default function ProductReview({ productId, loadReview }: Props) {
                 ))}
                 <div className='w-full flex justify-center'>
                     {isFetchingNextPage ? (
-                        <Button text='Loading...' disabled />
+                        <Button text='Loading...' disabled modifier='px-9 py-1 dark:text-white' />
                     ) : (
-                        reviews && reviews.pages[reviews.pages.length - 1] && reviews.pages[reviews.pages.length - 1].length ? (
-                            <Button text='Load more' onClick={handleLoadMore} />
-                        ) : (
-                            ""
-                        )
-                    )}
+                        reviews && reviews.pages[reviews.pages.length - 1] && reviews.pages[reviews.pages.length - 1].length && (
+                            <Button text='Load more' onClick={handleLoadMore} modifier='px-9 py-1 dark:text-white' />
+                        ))}
                 </div>
             </div>
         </Section>

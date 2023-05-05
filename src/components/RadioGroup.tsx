@@ -12,20 +12,17 @@ type RadioOption = {
 
 type Props = {
     data: RadioOption[]
-    initState: number
 }
 
-export default function CusRadioGroup({ data, initState }: Props) {
-    const [value, setValue] = useState(initState)
+export default function CusRadioGroup({ data }: Props) {
     const { checkoutContext, setCheckoutContext } = useCheckoutContext()
     function handleOnchange(value: number) {
         setCheckoutContext({ ...checkoutContext, checkoutStage: value })
-        setValue(value)
     }
     return (
         <RadioGroup
             as='div'
-            value={value}
+            value={checkoutContext.checkoutStage}
             onChange={handleOnchange}
             className='flex space-x-2'
         >
@@ -41,9 +38,11 @@ export default function CusRadioGroup({ data, initState }: Props) {
                         {({ active, checked, disabled }) => (
                             <div
                                 className={classNames(
-                                    "flex-center space-x-1 px-2 py-1 rounded-md cursor-pointer border border-white",
-                                    { " hover:border-priBlack-200/50": !checked },
-                                    { "bg-priBlue-400 text-white": checked }
+                                    "flex-center space-x-1 px-2 py-1 rounded-md cursor-pointer border border-white dark:text-white",
+                                    {
+                                        "hover:border-priBlack-200/50 dark:hover:border-priBlue-400 dark:hover:text-priBlue-200": !checked,
+                                        "bg-priBlue-400 text-white dark:bg-priBlack-400": checked
+                                    },
                                 )}
                             >
                                 {checked && (

@@ -176,7 +176,7 @@ async function main() {
     console.log("MediaGallery created")
 
     //Products
-    const Price = 100000
+    const Price = 100
     const mediaDbById = mediaDb.map(i => { return { id: i.id } })
     const roomsDbById = roomsDb.map(i => { return { id: i.id } })
     const cateDbById = cateDb.map(i => { return { id: i.id } })
@@ -213,6 +213,7 @@ async function main() {
         const prom = await prisma.product.create({
             data: {
                 ...testProduct,
+                isFeatureProduct: randomNum() > 8,
                 cateIds: {
                     connect: randomField("id", cateDbById, true, randomNum(cateDbById.length, true)).map(i => { return { id: i } }) as Prisma.CategoryWhereUniqueInput
                 },

@@ -10,6 +10,7 @@ type Props = {
     type?:
     | 'default'
     | 'translateX'
+    | '-translateX'
     btnProps?: ButtonProps
     keepOpen?: boolean
     children?: ReactNode
@@ -42,6 +43,15 @@ const Modal = ({
 
     const ContentTransition = useMemo(() => {
         switch (type) {
+            case '-translateX':
+                return {
+                    enter: 'transform transition ease-in-out duration-500 sm:duration-700',
+                    enterFrom: '-translate-x-1/2',
+                    enterTo: 'translate-x-0',
+                    leave: 'transform transition ease-in-out duration-500 sm:duration-700',
+                    leaveFrom: 'translate-x-0',
+                    leaveTo: '-translate-x-full'
+                }
             case 'translateX':
                 return {
                     enter: 'transform transition ease-in-out duration-500 sm:duration-700',
@@ -64,6 +74,7 @@ const Modal = ({
     }, [type])
 
     function closeModal() {
+        console.log("IS CLOSE MODAL")
         if (keepOpen) return
         setIsOpen(false)
     }
@@ -115,24 +126,25 @@ const Modal = ({
                     <div className="fixed inset-0 overflow-y-auto customScrollbar">
                         <div className={classNames(
                             {
-                                'flex-center min-h-full p-4 text-center': type === 'default',
-                                'min-h-full flex justify-end': type === 'translateX'
+                                'flex-center min-h-full p-4': type === 'default',
+                                'min-h-full flex justify-end': type === 'translateX',
+                                'min-h-full flex justify-start': type === '-translateX',
                             }
                         )}>
                             <Transition.Child
                                 {...ContentTransition}
                             >
                                 {children ? children : (
-                                    <Dialog.Panel className="relative p-5 w-full min-w-[350px] min-h-[180px] max-w-md transform overflow-hidden rounded-2xl bg-white p- text-left align-middle shadow-xl transition-all">
+                                    <Dialog.Panel className="relative p-5 w-full min-w-[350px] h-full min-h-[210px] max-w-md transform overflow-hidden rounded-2xl bg-white p- text-left align-middle shadow-xl transition-all dark:bg-priBlack-700 dark:text-white">
                                         <Dialog.Title
                                             as="h3"
-                                            className="text-lg font-medium leading-6 text-gray-900"
+                                            className="text-lg font-medium leading-6 text-gray-900 dark:text-white"
                                         >
-                                            {title ?? "Payment successful"}
+                                            {title ?? "Payment submitted"}
                                         </Dialog.Title>
                                         <div className="mt-2">
                                             {typeof content === "string" ? (
-                                                <p className="text-sm text-gray-500">
+                                                <p className="text-sm text-gray-500 dark:text-gray-300">
                                                     {content ?? "Your payment has been successfully submitted. We’ve sent you an email with all of the details of your order."}
                                                 </p>
                                             ) : (

@@ -25,12 +25,12 @@ export default function AccProfile({ }: Props) {
     }
     return (
         <>
-            <Card modify='h-fit max-w-[820px] mx-auto p-5'>
+            <Card modify='h-fit max-w-[820px] mx-auto p-5 bg-white dark:bg-priBlack-600'>
                 {/* Title */}
                 <article className="px-4 py-5 sm:px-6 flex justify-between">
                     <div>
-                        <h3 className="text-lg font-medium leading-6 text-gray-900">Applicant Information</h3>
-                        <p className="mt-1 max-w-2xl text-sm text-gray-500">Personal details.</p>
+                        <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">Applicant Information</h3>
+                        <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-white">Personal details.</p>
                     </div>
                 </article>
 
@@ -39,12 +39,13 @@ export default function AccProfile({ }: Props) {
             </Card>
 
             <div className='flex-center mt-5'>
-                <button
-                    className='border border-red-500 rounded-lg py-1 px-2 font-semibold'
+                <Button
+                    text="Delete Account"
+                    variant='plain'
+                    modifier='border border-red-500 rounded-lg py-1 px-2 font-semibold hover:text-red-500 dark:text-white py-2 px-14'
+                    glowEffect={false}
                     onClick={handleDeleteUser}
-                >
-                    Delete Account
-                </button>
+                />
             </div>
         </>
     )

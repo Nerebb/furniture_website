@@ -35,20 +35,9 @@ export type UserProfile = {
     name?: string;
     email?: string;
     image?: string;
-}
-
-export interface IProduct {
-    id: number | string
-    name: string
-    description: string
-    color: string
-    price: number
-    category: string[]
-    shiper?: UserProfile["id"]
-    imageUrl: Image["url"][]
-    available: number
-    createdDate: string
-    updatedDate: string
+    userVerified?: boolean,
+    emailVerified?: boolean,
+    deleted?: boolean,
 }
 
 export interface Category {
@@ -74,3 +63,16 @@ export interface contentRange {
 }
 
 export interface JsonColor { id: string, quantities: number }
+
+export interface FilterSearch {
+    id: number | number[],
+    filter: 'id' | 'label',
+    sort: 'asc' | 'desc',
+    limit: number,
+    skip: number,
+}
+
+export interface ColorSearch extends Omit<FilterSearch, 'id' | 'filter'> {
+    id: string | string[]
+    filter: 'hex' | 'label'
+} 

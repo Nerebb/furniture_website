@@ -127,7 +127,7 @@ export default async function handler(
         if (!token || !token.userId) throw new Error("Unauthorize user")
         userId = token.userId
     } catch (error: any) {
-        return res.status(400).json({ message: error })
+        return res.status(400).json({ message: error.message })
     }
 
     let productId;

@@ -58,33 +58,41 @@ type SantinizeReview = {
     }[]
 } & ProductReview
 
+/**
+ * @description santinize data output to match front-end
+ * @param role JWT token
+ * @param data from database
+ * @param userId JWT token
+ * @returns ResponseReview
+ */
 export function santinizeReview(role: Role, data: SantinizeReview, userId?: string): ResponseReview {
-    switch (role) {
-        case 'admin':
-        default:
-            return {
-                id: data.id,
-                content: data.content,
-                productId: data.productId,
-                rating: data.rating,
-                ownerId: data.ownerId,
-                name: data.owner.name ?? "",
-                nickName: data.owner.nickName ?? undefined,
-                userCreatedDate: data.owner.createdDate,
-                totalLike: data.totalLike,
-                createdDate: data.createdDate,
-                updatedAt: data.updatedAt,
-                isLiked: data.likedUsers.some(i => i.id === userId),
-            };
-    }
+    return {
+        id: data.id,
+        content: data.content,
+        productId: data.productId,
+        rating: data.rating,
+        ownerId: data.ownerId,
+        name: data.owner.name ?? "",
+        nickName: data.owner.nickName ?? undefined,
+        userCreatedDate: data.owner.createdDate,
+        totalLike: data.totalLike,
+        createdDate: data.createdDate,
+        updatedAt: data.updatedAt,
+        isLiked: data.likedUsers.some(i => i.id === userId),
+    };
 }
 
 /**
- * @method PUT
- * @body review {content,rating,ownerId,productId}
+ * @method POST
+ * @description Create new product review
+ * @param role JWT token
+ * @param review req.body
+ * @param userId JWT token
+ * @access Login required
  * @return message
  */
 export type NewReviewProps = Omit<ProductReview, 'id' | 'totalLike' | 'createdDate' | 'updatedAt' | 'ownerId'>
+
 export async function createProductReview(role: Role, review: NewReviewProps, userId?: string) {
     try {
         if (!userId) throw new Error("Unauthorize User")
@@ -133,18 +141,38 @@ export async function createProductReview(role: Role, review: NewReviewProps, us
     }
 }
 
+/**
+ * @method GET
+ * @description Get reviews by filter/search
+ * @param role JWT token
+ * @param searchParams req.query - filter/search input
+ * @param userId JWT token
+ * @returns ResponseReview[]
+ */
 export async function getReviews(role: Role, searchParams: ReviewSearch, userId?: string) {
-    const searchReviewParams = {
+    let searchReviewParams: Prisma.ProductReviewWhereInput = {
         id: { in: searchParams.id },
         ownerId: searchParams.ownerId,
         productId: searchParams.productId,
         content: { contains: searchParams.content },
         rating: { gte: searchParams.rating },
         totalLike: { gte: searchParams.totalLike },
-        likedUsers: { some: { id: { in: searchParams.likedUsers } } },
         createdDate: { gte: searchParams.createdDate },
         updatedAt: { gte: searchParams.updatedAt },
-    } satisfies Prisma.ProductReviewWhereInput
+    }
+
+    if (searchParams.likedUsers && searchParams.likedUsers?.length > 0) {
+        searchReviewParams = {
+            ...searchReviewParams,
+            likedUsers: { some: { id: { in: searchParams.likedUsers } } }
+        }
+    }
+
+    const totalRecord = await prismaClient.productReview.count({
+        where: searchReviewParams
+    })
+
+    if (searchParams.skip && searchParams.skip > totalRecord) throw new Error("")
 
     let orderBy: Prisma.ProductReviewOrderByWithAggregationInput = {};
     if (searchParams.filter && searchParams.sort) {
@@ -154,14 +182,13 @@ export async function getReviews(role: Role, searchParams: ReviewSearch, userId?
     const data = await prismaClient.productReview.findMany({
         where: searchReviewParams,
         include: productReviewIncludes,
-        take: searchParams.limit || 0,
+        skip: searchParams.skip || 0,
+        take: searchParams.limit || 4,
         orderBy,
     })
 
     if (!data.length) throw new Error("Product not found")
-    const totalRecord = await prismaClient.productReview.count({
-        where: searchReviewParams
-    })
+
     const response = data.map(review => santinizeReview(role, review, userId))
     return { data: response, totalRecord }
 }
@@ -170,7 +197,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let token: JWT | SignedUserData | void;
+    let token: JWT | SignedUserData | null;
     try {
         token = await verifyToken(req)
         if (!token || !token.userId) throw new Error("Switch to catch")

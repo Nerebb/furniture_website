@@ -30,7 +30,7 @@ export default function CheckoutItem({ }: Props) {
 
     return (
         <Card
-            modify='flex flex-col px-5 divide-y divide-priBlack-200/50'
+            modify='flex flex-col px-5 divide-y divide-priBlack-200/50 bg-white dark:bg-priBlack-700'
         >
             <div className='grow max-h-[480px] overflow-y-scroll hideScrollbar'>
                 {isLoading &&
@@ -41,7 +41,7 @@ export default function CheckoutItem({ }: Props) {
                 {Cart && Cart.shoppingCartItem ? Cart.shoppingCartItem.map(product => (
                     <ShoppingItem key={product.id} {...product} />
                 )) : !isLoading && (
-                    <div className='w-full text-center mt-5'>
+                    <div className='w-full text-center mt-5 dark:text-white'>
                         <h1 className='text-xl'>No product found</h1>
                         <button
                             className='underline text-priBlue-500'
@@ -55,24 +55,24 @@ export default function CheckoutItem({ }: Props) {
 
             {/* Total */}
             <div
-                className='p-5 border-t border-priBlack-200/50 bg-white space-y-5'
+                className='p-5 border-t border-priBlack-200/50 bg-white space-y-5 dark:bg-priBlack-700'
             >
                 <aside className='py-2 space-y-2'>
-                    <div className='text-gray-500 flex justify-between'>
+                    <div className='text-gray-500 flex justify-between dark:text-white'>
                         <p>Subtotal</p>
                         {isFetching ? (
-                            <Loading className='w-6 h-6 text-gray-200' />
+                            <Loading className='w-6 h-6 text-gray-200 dark:text-white' />
                         ) : (
                             <p>{subTotal}</p>
                         )}
                     </div>
-                    <div className='text-gray-500 flex justify-between'>
+                    <div className='text-gray-500 flex justify-between dark:text-white'>
                         <p>Shipping</p>
                         <p>{shippingPrice}</p>
                     </div>
                 </aside>
 
-                <aside className='font-semibold flex justify-between border-t border-priBlack-200/50 pt-5'>
+                <aside className='font-semibold flex justify-between border-t border-priBlack-200/50 pt-5 dark:text-white'>
                     <p>Total</p>
                     {isFetching ? (
                         <Loading className='w-6 h-6 text-gray-200' />

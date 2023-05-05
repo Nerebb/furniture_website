@@ -1,22 +1,38 @@
+import axios from '@/libs/axiosApi';
 import { Menu, Transition } from '@headlessui/react';
 import { ArrowRightOnRectangleIcon, Bars3Icon, FlagIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import classNames from 'classnames';
 import { signOut, useSession } from 'next-auth/react';
 import { Dispatch, Fragment, SetStateAction } from 'react';
+import { toast } from 'react-toastify';
 
 type Props = {
     ownerId: string,
+    reviewId: string,
     isEdited?: boolean,
     setIsEdited: Dispatch<any>
 }
 
-export default function CommentDropMenu({ ownerId, isEdited, setIsEdited }: Props) {
+export default function CommentDropMenu({ ownerId, reviewId, isEdited, setIsEdited }: Props) {
     const { data: session } = useSession()
     const isOwned = session?.id === ownerId
+    const queryClient = useQueryClient()
+    const { mutate } = useMutation({
+        mutationKey: ['DeleteReview'],
+        mutationFn: (reviewId: string) => axios.deleteProductReview(reviewId),
+        onSuccess: (data) => {
+            toast.success(data.message)
+            queryClient.invalidateQueries()
+        },
+        onError: (error: any) => {
+            toast.error(error)
+        }
+    })
     return (
         <Menu as="div" className="relative">
             <Menu.Button className={'rounded-full hover:ring-2 flex-center'}>
-                <div className='flex items-center p-0.5'>
+                <div className='flex items-center p-0.5 dark:text-white'>
                     < Bars3Icon width={24} height={24} />
                 </div>
             </Menu.Button>
@@ -29,7 +45,7 @@ export default function CommentDropMenu({ ownerId, isEdited, setIsEdited }: Prop
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
             >
-                <Menu.Items className='min-w-[120px] bg-white border divide-y divide-priGray-200/50 rounded-md absolute right-0'>
+                <Menu.Items className='min-w-[120px] bg-white border divide-y divide-priBlack-50 rounded-md absolute right-0 dark:bg-priBlack-300'>
                     <div>
                         {isOwned && (
                             !isEdited ? (
@@ -37,7 +53,7 @@ export default function CommentDropMenu({ ownerId, isEdited, setIsEdited }: Prop
                                     {({ active }) => (
                                         <div
                                             className={classNames(
-                                                'first-letter:capitalize w-full flex px-2 py-1.5 space-x-2',
+                                                'first-letter:capitalize w-full flex px-2 py-1.5 space-x-2 dark:text-white',
                                                 {
                                                     'bg-priBlue-200/70': active,
                                                 }
@@ -88,9 +104,9 @@ export default function CommentDropMenu({ ownerId, isEdited, setIsEdited }: Prop
                             <button
                                 className={classNames(
                                     'bg-priBlack-200/20',
-                                    'first-letter:capitalize w-full flex px-2 py-1.5 space-x-2',
+                                    'first-letter:capitalize w-full flex px-2 py-1.5 space-x-2 dark:text-white',
                                 )}
-                                onClick={() => signOut({ callbackUrl: process.env.NEXT_PUBLIC_BASE_URL })}
+                                onClick={() => mutate(reviewId)}
                             >
                                 <ArrowRightOnRectangleIcon width={24} />
                                 <p>Delete</p>

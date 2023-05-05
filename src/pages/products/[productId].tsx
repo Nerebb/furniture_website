@@ -18,9 +18,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { GetColorName } from 'hex-color-to-color-name';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useReducer, useState } from 'react';
 import { toast } from 'react-toastify';
-import { TReview } from '../api/review/[id]';
 
 type Props = {
 }
@@ -62,6 +61,9 @@ export default function ProductDetailPage({ }: Props) {
         onSuccess: (data) => {
             toast.success(data.message)
             setIsWishlist(true)
+        },
+        onError: (data: any) => {
+            toast.error(data)
         }
     })
 
@@ -92,20 +94,20 @@ export default function ProductDetailPage({ }: Props) {
     })
 
     const sameCateProducts = useQuery({
-        queryKey: ['sameCateProducts', productId],
+        queryKey: ['SameCateProducts', productId],
         queryFn: () => axios.getProducts({ limit: 10, cateId: product?.cateIds }),
         enabled: Boolean(product),
     })
 
     const sameRoomProducts = useQuery({
-        queryKey: ['sameRoomProducts', productId],
+        queryKey: ['SameRoomProducts', productId],
         queryFn: () => axios.getProducts({ limit: 10, roomId: product?.roomIds }),
         enabled: Boolean(product),
     })
 
     const topReviews = useQuery({
         queryKey: ['TopReviews', productId],
-        queryFn: () => axios.getReviewsById({ productId, limit: 2 }),
+        queryFn: () => axios.getReviews({ productId, limit: 2 }),
         enabled: Boolean(productId),
     })
 
@@ -165,13 +167,15 @@ export default function ProductDetailPage({ }: Props) {
                     {/* Images */}
                     <aside className='w-1/2 flex flex-col py-5 pr-5'>
                         <ProductImages images={product.image} />
-                        {MayLikesProduct && MayLikesProduct.length > 0 && <ProductSimilar products={MayLikesProduct} isLoading={sameCateProducts.isLoading} />}
+                        {MayLikesProduct && MayLikesProduct.length > 0 &&
+                            <ProductSimilar products={MayLikesProduct} isLoading={sameCateProducts.isLoading} />
+                        }
                     </aside>
 
                     {/*Product detail*/}
                     <aside className='flex flex-col w-1/2 pl-5 py-5 border-l space-y-8'>
                         <div className='flex items-center justify-between'>
-                            <h1 className="text-[32px] font-bold first-letter:capitalize">{product.name}</h1>
+                            <h1 className="text-[32px] font-bold first-letter:capitalize dark:text-white">{product.name}</h1>
                             <div onClick={updateUserWishlist}>
                                 {isWishlist ? (
                                     <HeartIconSolid className='w-12 h-12 text-priBlue-300 hover:text-priBlack-50' />
@@ -182,16 +186,16 @@ export default function ProductDetailPage({ }: Props) {
                         </div>
 
                         {/* Description */}
-                        <p className=''> {product.description}</p>
+                        <p className='dark:text-white'> {product.description}</p>
 
                         {/* Price */}
-                        <div className="font-bold text-2xl flex justify-between items-center">
+                        <div className="font-bold text-2xl flex justify-between items-center dark:text-white">
                             <span>{product.price ? fCurrency(product.price) : "Updating price"}</span>
                             <span className='font-semibold text-xl'>OnStock: {product.available}</span>
                         </div>
 
                         {/* Rating */}
-                        <div className="flex mb-7">
+                        <div className="flex mb-7 dark:text-white">
                             <div className="flex mr-3">
                                 <StarRating ProductRating={product.avgRating} />
                             </div>
@@ -217,11 +221,12 @@ export default function ProductDetailPage({ }: Props) {
                         <div>
                             <label
                                 htmlFor='quantities'
+                                className='dark:text-white'
                             >
                                 Quantity:
                                 <input
                                     value={selectedQty}
-                                    className='rounded-md max-w-[80px] ml-2 border-none ring-none hover:ring-1 hover:ring-priBlue-500 focus:ring-priBlue-500'
+                                    className='rounded-md max-w-[80px] ml-2 border-none ring-none hover:ring-1 hover:ring-priBlue-500 focus:ring-priBlue-500 dark:bg-priBlack-400'
                                     type='number'
                                     min={1}
                                     inputMode="numeric"
@@ -242,7 +247,7 @@ export default function ProductDetailPage({ }: Props) {
                             <Button
                                 text={isLoadingShoppingCart ? "" : 'Add to cart'}
                                 variant='fill'
-                                modifier='w-[150px] py-1.5 font-semibold'
+                                modifier='w-[150px] py-1.5 font-semibold dark:text-white'
                                 onClick={handleAddToCart}
                             >
                                 {isLoadingShoppingCart &&
@@ -254,7 +259,7 @@ export default function ProductDetailPage({ }: Props) {
                             <Button
                                 text={createCmt ? "Close" : "Add review"}
                                 variant='outline'
-                                modifier='w-[150px] py-1.5 font-semibold'
+                                modifier='w-[150px] py-1.5 font-semibold dark:text-white'
                                 onClick={() => setCreateCmt(prev => !prev)}
                             />
                         </div>

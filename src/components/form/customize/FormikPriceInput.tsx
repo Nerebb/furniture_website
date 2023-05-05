@@ -12,7 +12,7 @@ export default function FormikPriceInput({ label, meta, field, name }: Props) {
         <input
             {...field}
             type='number'
-            className='w-full rounded border-priBlack-100/50 focus:border-none focus:ring-priBlue-500 focus:ring-0.5 focus:shadow-md focus:shadow-priBlue-200 transition-all'
+            className='w-full rounded border-priBlack-100/50 focus:border-none focus:ring-priBlue-500 focus:ring-0.5 focus:shadow-md focus:shadow-priBlue-200 transition-all dark:bg-priBlack-200 dark:placeholder:text-white'
             placeholder={label ? label : 'priceInput'}
             inputMode='numeric'
         />

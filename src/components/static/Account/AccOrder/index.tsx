@@ -1,11 +1,10 @@
 import Button from "@/components/Button"
 import axios from "@/libs/axiosApi"
-import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { useRouter } from "next/router"
 import { Fragment, useState } from "react"
 import { toast } from "react-toastify"
 import Loading from "../../Loading"
-import NotFoundPage from "../../NotFoundPage"
 import OrderProduct from "./OrderProduct"
 
 type Props = {}
@@ -52,7 +51,11 @@ export default function AccOrder({ }: Props) {
 
             {userOrders?.pages[userOrders.pages.length - 1].length ? (
                 <div className="flex-center w-full">
-                    <Button text="Load more" glowModify="noAnimation" onClick={handleLoadMore} />
+                    <Button
+                        text="Load more"
+                        glowModify="noAnimation"
+                        onClick={handleLoadMore}
+                    />
                 </div>
             ) : (
                 <></>

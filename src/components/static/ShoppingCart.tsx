@@ -11,12 +11,13 @@ import Loading from './Loading'
 import ShoppingItem from './ShoppingItem'
 
 type Props = {
+  modifier?: string,
+  btnText?: boolean
   keepOpen?: boolean
 }
 
-export default function ShoppingCart({ keepOpen = false }: Props) {
+export default function ShoppingCart({ keepOpen = false, btnText, modifier }: Props) {
   const { data: session, status } = useSession()
-  const queryClient = useQueryClient()
   const router = useRouter()
 
   const { data: Cart, isLoading, isError, isFetching } = useQuery({
@@ -31,27 +32,28 @@ export default function ShoppingCart({ keepOpen = false }: Props) {
     <Modal
       type='translateX'
       btnProps={{
+        text: btnText ? 'Shopping cart' : undefined,
         variant: 'plain',
         glowEffect: false,
-        modifier: 'none',
+        modifier: modifier ? modifier : 'none',
         children: <ShoppingCartIcon className='w-6 h-6' />
       }}
       keepOpen={keepOpen}
     >
       <Dialog.Panel
         as="div"
-        className="max-w-2xl w-screen h-screen transform overflow-hidden bg-white text-left align-middle shadow-xl transition-all flex flex-col overflow-y-auto customScrollbar"
+        className="max-w-xs md:max-w-2xl w-screen h-screen transform overflow-hidden bg-white text-left align-middle shadow-xl transition-all flex flex-col overflow-y-auto customScrollbar dark:bg-priBlack-700"
       >
         {/* Title */}
         <Dialog.Title
           as="h3"
-          className="text-lg font-medium leading-6 text-gray-900 p-5 border border-priBlack-200/50"
+          className="text-lg font-medium leading-6 text-gray-900 p-5 border-b border-priBlack-200/50 dark:divide-priBlack-50 dark:text-white"
         >
           Shopping Cart
         </Dialog.Title>
 
         {/* UserCart */}
-        <article className='px-5 divide-y divide-priBlack-200/50'>
+        <article className='px-5 divide-y divide-priBlack-200/50 dark:divide-priBlack-50 dark:text-white'>
           {isLoading &&
             <div className='flex-center mt-5'>
               <Loading />
@@ -75,21 +77,21 @@ export default function ShoppingCart({ keepOpen = false }: Props) {
 
         {/* subTotal */}
         <div
-          className='sticky bottom-0 p-5 border-t border-priBlack-200/50 bg-white space-y-5'
+          className='sticky bottom-0 p-5 border-t border-priBlack-200/50 bg-white space-y-5 dark:bg-priBlack-700'
         >
           <div>
-            <div className='font-semibold flex justify-between'>
+            <div className='font-semibold flex justify-between dark:text-white'>
               <p>Subtotal</p>
               {isFetching ? (
-                <Loading className='w-6 h-6 text-priBlack-200/50 fill-priBlue-500' />
+                <Loading className='w-6 h-6 text-priBlack-200/50 dark:text-white fill-priBlue-500' />
               ) : (
-                <p>{subTotal}</p>
+                <p >{subTotal}</p>
               )}
             </div>
-            <p className='text-gray-500'>Shipping and taxes calculated at checkout.</p>
+            <p className='text-gray-500 dark:text-priBlack-100'>Shipping and taxes calculated at checkout.</p>
           </div>
-          <div className='flex-center w-full'>
-            <Button text='Checkout' modifier='px-40 py-4' onClick={() => router.push('/checkout')} />
+          <div className='flex-center w-full px-5'>
+            <Button text='Checkout' modifier='w-full py-4 text-white' onClick={() => router.push('/checkout')} />
           </div>
         </div>
       </Dialog.Panel>

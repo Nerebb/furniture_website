@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
 import { CreateProductReviewSchemaValidate, UpdateProductReviewSchemaValidate, isUUID } from '@/libs/schemaValitdate'
-import { ProductReview, Role } from '@prisma/client'
+import { Prisma, ProductReview, Role } from '@prisma/client'
 import { ApiMethod } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { JWT } from 'next-auth/jwt'
@@ -14,6 +14,14 @@ type Data = {
     message: string
 }
 
+/**
+ * @method GET
+ * @description Get one productReview by reviewId
+ * @param role JWT token 
+ * @param reviewId req.query
+ * @param userId  JWT token
+ * @returns ResponseReview
+ */
 export async function getProductReviewById(role: Role, reviewId: string, userId?: string) {
     const data = await prismaClient.productReview.findUniqueOrThrow({
         where: { id: reviewId },
@@ -22,19 +30,32 @@ export async function getProductReviewById(role: Role, reviewId: string, userId?
     return santinizeReview(role, data, userId)
 }
 
+/**
+ * @description delete pernament product review by reviewId
+ * @param role JWT token
+ * @param reviewId req.query
+ * @param userId JWT token - if role === admin => userId from req.body
+ * @access login required
+ */
 export async function deleteProductReviewById(role: Role, reviewId: string, userId?: string) {
+    let deleteReviewParam: Prisma.ProductReviewWhereInput = {
+        id: reviewId
+    }
+
+    if (role !== 'admin') deleteReviewParam.ownerId = userId
+
     const data = await prismaClient.productReview.deleteMany({
-        where: {
-            id: reviewId,
-            ownerId: userId
-        }
+        where: deleteReviewParam
     })
+
     if (!data.count) throw new Error("Product review not found")
 }
 
 /**
- * @method POST
- * @body review {id,ownerId,productId,content,rating}
+ * @method PUT
+ * @description update owned product review - if admin => userId as req.query
+ * @param review {id,ownerId,productId,content,rating}
+ * @access login required
  * @return message
  */
 export type UpdateReview = {
@@ -80,8 +101,10 @@ export async function updateProductReview(role: Role, review: UpdateReview, user
 
 /**
  * @method POST
- * @body reviewId
- * @body likeUser
+ * @description update review Like
+ * @param reviewId req.query
+ * @param likeUser JWT token
+ * @access login required
  * @return message
  */
 export async function updateReviewLike(reviewId: string, likeUser?: string) {
@@ -124,7 +147,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let token: JWT | SignedUserData | void;
+    let token: JWT | SignedUserData | null;
     try {
         token = await verifyToken(req)
         if (!token || !token.userId) throw new Error("Unauthorize user")
@@ -150,22 +173,7 @@ export default async function handler(
                 //Update user like the review or update user that owned the review
                 let data;
                 if (req.body.likedUser) {
-                    const schema = Yup.object({ id: Yup.string().uuid("Invalid reviewId").required() })
-                    const validateSchema = async () => {
-                        try {
-                            const validated = await schema.validate(req.body)
-                            return validated
-                        } catch (error) {
-                            try {
-                                const validated = await schema.validate(JSON.parse(req.body))
-                                return validated
-                            } catch (error) {
-                                throw error
-                            }
-                        }
-                    }
-                    const validated = await validateSchema()
-                    await updateReviewLike(validated.id, token.userId)
+                    await updateReviewLike(id, token.userId)
                 } else {
                     const schema = Yup.object(UpdateProductReviewSchemaValidate)
                     const validateSchema = async () => {

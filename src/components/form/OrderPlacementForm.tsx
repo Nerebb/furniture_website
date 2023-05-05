@@ -1,7 +1,6 @@
 import FormikField from '@/components/form/FormikField'
 import axios, { allowedField } from '@/libs/axiosApi'
 import { CheckoutFormSchemaValidate, UserSchemaValidate } from '@/libs/schemaValitdate'
-import { newOrder } from '@/pages/api/order/order'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { FormRow } from '@types'
 import { Form, Formik, FormikHelpers } from 'formik'
@@ -13,18 +12,16 @@ import Modal from '../Modal'
 import { Dispatch, SetStateAction, useState } from 'react'
 import { CheckoutStage } from '@/pages/checkout'
 import { useCheckoutContext } from '@/contexts/checkoutContext'
+import { NewOrder, ResponseOrder } from '@/pages/api/order'
+import { NewOrderSchemaValidate } from '@/libs/schemaValitdate'
+import { Dialog } from '@headlessui/react'
+import CheckoutItem from '../static/CreateOrder/CheckoutItem'
+import useBrowserWidth from '@/hooks/useBrowserWidth'
 
 type Props = {
 }
 
-type newOrderForm = Omit<newOrder,
-    'ownerId'
-    | 'subTotal'
-    | 'total'
-    | 'status'
-    | 'shippingFee'
-    | 'orderItems'
-> & {
+type NewOrderForm = Partial<NewOrder> & {
     name: string,
     phoneNumber: string,
     email: string,
@@ -35,6 +32,7 @@ export default function OrderPlacementForm({ }: Props) {
     const { data: session } = useSession()
     const [submitError, setSubmitError] = useState<string | undefined>()
     const { checkoutContext, setCheckoutContext } = useCheckoutContext()
+    const browserWidth = useBrowserWidth()
     const { mutate: axiosUpdateUser } = useMutation({
         mutationKey: ['updateProfile', session?.id],
         mutationFn: (data: allowedField): Promise<{ message: String }> => axios.updateUser(session!.id as string, data),
@@ -45,8 +43,16 @@ export default function OrderPlacementForm({ }: Props) {
 
     const mutateCreateOrder = useMutation({
         mutationKey: ['createOrder'],
-        mutationFn: (params: Omit<newOrder, "ownerId">) => axios.createNewOrder(params),
-        onSuccess: (data) => setCheckoutContext({ checkoutStage: 1, stripeClient: { orderId: data.orderId, updateQty: false } })
+        mutationFn: (params: NewOrder) => axios.createNewOrder(params),
+        onSuccess: (data) => {
+            setCheckoutContext({
+                checkoutStage: 1,
+                stripeClient: {
+                    orderDetail: data,
+                    updateQty: false
+                }
+            })
+        }
     })
 
     const UserProfile = useQuery({
@@ -76,9 +82,10 @@ export default function OrderPlacementForm({ }: Props) {
         billingAddress: UserProfile.data?.address || "",
         shippingAddress: UserProfile.data?.address || "",
         shoppingCartId: ShoppingCart.data?.id || "",
+        products: ShoppingCart.data?.shoppingCartItem
     }
 
-    function checkDirty(values: newOrderForm): boolean {
+    function checkDirty(values: NewOrderForm): boolean {
         //CheckUser: if change then pops confirm change => mutate updateUser
         if (values.name !== UserProfile.data?.name
             || values.phoneNumber !== UserProfile.data?.phoneNumber
@@ -91,12 +98,14 @@ export default function OrderPlacementForm({ }: Props) {
         }
     }
 
-    async function handleOnSubmit(values: newOrderForm, { setSubmitting }: FormikHelpers<newOrderForm>) {
+    async function handleOnSubmit(values: NewOrderForm, { setSubmitting }: FormikHelpers<NewOrderForm>) {
         setSubmitting(true)
         await new Promise(r => setTimeout(r, 2000)); //Debounce
 
         try {
-            mutateCreateOrder.mutate({ ...values })
+            const schema = Yup.object(NewOrderSchemaValidate)
+            const validated = await schema.validate(values)
+            mutateCreateOrder.mutate({ ...validated })
         } catch (error: any) {
             setSubmitError(error.message || "CreateOrder: Unknown error")
         }
@@ -104,7 +113,7 @@ export default function OrderPlacementForm({ }: Props) {
         setSubmitting(false)
     }
 
-    async function updateUser(values: newOrderForm, props: FormikHelpers<newOrderForm>) {
+    async function updateUser(values: NewOrderForm, props: FormikHelpers<NewOrderForm>) {
         //Update User profile
         axiosUpdateUser({ name: values.name, phoneNumber: values.phoneNumber, email: values.email, address: values.billingAddress })
         await new Promise(r => setTimeout(r, 2000)); // Debounce
@@ -127,7 +136,7 @@ export default function OrderPlacementForm({ }: Props) {
                     >
                         {/* User */}
                         <div className='space-y-8'>
-                            <h1 className='text-3xl mb-12 font-semibold'>Order placement:</h1>
+                            <h1 className='text-3xl mb-12 font-semibold dark:text-white'>Order placement:</h1>
                             {userRow.map(row => (
                                 <FormikField
                                     key={row.id}
@@ -138,20 +147,35 @@ export default function OrderPlacementForm({ }: Props) {
                                 />
                             ))}
                             {submitError && <p>{submitError}</p>}
-                            <div className='flex-center'>
+                            <div className='flex-center space-x-10'>
                                 {!checkDirty(values) ? (
-                                    <Button
-                                        text="Proceed to payment"
-                                        glowModify='noAnimation'
-                                        modifier='w-80 py-3'
-                                        type='submit'
-                                    />
+                                    <>
+                                        {browserWidth <= 1024 && <Modal
+                                            btnProps={{
+                                                text: "Order detail",
+                                                glowModify: 'noAnimation',
+                                                modifier: 'px-12 py-3 dark:text-white'
+                                            }}
+                                        >
+                                            <Dialog.Panel
+                                                className='flex justify-start'
+                                            >
+                                                <CheckoutItem />
+                                            </Dialog.Panel>
+                                        </Modal>}
+                                        <Button
+                                            text="Proceed to payment"
+                                            glowModify='noAnimation'
+                                            modifier='px-12 py-3 dark:text-white'
+                                            type='submit'
+                                        />
+                                    </>
                                 ) : (
                                     <Modal
                                         btnProps={{
-                                            text: "Proceed to payment",
+                                            text: "Update user data",
                                             glowModify: 'noAnimation',
-                                            modifier: 'w-80 py-3',
+                                            modifier: 'w-80 py-3 dark:text-white',
                                             // disabled: Boolean(ShoppingCart.data)
                                         }}
                                         title='User info has been modified!'

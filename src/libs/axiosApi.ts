@@ -1,13 +1,14 @@
 import { stripeRes } from "@/pages/api/checkout"
 import { ProductCard, ProductSearch } from "@/pages/api/products"
 import { ProductDetail } from "@/pages/api/products/[productId]"
-import { GetReviewsByIdProps, NewReviewProps, TReview, UpdateReview } from "@/pages/api/review/[id]"
-import { OrderedItem, UserOrder, newOrder } from "@/pages/api/order/order"
 import { UserShoppingCart } from "@/pages/api/user/shoppingCart"
 import { Gender, Status } from "@prisma/client"
 import { UserProfile } from "@types"
 import axiosClient from "./axiosClient"
 import { buildQuery } from "./utils/buildQuery"
+import { NewReviewProps, ResponseReview, ReviewSearch } from "@/pages/api/review"
+import { UpdateReview } from "@/pages/api/review/[id]"
+import { NewOrder, ResponseOrder } from "@/pages/api/order"
 
 
 export type allowedField = Omit<UserProfile,
@@ -22,7 +23,7 @@ export const allowedFilter = ['category', 'color', 'room'] as const
 
 type AxiosApi = {
     //User
-    getUser: (id: string) => Promise<UserProfile | undefined>,
+    getUser: (id?: string) => Promise<UserProfile | undefined>,
     updateUser: (id: string, data: allowedField) => Promise<{ message: string }>,
     deleteUser: (id: string) => Promise<{ message: string }>
 
@@ -32,29 +33,29 @@ type AxiosApi = {
     addToShoppingCart: (productId: string, color: string, quantities?: number) => Promise<{ message: string }>
     removeShoppingCart: (cartItemId: string) => Promise<{ message: string }>
 
-    //ProductCmt
-    getReviewsById: (props: GetReviewsByIdProps) => Promise<TReview[]>
+    //ProductReview
+    getReviews: ({ ...props }: ReviewSearch) => Promise<ResponseReview[]>
     createProductReview: (review: NewReviewProps) => Promise<{ message: string }>
     updateProductReview: (review: UpdateReview, likedUser?: boolean) => Promise<{ message: string }>
     deleteProductReview: (id: string) => Promise<{ message: string }>
 
     //Checkout-stripe;
-    generateClient: ({ ...params }: { orderId: string, updateQty: boolean }) => Promise<stripeRes>
+    generateClient: (orderId: string) => Promise<stripeRes>
 
     //Wishlist
     getWishList: () => Promise<ProductCard[]>,
     addToWishList: (productId: string) => Promise<{ message: string }>,
     deleteWishlistProduct: (productId: string) => Promise<{ message: String }>,
 
-    //Orders
-    getUserOrders: (skip?: number, status?: Status) => Promise<UserOrder[]>,
-    getOrderedProducts: (orderId: string) => Promise<OrderedItem[]>,
-    createNewOrder: ({ ...params }: Omit<newOrder, "ownerId">) => Promise<{ orderId: string }>
+    // //Orders
+    getUserOrders: (skip?: number, status?: Status) => Promise<ResponseOrder[]>,
+    getOrderedProducts: (orderId: string) => Promise<ResponseOrder>,
+    createNewOrder: ({ ...params }: NewOrder) => Promise<ResponseOrder>
     cancelUserOrder: (orderId: string) => Promise<{ message: string }>,
 
 
     //Product
-    getFilter: (filter: typeof allowedFilter[number]) => Promise<{ id: number | string, label: string }[]>,
+    getFilter: (filter: typeof allowedFilter[number], limit?: number) => Promise<{ id: number | string, label: string }[]>,
     getProducts: ({ ...props }: ProductSearch) => Promise<ProductCard[]>,
     getProductById: (productId: string) => Promise<ProductDetail>,
 }
@@ -62,10 +63,10 @@ type AxiosApi = {
 const API_USER = '/api/user'
 const API_USER_SHOPPINGCART = `${API_USER}/shoppingCart`
 const API_USER_WISHLIST = `${API_USER}/wishlist`
-const API_USER_ORDER = `${API_USER}/order`
+const API_USER_ORDER = `/api/order`
 const API_PRODUCT = '/api/products'
 const API_CHECKOUT = 'api/checkout'
-const API_PRODUCT_REVIEW = `${API_PRODUCT}/review`
+const API_PRODUCT_REVIEW = `/api/review`
 
 const axios: AxiosApi = {
     //User
@@ -105,9 +106,10 @@ const axios: AxiosApi = {
      * @response {id,name,description}[]
      */
 
-    getFilter: async (filter: typeof allowedFilter[number]) => {
+    getFilter: async (filter: typeof allowedFilter[number], limit?: number) => {
         try {
-            const res = await axiosClient.get(`/api/${filter}`)
+            const url = buildQuery(`/api/${filter}`, { limit })
+            const res = await axiosClient.get(url)
             return res.data
         } catch (error: any) {
             console.log('Axios-getFilter', error)
@@ -183,8 +185,7 @@ const axios: AxiosApi = {
 
     getOrderedProducts: async (orderId) => {
         try {
-            const query = buildQuery(API_USER_ORDER, { orderId })
-            const res = await axiosClient.get(query)
+            const res = await axiosClient.get(`${API_USER_ORDER}/${orderId}`)
             return res.data
         } catch (error: any) {
             console.log("Axios-getOrderedProducts", error)
@@ -194,7 +195,7 @@ const axios: AxiosApi = {
 
     createNewOrder: async ({ ...params }) => {
         try {
-            const res = await axiosClient.put(API_USER_ORDER, { ...params })
+            const res = await axiosClient.post(API_USER_ORDER, { ...params })
             return res.data
         } catch (error: any) {
             console.log("Axios-createNewOrder", error)
@@ -204,7 +205,7 @@ const axios: AxiosApi = {
 
     cancelUserOrder: async (orderId) => {
         try {
-            const res = await axiosClient.delete(`${API_USER_ORDER}?orderId=${orderId}`)
+            const res = await axiosClient.delete(`${API_USER_ORDER}/${orderId}`)
             return res.data
         } catch (error: any) {
             console.log("Axios-cancelUserOrder", error)
@@ -226,7 +227,7 @@ const axios: AxiosApi = {
     addToShoppingCart: async (productId, color, quantities) => {
         try {
             const query = buildQuery(API_USER_SHOPPINGCART, { productId, color, quantities })
-            const res: { message: string } = await axiosClient.put(query)
+            const res: { message: string } = await axiosClient.post(query)
             return { message: res.message }
         } catch (error: any) {
             console.log("Axios-addToShoppingCart", error)
@@ -237,7 +238,7 @@ const axios: AxiosApi = {
     updateShoppingCart: async (cartItemId, color, quantities) => {
         try {
             const query = buildQuery(API_USER_SHOPPINGCART, { cartItemId, color, quantities })
-            const res: { message: string } = await axiosClient.post(query)
+            const res: { message: string } = await axiosClient.put(query)
             return { message: res.message }
         } catch (error: any) {
             console.log("Axios-updateShoppingCart", error)
@@ -256,9 +257,9 @@ const axios: AxiosApi = {
     },
 
     //ProducReviews
-    getReviewsById: async (body) => {
+    getReviews: async (props) => {
         try {
-            const query = buildQuery(API_PRODUCT_REVIEW, body)
+            const query = buildQuery(API_PRODUCT_REVIEW, props)
             const res = await axiosClient.get(query)
             return res.data
         } catch (error: any) {
@@ -269,7 +270,7 @@ const axios: AxiosApi = {
 
     createProductReview: async (body) => {
         try {
-            const res: { message: string } = await axiosClient.put(API_PRODUCT_REVIEW, body)
+            const res: { message: string } = await axiosClient.post(API_PRODUCT_REVIEW, body)
             return { message: res.message }
         } catch (error: any) {
             console.log("Axios-createProductReview", error)
@@ -278,9 +279,9 @@ const axios: AxiosApi = {
 
     },
 
-    updateProductReview: async (body, likedUser) => {
+    updateProductReview: async (params, likedUser) => {
         try {
-            const res: { message: string } = await axiosClient.post(API_PRODUCT_REVIEW, { ...body, likedUser })
+            const res: { message: string } = await axiosClient.put(`${API_PRODUCT_REVIEW}/${params.id}`, { ...params, likedUser })
             return { message: res.message }
         } catch (error: any) {
             console.log("Axios-updateProductReview", error)
@@ -290,7 +291,7 @@ const axios: AxiosApi = {
 
     deleteProductReview: async (id) => {
         try {
-            const res: { message: string } = await axiosClient.delete(`${API_PRODUCT_REVIEW}?reviewId=${id}`)
+            const res: { message: string } = await axiosClient.delete(`${API_PRODUCT_REVIEW}/${id}`)
             return { message: res.message }
         } catch (error: any) {
             console.log("Axios-deleteProductReview", error)
@@ -299,9 +300,9 @@ const axios: AxiosApi = {
     },
 
     //Checkout-Stripe
-    generateClient: async (params) => {
+    generateClient: async (orderId) => {
         try {
-            const query = buildQuery(API_CHECKOUT, { ...params })
+            const query = buildQuery(API_CHECKOUT, { orderId })
             const res: stripeRes = await axiosClient.post(query)
             return res
         } catch (error: any) {

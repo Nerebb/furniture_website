@@ -12,7 +12,13 @@ export type stripeRes = {
     clientSecret?: string,
     message?: string,
 }
-
+/**
+ * @method POST
+ * @description Generating a payment intent for new order
+ * @body orderId
+ * @returns StripeClientKey
+ * @access Login required
+ */
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<stripeRes>
@@ -20,13 +26,14 @@ export default async function handler(
     switch (req.method) {
         case ApiMethod.POST:
             try {
+
                 const token = await getToken({
                     req,
                     secret: process.env.SECRET
                 },)
                 if (!token?.userId || !token) return res.status(401).redirect('/login').json({ message: "Unauthorize User redirect to login page" })
+
                 const orderId = await isUUID.validate(req.query.orderId)
-                const { updateQty } = req.query
                 const userId = token.userId
 
                 const order = await prismaClient.order.findFirstOrThrow({

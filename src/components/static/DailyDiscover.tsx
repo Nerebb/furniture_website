@@ -1,24 +1,29 @@
 import useProductFilter from '@/hooks/useProductFilter'
 import Section from '@/layouts/Section'
 import axios from '@/libs/axiosApi'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import ProductGrid from '../ProductGrid'
+import useBrowserWidth from '@/hooks/useBrowserWidth'
 
 
 const DailyDiscover = () => {
     const queryClient = useQueryClient()
+    const browserWidth = useBrowserWidth()
     const [curFilter, setCurFilter] = useState<number>(0)
     const [loadMore, setLoadMore] = useState<number>(0)
-    const categories = useProductFilter({ filter: "category" })
+    const { data: categories } = useProductFilter({ filter: "category" })
 
     const cateFilter = useMemo(() => {
-        let rdCate: { id: number | string, name: string }[] = [
-            { id: 0, name: "all Product" }
+        let rdCate: { id: number | string, label: string }[] = [
+            { id: 0, label: "all Product" }
         ];
-        if (categories.data) categories.data.forEach((i, idx) => { if (idx < 6) return rdCate.push({ id: i.id, name: i.label }) })
+        const length = browserWidth < 500 ? 2 : 6
+        if (categories) categories.forEach((i, idx) => {
+            if (idx < length) return rdCate.push({ id: i.id, label: i.label })
+        })
         return rdCate
-    }, [categories])
+    }, [categories, browserWidth])
 
     function handleCateFilter(id: number) {
         setCurFilter(id)
@@ -33,20 +38,19 @@ const DailyDiscover = () => {
                 }),
         })
     }
-
     return (
         <Section title="DailyDiscover">
             {/* Catergory */}
-            <div className="flex justify-start items-center text-gray-500 space-x-4">
+            <div className="flex justify-start items-center text-gray-500 space-x-4 dark:text-white">
                 {cateFilter &&
                     cateFilter.map((item) => (
                         <p
                             key={`discover-${item.id}`}
                             id={`${item.id}`}
-                            className={`cursor-pointer capitalize ${curFilter === item.id ? "bold-Underline" : ""}`}
+                            className={`cursor-pointer capitalize dark:text-white ${curFilter === item.id ? "bold-Underline" : ""}`}
                             onClick={() => handleCateFilter(parseInt(item.id as string))}
                         >
-                            {item.name}
+                            {item.label}
                         </p>
                     ))}
             </div>
