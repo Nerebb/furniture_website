@@ -86,7 +86,8 @@ export default async function handler(
 
     if (token.role === 'admin') {
         try {
-            userId = await isUUID.validate(req.query.userId)
+            const id = await isUUID.notRequired().validate(req.query.userId)
+            if (id) userId = id
         } catch (error: any) {
             return res.status(401).json({ message: "Invalid userId" })
         }
