@@ -25,25 +25,19 @@ export default function OrderProductsGrid({ orderId, defaultColDef }: Props) {
     //CustomState
     const [rowData, setRowData] = useState<OrderedItemGrid[]>();
 
-    const { data, isLoading, isError } = useQuery({
+    const orderedItems = useQuery({
         queryKey: ['DetailOrder', orderId],
         queryFn: () => axios.getOrderedProducts(orderId!),
         enabled: !!orderId,
         onSuccess: (data) => {
-            const responseData = data.map(orderItem => {
-                const orderColors = orderItem.colors as Array<{ id: string, quantities: number }>
-                const productbyColor: OrderedItemGrid[] = orderColors.map(color => ({
-                    productId: orderItem.id,
-                    name: orderItem.name,
-                    color: GetColorName(color.id),
-                    quantities: color.quantities,
-                    salePrice: orderItem.salePrice,
-                    totalPrice: color.quantities * orderItem.salePrice
-                }))
-                return productbyColor
-            })
+            if (!data.orderedProductDetail) return
+            const responseData = data.orderedProductDetail.map(orderItem => ({
+                ...orderItem,
+                color: GetColorName(orderItem.color),
+                totalPrice: orderItem.quantities * orderItem.salePrice
+            })) satisfies OrderedItemGrid[]
 
-            setRowData(responseData.flat())
+            setRowData(responseData)
         }
     })
 
@@ -88,7 +82,7 @@ export default function OrderProductsGrid({ orderId, defaultColDef }: Props) {
     }, []);
 
     return (
-        <div className="ag-theme-material w-full border rounded-lg shadow-lg">
+        <div className="ag-theme-material w-full border rounded-lg shadow-lg dark">
             {rowData && <AgGridReact
                 //Data
                 ref={gridRef}

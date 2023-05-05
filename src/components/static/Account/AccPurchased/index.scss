@@ -15,6 +15,19 @@
     --ag-selected-row-background-color: #D2E1EE80;
     --ag-cell-horizontal-padding: calc(var(--ag-grid-size) *2);
 
+    &.dark {
+        --ag-foreground-color: #fff;
+        --ag-secondary-foreground-color: #fff;
+        --ag-background-color: #737373;
+        --ag-header-foreground-color: #DBDBDB;
+        --ag-header-background-color: #404040;
+        --ag-header-cell-hover-background-color: #C0D5E790;
+        --ag-row-hover-color: #DBDBDB;
+        --ag-selected-row-background-color: #D2E1EE90;
+        --ag-header-column-resize-handle-color: #fff;
+    }
+
+
     .ag-header,
     .ag-header-container,
     .ag-header-row {

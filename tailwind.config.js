@@ -4,6 +4,7 @@ module.exports = {
     // Or if using `src` directory:
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
@@ -51,9 +52,10 @@ module.exports = {
         },
       },
       screens: {
-        mobile: "450px",
+        mobile: "340px",
+        tablet: "740px",
         laptop: "1024px",
-        desktop: "1440px",
+        desktop: "1380px",
       },
       outlineWidth: {
         0.5: "0.5px",

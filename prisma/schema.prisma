@@ -1,6 +1,5 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
   // previewFeatures = ["fullTextSearch"]
@@ -100,7 +99,7 @@ model User {
   role        Role      @default(customer)
   gender      Gender    @default(others)
   phoneNumber String?   @unique
-  birthDay    DateTime? @db.Date
+  birthDay    DateTime? @db.Date //yyyy-MM-dd
   createdDate DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -109,9 +108,8 @@ model User {
   deleted      DateTime?
 
   //UserInteractions
-  comments      ProductComment[] @relation("userComments")
-  commentsliked ProductComment[] @relation("usersLiked")
-  productsRated ProductRating[]  @relation("userRated")
+  productsReviewed ProductReview[] @relation("productReview")
+  reviewLiked      ProductReview[] @relation("reviewLikes")
 
   //Products Manage
   writedContents Product[]     @relation("writedContent")
@@ -160,9 +158,9 @@ model Product {
   //Database queries
   JsonColor        Json
   isFeatureProduct Boolean        @default(false)
-  category         Category[]
-  room             Room[]
-  image            MediaGallery[]
+  cateIds          Category[]
+  roomIds          Room[]
+  imageIds         MediaGallery[]
 
   //User
   creator   User   @relation("writedContent", fields: [creatorId], references: [id])
@@ -173,8 +171,7 @@ model Product {
   totalRating   Int @default(0) @db.UnsignedInt
   totalComments Int @default(0) @db.UnsignedInt
 
-  ratings  ProductRating[]  @relation("productRated")
-  comments ProductComment[] @relation("productComment")
+  reviews ProductReview[] @relation("productReview")
 
   //Softdelete
   deleted DateTime?
@@ -184,35 +181,31 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   //Relation
-  shoppingCartItem ShoppingCartItem[]
-  wishlists        Wishlist[]
+  shoppingCartItems ShoppingCartItem[]
+  wishlists         Wishlist[]
 
   @@map("product")
 }
 
-model ProductComment {
-  id      String @id @default(uuid())
-  content String @db.Text
+model ProductReview {
+  id String @id @default(uuid())
 
-  //relation
-  owner      User    @relation("userComments", fields: [ownerId], references: [id], onDelete: Cascade)
+  // relation
+  owner      User    @relation("productReview", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId    String
-  usersLiked User[]  @relation("usersLiked")
-  product    Product @relation("productComment", fields: [productId], references: [id])
+  product    Product @relation("productReview", fields: [productId], references: [id], onDelete: Cascade)
   productId  String
+  likedUsers User[]  @relation("reviewLikes")
+  totalLike  Int     @db.UnsignedInt
 
-  @@map("productcomment")
-}
+  content String @db.Text
+  rating  Int    @db.UnsignedTinyInt
 
-model ProductRating {
-  id        String  @id @default(uuid())
-  rating    Int     @db.UnsignedTinyInt
-  product   Product @relation("productRated", fields: [productId], references: [id])
-  productId String
-  owner     User    @relation("userRated", fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId   String
+  createdDate DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@map("productrating")
+  @@unique([ownerId, productId])
+  @@map("productreview")
 }
 
 model Wishlist {
@@ -280,7 +273,7 @@ model OrderItem {
   //Stored to kept info
   salePrice  Int
   quantities Int   @db.SmallInt
-  color      Json? //{hex,quantities}[]
+  color      Json? //{id,quantities}[]
 
   //relation
   order     Order  @relation(fields: [orderId], references: [id])

@@ -22,6 +22,9 @@ export default function ProductSideMenu({ }: Props) {
                     <FormikField type='priceInput' id='toPrice' name="toPrice" label='To price' />
                 </div>
             </FilterCard>
+            <FilterCard title='' isLoading={false}>
+                <FormikField type='select' id='rating' name='rating' label='Rating' content={["1", "2", "3", "4", "5"]} />
+            </FilterCard>
         </FilterForm>
     )
 }

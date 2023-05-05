@@ -1,15 +1,25 @@
-import ShoppingCart from '@/components/static/ShoppingCart'
+import CreateOrder from '@/components/static/CreateOrder'
+import StripePayment from '@/components/static/CreateOrder/StripePayment'
 import { CheckoutLayout } from '@/layouts/CheckoutLayout'
-import React from 'react'
 
 type Props = {}
 
-export default function checkout({ }: Props) {
+export enum CheckoutStage {
+    'CreateOrder',
+    'PaymentType',
+    'OnlinePaySuccess'
+}
+
+export default function CheckoutPage({ }: Props) {
     return (
         <CheckoutLayout
             tabTitle='Order overview'
-            leftSide={<>LeftSide</>}
-            rightSide={<ShoppingCart />}
-        />
+        >
+            {/* Stage 1 */}
+            <CreateOrder />
+
+            {/* Stage 2 */}
+            <StripePayment />
+        </CheckoutLayout>
     )
 }

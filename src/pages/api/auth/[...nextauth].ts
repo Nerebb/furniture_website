@@ -7,6 +7,7 @@ import FacebookProvider from "next-auth/providers/facebook"
 import GithubProvider from "next-auth/providers/github"
 import GoogleProvider from "next-auth/providers/google"
 import prismaClient from "../../../libs/prismaClient"
+import { credentialLogin } from "./customLogin"
 
 //Google
 const GOOGLE_AUTHORIZATION_URL =
@@ -17,64 +18,11 @@ const GOOGLE_AUTHORIZATION_URL =
         response_type: "code",
     })
 
-const refreshGoogleToken = async (token: JWT): Promise<JWT> => {
-    try {
-        const response = await fetch("https://oauth2.googleapis.com/token", {
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-                client_id: process.env.GOOGLE_ID,
-                client_secret: process.env.GOOGLE_SECRET,
-                grant_type: "refresh_token",
-                refresh_token: token.refresh_token,
-            }),
-            method: "POST",
-        })
-
-        const tokens: TokenSet = await response.json()
-        if (!response.ok) throw tokens
-
-        return {
-            ...token, // Keep the previous token properties
-            access_token: tokens.access_token as string,
-            expires_at: tokens.expires_at as number,
-            // Fall back to old refresh token, but note that
-            // many providers may only allow using a refresh token once.
-            refresh_token: tokens.refresh_token ?? token.refresh_token,
-        }
-
-    } catch (error) {
-        console.error("Error refreshing access token", error)
-        // The error property will be used client-side to handle the refresh token error
-        return { ...token, error: "RefreshAccessTokenError" }
-    }
-}
-
-const jwtGoogle: CallbacksOptions['jwt'] = async ({ token, account, user }) => {
-    //Store Google respone
-    let extendedToken;
-
-    //1st login: account && user still valid
-    if (account && user) {
-        extendedToken = {
-            ...token,
-            access_token: account.access_token as string,
-            expires_at: account.expires_at as number * 1000,
-            refresh_token: account.refresh_token as string,
-        }
-        return extendedToken
-    }
-
-    //LaterCheck - Subsequent requests to check auth sessions
-    if (Date.now() + 5000 < token.expires_at) {
-        console.log('ACCESS TOKEN STILL VALID, RETURNING EXTENDED TOKEN: ')
-        return token
-    }
-
-    console.log("Request GOOGLE to extendsToken")
-    return await refreshGoogleToken(token)
-}
-
-
+/**
+ * @description auth with Next-auth
+ * @return session - cookies
+ * @access credential - signOn: Google, Github
+ */
 export const authOptions: NextAuthOptions = {
     //Connect Prisma
     adapter: PrismaAdapter(prismaClient),
@@ -93,19 +41,7 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials, req) {
-                // Add logic here to look up the user from the credentials supplied
-                //checkUser
-                const user: any = await prismaClient.account.findFirstOrThrow({
-                    where: {
-                        loginId: credentials?.loginId,
-                    },
-                })
-                if (!user) throw new Error('Invalid User or password')
-
-                //checkPassword
-                const checkPassword = await compare(credentials!.password, user.password as string)
-                if (!checkPassword) throw new Error('Password is incorrect')
-
+                const user = await credentialLogin({ loginId: credentials?.loginId, password: credentials?.password })
                 return user
             },
         }),
@@ -128,33 +64,13 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
-        /** JWT designFlow:
-         * @On1st login: Credentials: do not store JWT, SignOn: Get JWT from provider
-         *                - token : do not have iat,exp,jti
-         *                - user : get Data from database
-         *                - account: get res Data from signOn
-         * @OnLater : - token: store iat,exp,jti
-         *            - user && account: undefine
-         *
-         * @WhatIwantToDo :Refresh token if expires
-         *
-         * @JWTCallback : SignOn- autoRequest Provider again to extends token
-         *                Credentials - token.exp equals session - which is already handled by nextAuth
-         */
         async jwt({ token, account, user }) {
             if (account && user) {
                 token.provider = account.provider
                 token.role = user.role
-                token.userId = user.userId
+                token.userId = account.provider === 'credentials' ? account.providerAccountId : user.userId
             }
 
-            // //Refresh per SignOn response data
-            // switch (token.provider) {
-            //     case 'google':
-            //         return await jwtGoogle({ token, account, user })
-            //     default:
-            //         break;
-            // }
             return token
         },
         async session({ session, token, user }) {
@@ -164,7 +80,7 @@ export const authOptions: NextAuthOptions = {
                 session.access_token = token.access_token;
                 session.error = token.error || null; // null: NextJS Bugs: undefined cannot be read as JSON
 
-                session.id = token.provider !== 'credentials' ? token.sub : token.userId; //AccountID
+                session.id = token.userId; //AccountID
             }
 
             return session

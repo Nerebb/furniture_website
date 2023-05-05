@@ -3,8 +3,10 @@ import prismaClient from '@/libs/prismaClient'
 import { isUUID } from '@/libs/schemaValitdate'
 import { ApiMethod } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getToken } from 'next-auth/jwt'
+import { JWT, getToken } from 'next-auth/jwt'
 import { ProductCard } from '../products'
+import jwt from 'jsonwebtoken'
+import { verifyToken } from '../auth/customLogin'
 
 type Data = {
     data?: ProductCard[]
@@ -23,13 +25,13 @@ export async function getWishList(loginId: string) {
         include: {
             products: {
                 include: {
-                    category: {
+                    cateIds: {
                         select: { id: true }
                     },
-                    room: {
+                    roomIds: {
                         select: { id: true }
                     },
-                    image: {
+                    imageIds: {
                         select: {
                             imageUrl: true,
                         }
@@ -43,25 +45,26 @@ export async function getWishList(loginId: string) {
         where: { ownerId: { equals: loginId } },
     })
 
-    let responseData: ProductCard[] = data.products.map(product => {
+    let responseData = data.products.map(product => {
         return {
             id: product.id,
             name: product.name,
             available: product.available,
             description: product.description ?? undefined,
-            cateIds: product.category,
-            roomIds: product.room,
+            cateIds: product.cateIds.map(i => i.id),
+            roomIds: product.roomIds.map(i => i.id),
             colors: product.JsonColor as string[],
             price: product.price,
             creatorId: product.creatorId,
-            imageUrl: product?.image?.map(i => i.imageUrl),
+            imageUrl: product?.imageIds?.map(i => i.imageUrl),
             createdDate: product.createdDate.toString(),
-            updatedDate: product.updatedAt.toString(),
+            updatedAt: product.updatedAt.toString(),
             avgRating: product.avgRating,
-            ratedUsers: product.totalRating,
+            totalRating: product.totalRating,
             totalSale: product.totalSale,
+            totalComments: product.totalComments,
             totalProduct,
-        }
+        } satisfies ProductCard
     })
     return responseData
 }
@@ -74,9 +77,19 @@ export async function getWishList(loginId: string) {
  * @returns Message: "Add product comepleted"
  */
 export async function addToWishlist(userId: string, productId: string) {
-    await prismaClient.wishlist.update({
+    await prismaClient.wishlist.upsert({
         where: { ownerId: userId },
-        data: {
+        update: {
+            products: {
+                connect: { id: productId }
+            }
+        },
+        create: {
+
+            // ownerId: userId,
+            user: {
+                connect: { id: userId }
+            },
             products: {
                 connect: { id: productId }
             }
@@ -108,23 +121,20 @@ export default async function handler(
     res: NextApiResponse<Data>
 ) {
 
-    const token = await getToken({
-        req,
-        secret: process.env.SECRET
-    },)
+    let userId: string;
+    try {
+        const token = await verifyToken(req)
+        if (!token || !token.userId) throw new Error("Unauthorize user")
+        userId = token.userId
+    } catch (error: any) {
+        return res.status(400).json({ message: error.message })
+    }
 
-    if (!token?.userId || !token) return res.redirect('/login') //Already check in middleware - this just for userId is specified - no undefined
-
-    const userId = token.userId
-
-    let { productId } = req.query;
-
-    if (productId) {
-        try {
-            productId = await isUUID.validate(req.query.productId)
-        } catch (error: any) {
-            return res.status(401).json({ message: error.message })
-        }
+    let productId;
+    try {
+        productId = await isUUID.notRequired().validate(req.query.productId)
+    } catch (error: any) {
+        return res.status(401).json({ message: error.message })
     }
 
     switch (req.method) {
@@ -133,22 +143,22 @@ export default async function handler(
                 const data = await getWishList(userId as string)
                 return res.status(200).json({ data, message: "Get User wishlist success" })
             } catch (error: any) {
-                return res.status(406).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
+        case ApiMethod.PUT:
         case ApiMethod.POST:
             try {
                 await addToWishlist(userId, productId as string)
                 return res.status(200).json({ message: "Add selected product to wishlist success" })
             } catch (error: any) {
-                return res.status(422).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.DELETE:
             try {
                 await deleteWishlistProduct(userId, productId as string)
                 return res.status(200).json({ message: "Product has been removed from wishlist" })
             } catch (error: any) {
-                console.log(error)
-                return res.status(422).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         default:
             return res.status(405).json({ message: "Invalid request method" })

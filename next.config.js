@@ -4,11 +4,11 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/_next/:path*",
+        source: "/:path*",
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value: "https://furniture-website-pi.vercel.app",
+            value: "*",
           },
         ],
       },

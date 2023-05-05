@@ -1,10 +1,12 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient';
+import { RegisterByAdminSchemaValidate, RegisterSchemaValidate } from '@/libs/schemaValitdate';
 import { generateString } from '@/libs/utils/generateString';
 import { Prisma } from '@prisma/client';
-import { ApiMethod, Register } from '@types';
+import { ApiMethod } from '@types';
 import { hash } from 'bcrypt';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import * as Yup from 'yup';
+import { verifyToken } from '../auth/customLogin';
 
 type Data = {
   message: string
@@ -17,37 +19,51 @@ type Data = {
  * @param req body: {loginId, password, email}
  * @param res message
  */
+export async function clientRegister(req: NextApiRequest) {
 
-const credentialsConfig = {
-  type: 'credentials',
-  provider: process.env.CREDENTIAL_SECRET,
-  providerId: process.env.CREDENTIAL_ID
 }
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  if (req.method === ApiMethod.POST) {
-    //Req data
-    const { loginId, password, email }: Register = req.body
-    if (!loginId || !password || !email) return res.status(404).json({ message: 'Form data not found or field is missing' })
+  switch (req.method) {
+    case ApiMethod.POST:
+      //Req data
+      const token = await verifyToken(req)
 
-    //Check email
-    const checkUser = await prismaClient.user.findUnique({ where: { email }, select: { accounts: { select: { loginId: true } } } })
-    if (checkUser?.accounts.some(i => i.loginId === loginId)) return res.status(400).json({ message: 'loginID already taken' })
-    if (checkUser) return res.status(400).json({ message: 'Email used, please register others' })
+      const clientSchema = Yup.object(RegisterSchemaValidate)
+      const adminRegisterSchema = Yup.object(RegisterByAdminSchemaValidate)
+
+      const validateSchema = async () => {
+        try {
+          const validated = await clientSchema.validate(req.body)
+          return validated
+        } catch (error) {
+          try {
+            const validated = await clientSchema.validate(JSON.parse(req.body))
+            return validated
+          } catch (error) {
+            throw error
+          }
+        }
+      }
+
+      const { loginId, email, password } = await validateSchema()
+
+      //Check email
+      const checkUser = await prismaClient.user.findUnique({ where: { email }, select: { accounts: { select: { loginId: true } } } })
+      if (checkUser?.accounts.some(i => i.loginId === loginId)) return res.status(400).json({ message: 'loginID already taken' })
+      if (checkUser) return res.status(400).json({ message: 'Email used, please register others' })
 
 
-    //Create prismaClient.User -credential type
-    const hashPassword = await hash(password, 12)
-    const randomString = generateString(5)
-    const provider = `mysql-${randomString}`
-    const providerAccountId = generateString(10)
+      //Create prismaClient.User -credential type
+      const hashPassword = await hash(password, 12)
+      const randomString = generateString(5)
+      const provider = `mysql-${randomString}`
+      const providerAccountId = generateString(10)
 
-    try {
-      const newUser = await prismaClient.user.create({
-        data: {
+      try {
+        let createUserData: Prisma.UserCreateInput = {
           email,
           accounts: {
             create: {
@@ -58,18 +74,36 @@ export default async function handler(
               providerAccountId
             }
           }
-        },
-      })
+        }
 
-      return res.status(200).json({ message: 'User created', data: newUser.id })
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') return res.status(403).send({ message: 'Email or Login ID already used' });
+        if (token?.role === 'admin') {
+          try {
+            const userInfo = await adminRegisterSchema.validate(JSON.parse(req.body))
+            createUserData = {
+              ...createUserData,
+              ...userInfo,
+              userVerified: userInfo.userVerified ? new Date() : null,
+              emailVerified: userInfo.emailVerified ? new Date() : null,
+              deleted: userInfo.deleted ? new Date() : null,
+            }
+          } catch (error: any) {
+            return res.status(400).json({ message: error.message || "CreateUserAsAdmin - FieldValidation error" })
+          }
+        }
+
+        const newUser = await prismaClient.user.create({
+          data: createUserData,
+        })
+
+        return res.status(200).json({ message: 'User created', data: newUser.id })
+      } catch (error: any) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === 'P2002') return res.status(400).send({ message: 'Email Login ID already used' });
+        }
+        return res.status(400).send({ message: error.message || "Unknown error" })
       }
-      return res.status(400).send({ message: 'BAD REQUEST' })
-    }
 
-  } else {
-    res.status(500).json({ message: 'Invalid request method - Only POST is accepted' })
+    default:
+      return res.status(405).json({ message: "Invalid method" })
   }
 }

@@ -5,6 +5,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getToken } from 'next-auth/jwt'
 import * as Yup from 'yup'
 import { getProductById } from '../products/[productId]'
+import { Prisma } from '@prisma/client'
 
 export type shoppingCartItem = {
     id: string
@@ -49,12 +50,12 @@ const shoppingCartIncludes = {
                     totalRating: true,
                     totalComments: true,
                     totalSale: true,
-                    image: true
+                    imageIds: true,
                 }
             }
         },
     }
-}
+} satisfies Prisma.ShoppingCartInclude
 
 /**
  * @method GET
@@ -80,7 +81,7 @@ export async function getShoppingCart(userId: string) {
         totalRating: i.product.totalRating,
         totalComments: i.product.totalComments,
         totalSale: i.product.totalSale,
-        imageUrl: i.product.image.map(i => i.imageUrl)
+        imageUrl: i.product.imageIds.map(i => i.imageUrl)
     }))
 
     return {
@@ -92,6 +93,7 @@ export async function getShoppingCart(userId: string) {
 
 /**
  * @method PUT
+ * @description create new Shoppingcart
  * @param userId from JWT Token
  * @param req client request {productId,color,quantities} in query params
  * @returns message
@@ -107,7 +109,7 @@ export async function createShoppingCart(userId: string, req: NextApiRequest) {
 
     //Process queries data
     if (color && !chosenItem.colors?.includes(color)) throw new Error("Invalid product color")
-    if (quantities && (quantities <= chosenItem.available)) throw new Error("Chosen product stock not meet requirements")
+    if (quantities && (quantities >= chosenItem.available)) throw new Error("Chosen product stock not meet requirements")
     const curProductPrice = ((quantities || 1) * (chosenItem.price || 1))
 
     //Find or create shoppingcart - Manipulate upsert(which is update or create)
@@ -252,7 +254,7 @@ export default async function handler(
         secret: process.env.SECRET
     },)
 
-    if (!token?.userId || !token) return res.redirect('/login') //Already check in middleware - this just for userId is specified - no undefined
+    if (!token?.userId || !token) return res.status(400).json({ message: "Invalid user" }) //Already check in middleware - this just for userId is specified - no undefined
 
     const userId = token.userId
 
@@ -262,29 +264,28 @@ export default async function handler(
                 const data = await getShoppingCart(userId as string)
                 return res.status(200).json({ data, message: "Get shoppingcart product success" })
             } catch (error: any) {
-                return res.status(406).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
-        case ApiMethod.PUT:
+        case ApiMethod.POST:
             try {
                 await createShoppingCart(userId as string, req)
                 return res.status(200).json({ message: "Create/Add to cart success" })
             } catch (error: any) {
-                return res.status(406).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
-        case ApiMethod.POST:
+        case ApiMethod.PUT:
             try {
                 await updateShoppingCart(userId as string, req)
                 return res.status(200).json({ message: "Update product completed" })
             } catch (error: any) {
-                console.log("🚀 ~ file: shoppingCart.ts:144 ~ error:", error)
-                return res.status(406).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.DELETE:
             try {
                 await deleteShoppingCart(userId as string, req)
                 return res.status(200).json({ message: "Product has been removed from cart" })
             } catch (error: any) {
-                return res.status(406).json({ message: error.message || "Unknown error" })
+                return res.status(400).json({ message: error.message || "Unknown error" })
             }
         default:
             return res.status(405).json({ message: "Invalid request method" })

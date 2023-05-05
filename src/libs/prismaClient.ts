@@ -14,8 +14,8 @@ if (process.env.NODE_ENV !== "production") globalThis.prisma = prismaClient
  */
 
 const allowedSoftDelete: Prisma.MiddlewareParams['model'][] = ["User", 'Account', 'Product']
+// const databaseDateTime = ['userVerified', 'emailVerified', 'deleted']
 
-//SoftDelete
 prismaClient.$use(async (params, next) => {
     // SoftDelete
     if (allowedSoftDelete.includes(params.model)) {
@@ -30,7 +30,7 @@ prismaClient.$use(async (params, next) => {
                 // Delete many queries
                 params.action = 'updateMany'
                 if (params.args.data != null) {
-                    // params.args.data['deleted'] = new Date()
+                    params.args.data['deleted'] = new Date()
                 } else {
                     params.args['data'] = { deleted: new Date() }
                 }

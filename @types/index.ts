@@ -31,24 +31,13 @@ export type UserProfile = {
     role: Role;
     gender: Gender;
     phoneNumber?: string;
-    birthDay?: Date;
+    birthDay?: string;
     name?: string;
     email?: string;
     image?: string;
-}
-
-export interface IProduct {
-    id: number | string
-    name: string
-    description: string
-    color: string
-    price: number
-    category: string[]
-    shiper?: UserProfile["id"]
-    imageUrl: Image["url"][]
-    available: number
-    createdDate: string
-    updatedDate: string
+    userVerified?: boolean,
+    emailVerified?: boolean,
+    deleted?: boolean,
 }
 
 export interface Category {
@@ -64,5 +53,26 @@ export interface FormRow {
     name: string,
 
     inputType?: HTMLInputTypeAttribute,
-    content?: string | number | string[] | Date,
+    content?: string | number | string[] | Date, //Type for deepInspec input type: <FormikSelect/> or <Input> mutate Date type
 }
+
+export interface contentRange {
+    filter: string,
+    curPage: number,
+    totalPage: number,
+}
+
+export interface JsonColor { id: string, quantities: number }
+
+export interface FilterSearch {
+    id: number | number[],
+    filter: 'id' | 'label',
+    sort: 'asc' | 'desc',
+    limit: number,
+    skip: number,
+}
+
+export interface ColorSearch extends Omit<FilterSearch, 'id' | 'filter'> {
+    id: string | string[]
+    filter: 'hex' | 'label'
+} 

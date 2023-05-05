@@ -10,12 +10,8 @@ export type checkBoxProps = {
 }
 
 export type FilterCardProps = {
-    title:
-    | 'rooms'
-    | 'colors'
-    | 'categories'
-    | 'price',
-    className?: ComponentProps<'div'>['className'],
+    title?: string
+    className?: string,
     name?: keyof ProductSearch,
     data?: checkBoxProps[],
     isLoading?: boolean,
@@ -25,7 +21,7 @@ export default function FilterCard({ className, title, data, name, children, isL
     return (
         <Card type='SearchCard' modify={className}>
             {/* Title */}
-            <h1 className='capitalize text-lg font-semibold border-b'>{title}</h1>
+            {title && <h1 className='capitalize text-lg font-semibold border-b dark:text-white'>{title}</h1>}
 
             {isLoading &&
                 <div className='flex-center min-h-[150px]'>
