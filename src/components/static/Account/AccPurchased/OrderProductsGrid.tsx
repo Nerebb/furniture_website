@@ -3,8 +3,10 @@ import { fCurrency } from '@/libs/utils/numberal';
 import { useQuery } from '@tanstack/react-query';
 import { ColDef, GetRowIdFunc, GetRowIdParams, ValueFormatterParams } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
+import classNames from 'classnames';
 import { GetColorName } from 'hex-color-to-color-name';
 import React, { useMemo, useRef, useState } from 'react'
+import { useTheme } from 'next-themes'
 
 type Props = {
     orderId?: string
@@ -24,7 +26,7 @@ type OrderedItemGrid = {
 export default function OrderProductsGrid({ orderId, defaultColDef }: Props) {
     //CustomState
     const [rowData, setRowData] = useState<OrderedItemGrid[]>();
-
+    const { theme } = useTheme()
     const orderedItems = useQuery({
         queryKey: ['DetailOrder', orderId],
         queryFn: () => axios.getOrderedProducts(orderId!),
@@ -82,7 +84,10 @@ export default function OrderProductsGrid({ orderId, defaultColDef }: Props) {
     }, []);
 
     return (
-        <div className="ag-theme-material w-full border rounded-lg shadow-lg dark">
+        <div className={classNames(
+            "ag-theme-material w-full border rounded-lg shadow-lg",
+            { "dark": theme === 'dark' }
+        )}>
             {rowData && <AgGridReact
                 //Data
                 ref={gridRef}
