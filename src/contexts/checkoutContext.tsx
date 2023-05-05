@@ -15,6 +15,7 @@ export const initCheckoutContext: CheckoutContextData = {
 export default function CheckoutProvider({ children }: PropsWithChildren<Props>) {
     const [checkoutContext, setCheckoutContext] = useState(initCheckoutContext)
     const values = useMemo(() => ({ checkoutContext, setCheckoutContext }), [checkoutContext, setCheckoutContext])
+    console.log("🚀 ~ file: checkoutContext.tsx:18 ~ CheckoutProvider ~ values:", values)
     return (
         <CheckoutContext.Provider value={values}>
             {children}

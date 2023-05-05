@@ -8,12 +8,12 @@ import StripeForm from "./StripeForm";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "@/libs/axiosApi";
 import { toast } from "react-toastify";
-
+import { useTheme } from 'next-themes'
 const stripePromise = getStripe()
 
 export default function StripeCheckout() {
     const { checkoutContext } = useCheckoutContext()
-
+    const { theme } = useTheme()
     const { data: stripeClient, isLoading } = useQuery({
         queryKey: ["StripePayment"],
         queryFn: () => axios.generateClient(checkoutContext.stripeClient.orderDetail!.id),
@@ -24,7 +24,7 @@ export default function StripeCheckout() {
     })
 
     const appearance: Appearance = useMemo(() => {
-        if ('night') return {
+        if (theme === 'dark') return {
             theme: 'night',
             variables: {
                 colorPrimary: "#94B8D7",
@@ -46,7 +46,7 @@ export default function StripeCheckout() {
                 fontWeightNormal: "600"
             },
         }
-    }, []);
+    }, [theme]);
     const options: StripeElementsOptions = {
         clientSecret: stripeClient?.clientSecret ?? "",
         appearance,
