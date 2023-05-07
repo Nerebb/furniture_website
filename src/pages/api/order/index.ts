@@ -252,6 +252,10 @@ export async function createOrder(userId: string, order: NewOrder) {
         include: orderIncludesParams
     })
 
+    // if (newOrder) await prismaClient.shoppingCart.delete({
+    //     where: { ownerId: userId }
+    // })
+
     const responseOrder = await santinizeOrder(newOrder, true)
     return responseOrder
 }
@@ -284,6 +288,7 @@ export default async function handler(
             try {
                 //Validattion
                 const schema = Yup.object(NewOrderSchemaValidate)
+
                 const validateSchema = async () => {
                     try {
                         const validated = await schema.validate(req.body)

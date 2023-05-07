@@ -11,7 +11,7 @@ import { JWT, getToken } from 'next-auth/jwt'
 import * as Yup from 'yup'
 
 type Data = {
-    data?: any,
+    role?: Role,
     message?: string,
     access_token?: string,
 }
@@ -58,16 +58,15 @@ export function generateToken(user: SignedUserData) {
 }
 
 export async function verifyToken(req: NextApiRequest): Promise<JWT | SignedUserData | null> {
+    let token: JWT | SignedUserData | null
     try {
-        const token = await getToken({ req, secret: process.env.SECRET })
-        if (!token) throw new Error
-        return token
-    } catch (error) {
-        if (!req.headers.authorization) throw error
-        const token = JSON.parse(req.headers.authorization.toString().replace("Bearer ", "")) as string;
+        token = await getToken({ req, secret: process.env.SECRET })
+        if (token) return token
+        if (!req.headers.authorization) return null
+        const access_token = JSON.parse(req.headers.authorization.toString().replace("Bearer ", "")) as string;
         try {
-            const decode = jwt.verify(token, process.env.SECRET) as SignedUserData
-            return decode
+            const decode = jwt.verify(access_token, process.env.SECRET) as SignedUserData
+            token = decode
         } catch (err: any) {
             if (err.name === "TokenExpiredError") {
                 throw new Error("Token expired, please login again")
@@ -75,6 +74,9 @@ export async function verifyToken(req: NextApiRequest): Promise<JWT | SignedUser
                 throw err
             }
         }
+        return token
+    } catch (error) {
+        throw error
     }
 }
 
@@ -118,7 +120,7 @@ export default async function handler(
                 const user = await credentialLogin(validated)
 
                 const access_token = generateToken({ userId: user.id, role: user.role, provider: user.accounts[0].provider })
-                return res.status(200).json({ access_token, message: "Credential login success" })
+                return res.status(200).json({ role: user.role, access_token, message: "Credential login success" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }

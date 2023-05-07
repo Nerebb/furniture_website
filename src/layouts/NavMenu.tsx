@@ -11,13 +11,44 @@ type Props = {
 
 }
 
+function ProductSideModal({ modifier }: { modifier: string }) {
+    return (
+        <Modal
+            type="-translateX"
+            btnProps={{
+                variant: "plain",
+                text: "Filters",
+                children: <MagnifyingGlassIcon width={24} />,
+                modifier,
+                glowEffect: false,
+            }}
+        >
+            <Dialog.Panel
+                className={classNames(
+                    'max-w-[300px] sm:max-w-[420px] py-5 px-5 sm:pr-5 lg:border-r border-priBlack-100 bg-white dark:bg-priBlack-700'
+
+                )}>
+                <ProductSideMenu />
+            </Dialog.Panel> */
+        </Modal>
+    )
+}
+
+function Test({ keepOpen }: { keepOpen?: string }) {
+    return (<Modal
+    />)
+}
+
 export default function NavMenu({ }: Props) {
     const router = useRouter()
 
     return (
         <div className='text-left'>
+            <Test />
             <Menu as="div" className="relative">
-                <Menu.Button className={'p-1 flex-center rounded-full flex-center'}>
+                <Menu.Button
+                    className={'p-1 flex-center rounded-full flex-center'}
+                >
                     <Bars3Icon width={24} />
                 </Menu.Button>
                 <Transition
@@ -71,34 +102,19 @@ export default function NavMenu({ }: Props) {
                         {router.asPath === '/products' &&
                             <Menu.Item>
                                 {({ active }) => (
-                                    <Modal
-                                        type="-translateX"
-                                        btnProps={{
-                                            variant: "plain",
-                                            text: "Filters",
-                                            children: <MagnifyingGlassIcon width={24} />,
-                                            modifier: classNames(
-                                                'first-letter:capitalize w-full flex px-2 py-1.5 space-x-2 justify-start dark:text-white ',
-                                                {
-                                                    'bg-priBlue-200/70': active
-                                                }
-                                            ),
-                                            glowEffect: false,
-                                        }}
-                                    >
-                                        <Dialog.Panel
-                                            className={classNames(
-                                                'max-w-[300px] sm:max-w-[420px] py-5 px-5 sm:pr-5 lg:border-r border-priBlack-100 bg-white dark:bg-priBlack-700'
-
-                                            )}>
-                                            <ProductSideMenu />
-                                        </Dialog.Panel>
-                                    </Modal>
+                                    <ProductSideModal
+                                        modifier={classNames(
+                                            'first-letter:capitalize w-full flex px-2 py-1.5 space-x-2 justify-start dark:text-white ',
+                                            {
+                                                'bg-priBlue-200/70': active
+                                            }
+                                        )}
+                                    />
                                 )}
                             </Menu.Item>}
                     </Menu.Items>
                 </Transition>
             </Menu>
-        </div>
+        </div >
     )
 }

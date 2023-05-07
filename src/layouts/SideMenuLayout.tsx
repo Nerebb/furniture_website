@@ -19,7 +19,6 @@ type Props = {
 
 const SideMenuLayout = ({ tabTitle, tabDescription, sideMenu, children }: Props) => {
     const browserWidth = useBrowserWidth()
-    const router = useRouter()
     return (
         <Fragment>
             <Head>
@@ -31,7 +30,7 @@ const SideMenuLayout = ({ tabTitle, tabDescription, sideMenu, children }: Props)
             <Container >
                 <MainHeader />
                 <section className='flex-grow flex '>
-                    {browserWidth > 400 || (router.pathname === '/account/[[...account]]' && browserWidth > 1200) ?
+                    {browserWidth > 1024 ?
                         (
                             <article className='max-w-[420px] py-5 sm:pr-5 sm:border-r border-priBlack-100'>
                                 {sideMenu}

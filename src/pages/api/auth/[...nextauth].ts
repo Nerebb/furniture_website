@@ -68,7 +68,7 @@ export const authOptions: NextAuthOptions = {
             if (account && user) {
                 token.provider = account.provider
                 token.role = user.role
-                token.userId = account.provider === 'credentials' ? account.providerAccountId : user.userId
+                token.userId = account.provider === 'credentials' ? user.id : token.sub
             }
 
             return token

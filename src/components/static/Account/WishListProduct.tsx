@@ -89,13 +89,13 @@ export default function WishListProduct({ product, isLoading = true }: Props) {
                             <dd className='flex space-x-5'>
                                 <Button
                                     text='Product detail'
-                                    modifier='py-1 px-8 dark:text-white'
+                                    modifier='py-1 w-36 dark:text-white'
                                     onClick={() => router.push(`/products/${product.id}`)}
                                 />
                                 <Button
                                     text='Remove'
                                     variant='outline'
-                                    modifier='py-1 px-8 dark:text-white border-red-500 hover:text-red-500'
+                                    modifier='py-1 w-36 dark:text-white border-red-500 hover:text-red-500'
                                     glowEffect={false}
                                     onClick={() => handleRemoveProduct(product.id!)}
                                 />

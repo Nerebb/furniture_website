@@ -29,7 +29,6 @@ export default function StripePayment({ }: Props) {
 
             {
                 checkoutContext.checkoutStage === 2 && <Modal
-                    title='Payment successful'
                     content='Your payment has been successfully submitted. We’ve sent
                     you an email with all of the details of your order.'
                     dialogBtnText={{

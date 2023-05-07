@@ -26,7 +26,6 @@ export default async function handler(
     switch (req.method) {
         case ApiMethod.POST:
             try {
-
                 const token = await getToken({
                     req,
                     secret: process.env.SECRET
@@ -42,9 +41,9 @@ export default async function handler(
 
                 // Create a PaymentIntent with the order amount and currency
                 const paymentIntent = await stripe.paymentIntents.create({
-                    amount: Number(order.total) / 1000, //max amout 99,999,999 vnd
+                    amount: Number(order.total), //max amout 99,999,999 vnd
                     currency: "vnd",
-                    metadata: { orderId, userId }
+                    metadata: { orderId, userId },
                 });
 
                 if (!paymentIntent.client_secret) return res.status(500).send({ message: "Stripe cannot idenify User" })

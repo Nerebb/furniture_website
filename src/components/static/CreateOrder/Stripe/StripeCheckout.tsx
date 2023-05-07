@@ -8,11 +8,12 @@ import StripeForm from "./StripeForm";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "@/libs/axiosApi";
 import { toast } from "react-toastify";
-
+import { useTheme } from 'next-themes'
 const stripePromise = getStripe()
 
 export default function StripeCheckout() {
     const { checkoutContext } = useCheckoutContext()
+    const { theme } = useTheme()
 
     const { data: stripeClient, isLoading } = useQuery({
         queryKey: ["StripePayment"],
@@ -24,7 +25,7 @@ export default function StripeCheckout() {
     })
 
     const appearance: Appearance = useMemo(() => {
-        if ('night') return {
+        if (theme === 'dark') return {
             theme: 'night',
             variables: {
                 colorPrimary: "#94B8D7",
@@ -46,7 +47,7 @@ export default function StripeCheckout() {
                 fontWeightNormal: "600"
             },
         }
-    }, []);
+    }, [theme]);
     const options: StripeElementsOptions = {
         clientSecret: stripeClient?.clientSecret ?? "",
         appearance,
@@ -55,7 +56,7 @@ export default function StripeCheckout() {
     return (
         <div className="flex flex-col items-center p-5 dark:border dark:border-priBlack-400 rounded-xl">
             <h1 className='text-3xl mb-12 font-semibold dark:text-white'>Card payment</h1>
-            {isLoading && (
+            {(isLoading || !stripeClient) && (
                 <div className="flex-center">
                     <Loading />
                 </div>

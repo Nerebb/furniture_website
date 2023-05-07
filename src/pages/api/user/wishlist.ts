@@ -20,7 +20,7 @@ type Data = {
  * @returns ProductCard[]
  */
 export async function getWishList(loginId: string) {
-    const data = await prismaClient.wishlist.findFirstOrThrow({
+    const data = await prismaClient.wishlist.findFirst({
         where: { ownerId: { equals: loginId } },
         include: {
             products: {
@@ -44,7 +44,7 @@ export async function getWishList(loginId: string) {
     const totalProduct = await prismaClient.wishlist.count({
         where: { ownerId: { equals: loginId } },
     })
-
+    if (!data) return []
     let responseData = data.products.map(product => {
         return {
             id: product.id,
@@ -85,8 +85,6 @@ export async function addToWishlist(userId: string, productId: string) {
             }
         },
         create: {
-
-            // ownerId: userId,
             user: {
                 connect: { id: userId }
             },
@@ -120,7 +118,6 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-
     let userId: string;
     try {
         const token = await verifyToken(req)
@@ -151,6 +148,7 @@ export default async function handler(
                 await addToWishlist(userId, productId as string)
                 return res.status(200).json({ message: "Add selected product to wishlist success" })
             } catch (error: any) {
+                console.log("🚀 ~ file: wishlist.ts:152 ~ error:", error)
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.DELETE:

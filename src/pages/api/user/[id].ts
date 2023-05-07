@@ -95,6 +95,7 @@ async function updateUser(role: Role, userId: string, data: Partial<Omit<UserPro
                 return responseUserProfile(role, updateOwnerProfile)
         }
     } catch (error: any) {
+        console.log("🚀 ~ file: [id].ts:98 ~ updateUser ~ error:", error)
         throw error
     }
 }
@@ -129,7 +130,8 @@ export default async function handler(
         }
         role = token.role
     } catch (error: any) {
-        return res.status(405).json({ message: error.message || error })
+        console.log("🚀 ~ file: [id].ts:132 ~ error:", error)
+        return res.status(401).json({ message: error.message || error })
     }
 
     switch (req.method) {
@@ -147,13 +149,14 @@ export default async function handler(
                     try {
                         const validated = await schema.validate(req.body)
                         return validated
-                    } catch (error) {
+                    } catch (error: any) {
                         try {
                             const validated = await schema.validate(JSON.parse(req.body))
                             return validated
-                        } catch (error) {
-                            throw error
+                        } catch (err) {
+                            console.log(err)
                         }
+                        return res.status(401).json({ message: error.message || "Unauthorize user" })
                     }
                 }
                 const validatedField = await validateSchema()

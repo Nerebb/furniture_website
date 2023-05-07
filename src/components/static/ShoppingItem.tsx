@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import ImageLost from './ImageLost'
 import Image from 'next/image'
-import { shoppingCartItem } from '@/pages/api/user/shoppingCart'
+import { ShoppingCartItem } from '@/pages/api/user/shoppingCart'
 import Chip from '../Chip'
 import { GetColorName } from 'hex-color-to-color-name'
 import { StarRating } from './StarRating'
@@ -13,14 +13,10 @@ import { Transition } from '@headlessui/react'
 import Loading from './Loading'
 import { toast } from 'react-toastify'
 
-type Props = shoppingCartItem & {
-    type?:
-    | 'default'
-    | 'checkoutItem'
-}
+type Props = ShoppingCartItem
 
 // Input component
-function QtyInput({ type, ...product }: Props) {
+function QtyInput({ ...product }: Props) {
     const [itemQty, setItemQty] = useState<string | number>(product.quantities)
     const [error, setError] = useState<string>("")
     const value = typeof itemQty !== 'number' ? parseInt(itemQty) : itemQty
@@ -43,7 +39,7 @@ function QtyInput({ type, ...product }: Props) {
 
     async function handleUpdateQty() {
         if (value > product.available) {
-            setError("Product stock not meet requirements")
+            setError("Product OnStock not meet requirements")
             return
         } else {
             setError("")
@@ -54,7 +50,7 @@ function QtyInput({ type, ...product }: Props) {
 
     return (
         <div className="w-full">
-            <p className='text-red-500 first-letter:capitalize'>{error || ""}</p>
+            <p className='text-red-500 first-letter:capitalize whitespace-nowrap'>{error || ""}</p>
             <div className='flex items-center space-x-2 dark:text-white'>
                 <label htmlFor={product.id}>Qty:</label>
                 <input
@@ -62,9 +58,10 @@ function QtyInput({ type, ...product }: Props) {
                     className="transition-all grow max-w-[80px] border-none rounded-md focus:outline-none focus:ring-priBlue-500 p-1 dark:bg-priBlack-400"
                     type='number'
                     inputMode="numeric"
+                    min={0}
+                    max={product.available}
                     value={itemQty}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setItemQty(e.target.value)}
-                    disabled={type === 'checkoutItem'}
                 />
                 <Transition
                     show={dirty}
@@ -92,7 +89,7 @@ function QtyInput({ type, ...product }: Props) {
 }
 
 //ShoppingCartItem
-export default function ShoppingItem({ type = 'default', ...product }: Props) {
+export default function ShoppingItem({ ...product }: Props) {
     const queryClient = useQueryClient()
 
     const { mutate, isLoading } = useMutation({
@@ -138,7 +135,7 @@ export default function ShoppingItem({ type = 'default', ...product }: Props) {
 
                 <p className='text-gray-500 dark:text-white'>OnStock: {product.available}</p>
                 <p className='grow'></p>
-                <QtyInput type={type} {...product} />
+                <QtyInput {...product} />
             </div>
             <div className='items-end flex flex-col'>
                 <h1 className='font-semibold dark:text-white'>{fCurrency(product.price)}</h1>

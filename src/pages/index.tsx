@@ -1,7 +1,6 @@
 import Banner from '@/components/static/Banner'
 import DailyDiscover from '@/components/static/DailyDiscover'
 import FeatureProduct from '@/components/static/FeatureProduct'
-import SwitchTheme from '@/components/static/SwitchTheme'
 import TopCategory from '@/components/static/TopCategory'
 import useBrowserWidth from '@/hooks/useBrowserWidth'
 import BaseLayout from '@/layouts/BaseLayout'
@@ -16,7 +15,7 @@ export default function Home() {
     <>
       <Head>
         <title>Nereb furniture hompage</title>
-        <meta name="description" content="A NextJs demo furniture website" />
+        <meta name="description" content="A NextJs demo furnipture website" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

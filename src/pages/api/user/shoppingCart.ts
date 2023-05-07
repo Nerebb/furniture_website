@@ -6,8 +6,15 @@ import { getToken } from 'next-auth/jwt'
 import * as Yup from 'yup'
 import { getProductById } from '../products/[productId]'
 import { Prisma } from '@prisma/client'
+import { NewOrderItem } from '../order'
 
-export type shoppingCartItem = {
+type UpdateShoppingItem = {
+    cartItemId: string,
+    color?: string,
+    quantities?: number,
+}
+
+export type ShoppingCartItem = {
     id: string
     color: string
     quantities: number
@@ -25,7 +32,7 @@ export type shoppingCartItem = {
 export type UserShoppingCart = {
     id: string
     subTotal: string
-    shoppingCartItem: shoppingCartItem[]
+    shoppingCartItem: ShoppingCartItem[]
 }
 
 type Data = {
@@ -69,7 +76,7 @@ export async function getShoppingCart(userId: string) {
     })
 
     //SantinizeData
-    const shoppingCartItem: shoppingCartItem[] = data.shoppingCartItem.map(i => ({
+    const shoppingCartItem: ShoppingCartItem[] = data.shoppingCartItem.map(i => ({
         id: i.id,
         color: i.color,
         quantities: i.quantities,
@@ -162,12 +169,8 @@ export async function createShoppingCart(userId: string, req: NextApiRequest) {
  * @param userId from JWT Token
  * @param req request from client
  */
-export async function updateShoppingCart(userId: string, req: NextApiRequest) {
+export async function updateShoppingCart(userId: string, { cartItemId, color, quantities }: UpdateShoppingItem) {
     //Santinize request
-    const schema = Yup.object(ShoppingCartUpdateSchemaValidate)
-
-    const { cartItemId, color, quantities } = await schema.validate(req.query)
-
     const curCart = await getShoppingCart(userId)
 
     const chosenItem = curCart.shoppingCartItem.find(cartItem => cartItem.id === cartItemId)
@@ -209,11 +212,7 @@ export async function updateShoppingCart(userId: string, req: NextApiRequest) {
  * @param cartItemId req.query
  * @returns message
  */
-export async function deleteShoppingCart(userId: string, req: NextApiRequest) {
-    const schema = Yup.object(ShoppingCartDeleteSchemaValidate)
-    const { cartItemId } = await schema.validate(req.query)
-
-    //Authorization
+export async function deleteShoppingCartItem(userId: string, cartItemId: string) {
     const curCart = await prismaClient.shoppingCart.findUniqueOrThrow({
         where: { ownerId: userId },
         select: {
@@ -247,8 +246,6 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    // const { userId } = req.query //For testing
-
     const token = await getToken({
         req,
         secret: process.env.SECRET
@@ -275,14 +272,20 @@ export default async function handler(
             }
         case ApiMethod.PUT:
             try {
-                await updateShoppingCart(userId as string, req)
+                //Santinize request
+                const schema = Yup.object(ShoppingCartUpdateSchemaValidate)
+                const validated = await schema.validate(req.query)
+                await updateShoppingCart(userId as string, validated)
                 return res.status(200).json({ message: "Update product completed" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.DELETE:
             try {
-                await deleteShoppingCart(userId as string, req)
+                const schema = Yup.object(ShoppingCartDeleteSchemaValidate)
+                const { cartItemId } = await schema.validate(req.query)
+
+                await deleteShoppingCartItem(userId as string, cartItemId)
                 return res.status(200).json({ message: "Product has been removed from cart" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })

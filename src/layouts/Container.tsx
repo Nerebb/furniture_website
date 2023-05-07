@@ -8,7 +8,7 @@ type Props = {
 function Container({ height, children }: Props) {
     return (
         <main
-            className={`md:max-w-screen-tablet max-w-screen-mobile xl:max-w-screen-desktop w-full min-h-screen mx-auto flex flex-col ${height}`}
+            className={`max-w-screen-mobile md:max-w-screen-tablet xl:px-5 xl:max-w-screen-desktop w-full min-h-screen mx-auto flex flex-col ${height}`}
         >
             {children}
         </main>

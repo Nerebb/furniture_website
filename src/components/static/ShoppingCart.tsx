@@ -2,9 +2,10 @@ import axios from '@/libs/axiosApi'
 import { fCurrency } from '@/libs/utils/numberal'
 import { Dialog } from '@headlessui/react'
 import { ShoppingCartIcon } from '@heroicons/react/24/outline'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
+import { useState } from 'react'
 import Button from '../Button'
 import Modal from '../Modal'
 import Loading from './Loading'
@@ -14,20 +15,21 @@ type Props = {
   modifier?: string,
   btnText?: boolean
   keepOpen?: boolean
+  fetchData?: boolean
 }
 
-export default function ShoppingCart({ keepOpen = false, btnText, modifier }: Props) {
-  const { data: session, status } = useSession()
+export default function ShoppingCart({ keepOpen = false, btnText, modifier, fetchData = false }: Props) {
+  const { data: session } = useSession()
+  const [fetching, setFetching] = useState<boolean>(fetchData)
   const router = useRouter()
 
   const { data: Cart, isLoading, isError, isFetching } = useQuery({
     queryKey: ['ShoppingCart'],
     queryFn: () => axios.getShoppingCart(),
-    enabled: status === 'authenticated'
+    enabled: Boolean(session) && fetching
   })
 
   const subTotal = Cart?.subTotal ? fCurrency(parseInt(Cart?.subTotal)) : "None"
-
   return (
     <Modal
       type='translateX'
@@ -38,6 +40,7 @@ export default function ShoppingCart({ keepOpen = false, btnText, modifier }: Pr
         modifier: modifier ? modifier : 'none',
         children: <ShoppingCartIcon className='w-6 h-6' />
       }}
+      onClick={() => setFetching(true)}
       keepOpen={keepOpen}
     >
       <Dialog.Panel

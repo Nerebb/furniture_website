@@ -10,7 +10,6 @@ import ImageLost from './ImageLost'
 import classNames from 'classnames'
 
 const Banner = () => {
-    const [moreInfo, setMoreInfo] = useState<boolean>(false)
     const [selectedProduct, setSelectedProduct] = useState<ProductCard>()
 
     const { isLoading } = useQuery({
