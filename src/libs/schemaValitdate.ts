@@ -24,7 +24,7 @@ export const UserSchemaValidate = {
     nickName: Yup.string().lowercase().max(50),
     address: Yup.string().lowercase().max(255).required('Address required'),
     email: Yup.string().email().typeError("Invalid email").required('Email required'),
-    gender: Yup.string().oneOf(Object.values(Gender), "Invalid gender").required(),
+    gender: Yup.string().oneOf(Object.values(Gender), "Invalid gender"),
     phoneNumber: Yup.string().required("Phone number required"),
     role: Yup.string().oneOf(Object.values(Role)),
     userVerified: Yup.boolean(),
@@ -229,6 +229,7 @@ export const UpdateProductReviewSchemaValidate = {
     id: Yup.string().uuid("Invalid reviewId").required(),
     content: Yup.string().max(255),
     rating: Yup.number().integer().min(0).max(5),
+    isPending: Yup.boolean()
 }
 
 export const SearchFilterSchemaValidate = {
@@ -318,8 +319,9 @@ export const SearchProductReviewSchemaValidate = {
     updatedAt: Yup.date(),
     filter: Yup.string().oneOf(AllowedProductReviewFilters),
     sort: Yup.string().lowercase().oneOf(['asc', 'desc']),
-    limit: Yup.number().integer().min(0).max(50),
+    limit: Yup.number().integer().min(0).max(100),
     skip: Yup.number().moreThan(-1),
+    isPending: Yup.boolean(),
 }
 
 export const DeleteProductReviewSchemaValidate = {

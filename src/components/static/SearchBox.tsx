@@ -13,7 +13,6 @@ const SearchBox: React.FC<SearchBoxProps> = ({
     modifier,
 }) => {
     const { searchContext, setSearchContext } = useSearchContext()
-    console.log("🚀 ~ file: SearchBox.tsx:16 ~ searchContext:", searchContext)
     const router = useRouter()
 
     async function handleOnchange(e: React.ChangeEvent<HTMLInputElement>) {

@@ -14,6 +14,7 @@ const stripePromise = getStripe()
 export default function StripeCheckout() {
     const { checkoutContext } = useCheckoutContext()
     const { theme } = useTheme()
+
     const { data: stripeClient, isLoading } = useQuery({
         queryKey: ["StripePayment"],
         queryFn: () => axios.generateClient(checkoutContext.stripeClient.orderDetail!.id),
@@ -55,7 +56,7 @@ export default function StripeCheckout() {
     return (
         <div className="flex flex-col items-center p-5 dark:border dark:border-priBlack-400 rounded-xl">
             <h1 className='text-3xl mb-12 font-semibold dark:text-white'>Card payment</h1>
-            {isLoading && (
+            {(isLoading || !stripeClient) && (
                 <div className="flex-center">
                     <Loading />
                 </div>

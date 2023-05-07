@@ -6,6 +6,12 @@ import Link from 'next/link';
 import React from 'react';
 import ImageLost from '../static/ImageLost';
 import { SwiperContainerProps } from './SwiperContainer';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
+import axios from '@/libs/axiosApi';
+import { useSession } from 'next-auth/react';
+import { HeartIcon as HeartIconOutline } from '@heroicons/react/24/outline'
+import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 
 interface SwiperItemsProps {
   type: SwiperContainerProps['type'],
@@ -18,15 +24,74 @@ const SwiperItems: React.FC<SwiperItemsProps> = ({
   product,
   onClick,
 }) => {
+  const { data: session } = useSession()
+
+  const queryClient = useQueryClient()
+
+  const { data: userWishlist, isLoading, isError } = useQuery({
+    queryKey: ['UserWishlist'],
+    queryFn: () => axios.getWishList(),
+    enabled: !!session?.id
+  })
+
+  const { mutate: addToWishList } = useMutation({
+    mutationKey: ['UserWishlist'],
+    mutationFn: () => axios.addToWishList(product.id),
+    onSuccess: (data) => {
+      toast.success(data.message)
+      queryClient.invalidateQueries()
+    },
+    onError: (error: any) => toast.error(error)
+  })
+
+  const { mutate: removeFromWishlist } = useMutation({
+    mutationKey: ['UserWishlist'],
+    mutationFn: () => axios.deleteWishlistProduct(product.id),
+    onSuccess: (data) => {
+      toast.success(data.message)
+      queryClient.invalidateQueries()
+    },
+    onError: (error: any) => toast.error(error)
+  })
+
+  function handleAddWishList(e: React.MouseEvent<SVGSVGElement, MouseEvent>) {
+    e.preventDefault()
+    addToWishList()
+  }
+
+  function handleRemoveFromWishlist(e: React.MouseEvent<SVGSVGElement, MouseEvent>) {
+    e.preventDefault()
+    removeFromWishlist()
+  }
 
   const Default =
     <Link
       href={`/products/${product.id}`}
-      className='flex flex-col justify-between items-center rounded-xl md:rounded-3xl'
+      className='relative flex flex-col justify-between items-center rounded-xl md:rounded-3xl'
     >
+      {session ? (
+        userWishlist && userWishlist.some(i => i.id === product.id) ? (
+          <HeartIconSolid
+            className='absolute w-8 h-8 text-priBlue-500 group-hover/wishlist:text-gray-500 z-40 right-3 top-3'
+            onClick={handleRemoveFromWishlist}
+          />
+        ) : (
+          <HeartIconOutline
+            className='absolute w-8 h-8 text-gray-500 group-hover/wishlist:text-priBlue-500 z-40 right-3 top-3'
+            onClick={handleAddWishList}
+
+          />
+        )
+      ) : (<></>)}
       <div className='relative w-full h-full aspect-3/4'>
         {product.imageUrl ? (
-          <Image className='rounded-xl md:rounded-3xl' alt='' src={product.imageUrl[0]} fill priority={true} />
+          <Image
+            className='rounded-xl md:rounded-3xl'
+            alt=''
+            src={product.imageUrl[0]}
+            fill
+            priority={true}
+          />
         ) : (
           <ImageLost />
         )}
@@ -38,7 +103,21 @@ const SwiperItems: React.FC<SwiperItemsProps> = ({
     </Link>
 
   const ProductSquare =
-    <Link href={`/products/${product.id}`} className=''>
+    <Link href={`/products/${product.id}`} className='relative'>
+      {session ? (
+        userWishlist && userWishlist.some(i => i.id === product.id) ? (
+          <HeartIconSolid
+            className='absolute w-8 h-8 text-priBlue-500 group-hover/wishlist:text-gray-500 z-40 right-3 top-3'
+            onClick={handleRemoveFromWishlist}
+          />
+        ) : (
+          <HeartIconOutline
+            className='absolute w-8 h-8 text-gray-500 group-hover/wishlist:text-priBlue-500 z-40 right-3 top-3'
+            onClick={handleAddWishList}
+
+          />
+        )
+      ) : (<></>)}
       <div className="w-full aspect-square relative mb-2">
         {product.imageUrl ? (
           <Image className='' alt='' src={product.imageUrl[0]} fill priority={true} />

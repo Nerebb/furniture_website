@@ -282,7 +282,6 @@ async function main() {
         OrderItems.forEach(item => {
             subTotal += item.salePrice * item.quantities;
         })
-
         const fakeOrder = prisma.order.create({
             data: {
                 ownerId: userDb[randomNum(userDb.length)].id,
@@ -292,6 +291,7 @@ async function main() {
                 subTotal,
                 total: subTotal + shippingFee,
                 status: status[randomNum(status.length)],
+                createdDate: new Date(new Date().getTime() - (randomNum(30, true) * 1000 * 60 * 60 * 24)),
                 orderedProducts: {
                     create: OrderItems as Prisma.OrderItemUncheckedCreateWithoutOrderInput[]
                 },
@@ -309,8 +309,6 @@ async function main() {
 
 
     // Product comment - rating
-
-
     function generateProductCmt(): Prisma.ProductReviewCreateArgs['data'] {
         const ownerId = userDb[randomNum(userDb.length)].id
         const likedUsers = [...new Set(randomField("id", userDb.filter(i => i.id !== ownerId), true, randomNum(10, true)))]
@@ -320,7 +318,8 @@ async function main() {
             content: generatedProductCmt[randomNum(generatedProductCmt.length)],
             rating: randomNum(5, true),
             totalLike: likedUsers.length,
-            likedUsers: { connect: likedUsers.map(i => ({ id: i })) }
+            likedUsers: { connect: likedUsers.map(i => ({ id: i })) },
+            isPending: Math.floor(randomNum(2)) ? true : false
         }
     }
 

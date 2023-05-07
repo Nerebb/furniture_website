@@ -7,6 +7,8 @@ import Button from './Button'
 import ProductCard, { ProductCardProps } from './ProductCard'
 import Loading from './static/Loading'
 import useBrowserWidth from '@/hooks/useBrowserWidth'
+import classNames from 'classnames'
+import { useRouter } from 'next/router'
 
 type Props = ProductSearch & {
     cardProps?: Omit<ProductCardProps, 'type' | 'product'>
@@ -34,6 +36,7 @@ export default function ProductGrid({
     cardProps
 }: Props) {
     const browserWidth = useBrowserWidth()
+    const router = useRouter()
     const productsPerLoad = browserWidth > 1028 ? 12 : browserWidth > 768 ? 8 : 6
     const { data: fetchedProducts, isError, error, isLoading, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
         queryKey: queryKey,
@@ -72,7 +75,10 @@ export default function ProductGrid({
                 </div>
             ) : (
                 <>
-                    <div className='grid gap-5 mb-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4'>
+                    <div className={classNames(
+                        'grid gap-5 mb-5 grid-cols-1 sm:grid-cols-2',
+                        router.pathname !== '/' ? 'md:grid-cols-3' : 'md:grid-cols-4'
+                    )}>
                         {fetchedProducts && fetchedProducts.pages.flat().map((item) => (
                             item &&
                             <Fragment key={item.id} >

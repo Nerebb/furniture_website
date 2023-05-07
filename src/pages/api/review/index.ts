@@ -29,6 +29,7 @@ export type ReviewSearch = {
     skip?: number,
     filter?: keyof Omit<ProductReview, ''>,
     sort?: 'asc' | 'desc'
+    isPending?: boolean,
 }
 
 type Data = {
@@ -79,6 +80,7 @@ export function santinizeReview(role: Role, data: SantinizeReview, userId?: stri
         createdDate: data.createdDate,
         updatedAt: data.updatedAt,
         isLiked: data.likedUsers.some(i => i.id === userId),
+        isPending: role === 'admin' ? data.isPending : true,
     };
 }
 
@@ -91,7 +93,7 @@ export function santinizeReview(role: Role, data: SantinizeReview, userId?: stri
  * @access Login required
  * @return message
  */
-export type NewReviewProps = Omit<ProductReview, 'id' | 'totalLike' | 'createdDate' | 'updatedAt' | 'ownerId'>
+export type NewReviewProps = Omit<ProductReview, 'id' | 'totalLike' | 'createdDate' | 'updatedAt' | 'ownerId' | 'isPending'>
 
 export async function createProductReview(role: Role, review: NewReviewProps, userId?: string) {
     try {
@@ -159,6 +161,7 @@ export async function getReviews(role: Role, searchParams: ReviewSearch, userId?
         totalLike: { gte: searchParams.totalLike },
         createdDate: { gte: searchParams.createdDate },
         updatedAt: { gte: searchParams.updatedAt },
+        isPending: role === 'admin' ? searchParams.isPending : false
     }
 
     if (searchParams.likedUsers && searchParams.likedUsers?.length > 0) {

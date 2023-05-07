@@ -26,7 +26,6 @@ export default async function handler(
     switch (req.method) {
         case ApiMethod.POST:
             try {
-
                 const token = await getToken({
                     req,
                     secret: process.env.SECRET
@@ -44,17 +43,15 @@ export default async function handler(
                 const paymentIntent = await stripe.paymentIntents.create({
                     amount: Number(order.total), //max amout 99,999,999 vnd
                     currency: "vnd",
-                    metadata: { orderId, userId }
+                    metadata: { orderId, userId },
                 });
 
                 if (!paymentIntent.client_secret) return res.status(500).send({ message: "Stripe cannot idenify User" })
 
-                console.log("🚀 ~ file: index.ts:55 ~ returnres.status ~ paymentIntent.client_secret:", paymentIntent.client_secret)
                 return res.status(200).send({
                     clientSecret: paymentIntent.client_secret,
                 });
             } catch (error: any) {
-                console.log("🚀 ~ file: index.ts:57 ~ error:", error)
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
 

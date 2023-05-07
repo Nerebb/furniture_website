@@ -1,7 +1,7 @@
 import FormikField from '@/components/form/FormikField'
 import axios, { allowedField } from '@/libs/axiosApi'
 import { CheckoutFormSchemaValidate, UserSchemaValidate } from '@/libs/schemaValitdate'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FormRow } from '@types'
 import { Form, Formik, FormikHelpers } from 'formik'
 import { useSession } from 'next-auth/react'
@@ -27,17 +27,29 @@ type NewOrderForm = Partial<NewOrder> & {
     email: string,
 }
 
+//UserInfo
+const userRow: FormRow[] = [
+    { id: 0, label: 'Name', name: 'name', inputType: 'text' },
+    { id: 1, label: 'Phone number', name: 'phoneNumber', inputType: 'number' },
+    { id: 3, label: "Email", name: 'email', inputType: 'email' },
+    { id: 4, label: 'Billing address', name: 'billingAddress', inputType: 'text' },
+    { id: 5, label: 'Delivery address', name: 'shippingAddress', inputType: 'text' },
+]
+
 
 export default function OrderPlacementForm({ }: Props) {
     const { data: session } = useSession()
     const [submitError, setSubmitError] = useState<string | undefined>()
     const { checkoutContext, setCheckoutContext } = useCheckoutContext()
     const browserWidth = useBrowserWidth()
+    const queryClient = useQueryClient()
+
     const { mutate: axiosUpdateUser } = useMutation({
-        mutationKey: ['updateProfile', session?.id],
+        mutationKey: ['userProfile', session?.id],
         mutationFn: (data: allowedField): Promise<{ message: String }> => axios.updateUser(session!.id as string, data),
         onSuccess: () => {
-            toast.success('Update profile completed')
+            queryClient.invalidateQueries()
+            toast.success('Update profile completed', { toastId: session?.id })
         }
     })
 
@@ -66,15 +78,6 @@ export default function OrderPlacementForm({ }: Props) {
         queryFn: () => axios.getShoppingCart(),
     })
 
-    //UserInfo
-    const userRow: FormRow[] = [
-        { id: 0, label: 'Name', name: 'name', inputType: 'text' },
-        { id: 1, label: 'Phone number', name: 'phoneNumber', inputType: 'number' },
-        { id: 3, label: "Email", name: 'email', inputType: 'email' },
-        { id: 4, label: 'Billing address', name: 'billingAddress', inputType: 'text' },
-        { id: 5, label: 'Delivery address', name: 'shippingAddress', inputType: 'text' },
-    ]
-
     const initValue = {
         name: UserProfile.data?.name || "",
         phoneNumber: UserProfile.data?.phoneNumber || "",
@@ -83,19 +86,6 @@ export default function OrderPlacementForm({ }: Props) {
         shippingAddress: UserProfile.data?.address || "",
         shoppingCartId: ShoppingCart.data?.id || "",
         products: ShoppingCart.data?.shoppingCartItem
-    }
-
-    function checkDirty(values: NewOrderForm): boolean {
-        //CheckUser: if change then pops confirm change => mutate updateUser
-        if (values.name !== UserProfile.data?.name
-            || values.phoneNumber !== UserProfile.data?.phoneNumber
-            || values.email !== UserProfile.data?.email
-            || values.billingAddress !== UserProfile.data?.address
-        ) {
-            return true
-        } else {
-            return false
-        }
     }
 
     async function handleOnSubmit(values: NewOrderForm, { setSubmitting }: FormikHelpers<NewOrderForm>) {
@@ -148,13 +138,14 @@ export default function OrderPlacementForm({ }: Props) {
                             ))}
                             {submitError && <p>{submitError}</p>}
                             <div className='flex-center space-x-10'>
-                                {!checkDirty(values) ? (
+                                {!props.dirty ? (
                                     <>
                                         {browserWidth <= 1024 && <Modal
                                             btnProps={{
                                                 text: "Order detail",
                                                 glowModify: 'noAnimation',
-                                                modifier: 'px-12 py-3 dark:text-white'
+                                                modifier: 'w-60 py-3 dark:text-white',
+                                                disabled: props.isSubmitting || !ShoppingCart.data,
                                             }}
                                         >
                                             <Dialog.Panel
@@ -166,8 +157,9 @@ export default function OrderPlacementForm({ }: Props) {
                                         <Button
                                             text="Proceed to payment"
                                             glowModify='noAnimation'
-                                            modifier='px-12 py-3 dark:text-white'
+                                            modifier='w-60 py-3 dark:text-white'
                                             type='submit'
+                                            disabled={props.isSubmitting || !ShoppingCart.data}
                                         />
                                     </>
                                 ) : (
@@ -175,8 +167,8 @@ export default function OrderPlacementForm({ }: Props) {
                                         btnProps={{
                                             text: "Update user data",
                                             glowModify: 'noAnimation',
-                                            modifier: 'w-80 py-3 dark:text-white',
-                                            // disabled: Boolean(ShoppingCart.data)
+                                            modifier: 'w-60 py-3 dark:text-white',
+                                            disabled: props.isSubmitting || !ShoppingCart.data
                                         }}
                                         title='User info has been modified!'
                                         content='Do you want to update personal info'
@@ -185,7 +177,6 @@ export default function OrderPlacementForm({ }: Props) {
                                             refuse: "Refuse"
                                         }}
                                         acceptCallback={() => updateUser(values, props)}
-                                        refuseCallback={() => handleOnSubmit(values, props)}
                                     />
                                 )}
                             </div>

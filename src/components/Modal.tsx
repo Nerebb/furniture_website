@@ -22,6 +22,7 @@ type Props = {
     },
     isRefuse?: boolean,
     isLoading?: boolean,
+    onClick?: () => void,
     acceptCallback?: (param?: any) => void
     refuseCallback?: (param?: any) => void
 }
@@ -36,6 +37,7 @@ const Modal = ({
     dialogBtnText,
     isLoading,
     isRefuse = true,
+    onClick,
     acceptCallback,
     refuseCallback,
 }: Props) => {
@@ -99,6 +101,7 @@ const Modal = ({
 
     function openModal() {
         setIsOpen(true)
+        if (onClick) onClick()
     }
 
     return (
@@ -119,7 +122,7 @@ const Modal = ({
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                     >
-                        <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-1" />
+                        <div className="background fixed inset-0 bg-black bg-opacity-25 backdrop-blur-1" />
                     </Transition.Child>
 
                     {/* Content */}
@@ -135,7 +138,7 @@ const Modal = ({
                                 {...ContentTransition}
                             >
                                 {children ? children : (
-                                    <Dialog.Panel className="relative p-5 w-full min-w-[350px] h-full min-h-[210px] max-w-md transform overflow-hidden rounded-2xl bg-white p- text-left align-middle shadow-xl transition-all dark:bg-priBlack-700 dark:text-white">
+                                    <Dialog.Panel className="relative p-5 w-full min-w-[350px] h-full min-h-[180px] max-w-md transform overflow-hidden rounded-2xl bg-white p- text-left align-middle shadow-xl transition-all dark:bg-priBlack-700 dark:text-white">
                                         <Dialog.Title
                                             as="h3"
                                             className="text-lg font-medium leading-6 text-gray-900 dark:text-white"

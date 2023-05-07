@@ -198,8 +198,9 @@ model ProductReview {
   likedUsers User[]  @relation("reviewLikes")
   totalLike  Int     @db.UnsignedInt
 
-  content String @db.Text
-  rating  Int    @db.UnsignedTinyInt
+  content   String  @db.Text
+  rating    Int     @db.UnsignedTinyInt
+  isPending Boolean @default(true)
 
   createdDate DateTime @default(now())
   updatedAt   DateTime @updatedAt

@@ -84,7 +84,7 @@ export default function StripeForm() {
             }
         } else {
             // setMessage(`Payment succeeded: ${paymentIntent.id}`)
-            setCheckoutContext({ ...checkoutContext, checkoutStage: 2 })
+            setCheckoutContext({ ...checkoutContext, checkoutStage: 2, stripeClient: { orderDetail: undefined, updateQty: false } })
         }
         setIsLoading(false);
     };

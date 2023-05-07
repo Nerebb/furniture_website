@@ -79,6 +79,7 @@ export default function ProductComment({ viewContent = true, productId, newRevie
         productId: productId,
         isEdited: newReview,
         isLoading: false,
+        isPending: false,
     })
 
     useMemo(() => { if (review) updateComment({ ...review }) }, [review])

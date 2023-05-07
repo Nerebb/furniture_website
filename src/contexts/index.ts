@@ -1,6 +1,5 @@
 import { ResponseOrder } from "@/pages/api/order";
 import { ProductCard, ProductSearch } from "@/pages/api/products";
-import { UserShoppingCart, shoppingCartItem } from "@/pages/api/user/shoppingCart";
 import { CheckoutStage } from "@/pages/checkout";
 import { createContext, Dispatch, SetStateAction } from "react";
 
@@ -19,11 +18,6 @@ export type wishlistContext = {
 }
 export const WishlistContext = createContext<wishlistContext | null>(null)
 
-/**
- * ShoppingCart ---Manage ShoppingCartItem and FrontEnd design
- * Header: Checkout Steps
- * OrderId through each components
- */
 export type CheckoutContextData = {
     checkoutStage: CheckoutStage,
     stripeClient: {

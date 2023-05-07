@@ -129,35 +129,38 @@ export default function OrderProduct({ order, isLoading = true, productStatus = 
                                 {orderedProducts?.orderedProductDetail && orderedProducts.orderedProductDetail.map(product => (
                                     <div
                                         key={product.id}
-                                        className='grid grid-row-2 grid-col-4 sm:grid-cols-7'
+                                        className='grid grid-cols-2'
                                     >
-                                        <p
-                                            className='font-semibold first-letter:capitalize dark:text-gray-200 sm:col-span-2'
-                                        >
-                                            {product.name}
-                                        </p>
-                                        <Chip
-                                            modify='w-[80px] text-base justify-self-end sm:justify-self-start'
-                                            color={product.color}
-                                            label={GetColorName(product.color)}
-                                        />
-                                        <div
-                                            className='w-full font-semibold first-letter:capitalize dark:text-gray-400 justify-self-end col-span-2 flex justify-between'
-                                        >
-                                            <p>Unit price:</p>
-                                            <p>{fCurrency(product.salePrice)}</p>
+                                        <div className='w-full grid grid-cols-2 col-span-2 xl:col-span-1 mr-2 sm:mr-0'>
+                                            <p
+                                                className='font-semibold first-letter:capitalize dark:text-gray-200'
+                                            >
+                                                {product.name}
+                                            </p>
+                                            <Chip
+                                                modify='w-[80px] text-base justify-self-end xl:justify-self-center md:w-[65px]'
+                                                color={product.color}
+                                                label={GetColorName(product.color)}
+                                            />
                                         </div>
-                                        <p
-                                            className='w-full font-semibold first-letter:capitalize dark:text-gray-400 justify-self-end flex justify-between'
-                                        >
-                                            <span>Sub total:</span>
-                                            <span>{product.quantities} (pcs)</span>
-                                        </p>
-                                        <p
-                                            className='text-priBlue-600 dark:text-gray-200 justify-self-end sm:mr-2 whitespace-nowrap'
-                                        >
-                                            {fCurrency(product.salePrice * product.quantities)}
-                                        </p>
+                                        <div className='w-full grid grid-cols-5 sm:grid-cols-4 col-span-2 xl:col-span-1'>
+                                            <div
+                                                className='font-semibold first-letter:capitalize dark:text-gray-400 justify-self-start whitespace-nowrap col-span-2 sm:col-span-1'
+                                            >
+                                                <p>{fCurrency(product.salePrice)}</p>
+                                            </div>
+                                            <p
+                                                className='font-semibold first-letter:capitalize dark:text-gray-400 justify-self-center whitespace-nowrap col-span-1'
+                                            >
+                                                {product.quantities} (pcs)
+                                            </p>
+                                            <p
+                                                className='justify-self-end sm:mr-2 whitespace-nowrap dark:text-gray-200 col-span-2'
+                                            >
+                                                <span className='hidden xl:inline-block'>SubTotal: </span>
+                                                <span className='text-priBlue-600 dark:text-gray-200 '>{fCurrency(product.salePrice * product.quantities)}</span>
+                                            </p>
+                                        </div>
                                     </div>
                                 ))}
                             </Transition>
@@ -174,17 +177,17 @@ export default function OrderProduct({ order, isLoading = true, productStatus = 
                                 <dd className='text-gray-500 dark:text-gray-400'>Total: {fCurrency(bigIntStringToNumber(order.total))}</dd>
                                 <dd className='grow'></dd>
 
-                                <dd className='flex space-x-5'>
+                                <dd className='flex space-x-5 mt-2 sm:mt-0'>
                                     <Button
                                         text='More detail'
-                                        modifier='py-1 w-[120px] dark:text-white mt-2 sm:mt-0'
+                                        modifier='h-[40px] w-[120px] dark:text-white'
                                         glowModify='noAnimation'
                                         onClick={() => setLoadMore(true)}
                                     />
                                     {cancelButton && <Button
                                         text={'Cancel Order'}
                                         variant='outline'
-                                        modifier='py-1 w-[120px] dark:text-white'
+                                        modifier='h-[40px] w-[120px] dark:text-white'
                                         glowModify='noAnimation'
                                         onClick={handleCancelOrder}
                                     />}
