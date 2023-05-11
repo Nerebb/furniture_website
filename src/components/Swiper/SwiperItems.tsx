@@ -67,7 +67,7 @@ const SwiperItems: React.FC<SwiperItemsProps> = ({
   const Default =
     <Link
       href={`/products/${product.id}`}
-      className='relative flex flex-col justify-between items-center rounded-xl md:rounded-3xl'
+      className='relative flex flex-col justify-between items-center rounded-xl md:rounded-3xl border'
     >
       {session ? (
         userWishlist && userWishlist.some(i => i.id === product.id) ? (
@@ -114,11 +114,10 @@ const SwiperItems: React.FC<SwiperItemsProps> = ({
           <HeartIconOutline
             className='absolute w-8 h-8 text-gray-500 group-hover/wishlist:text-priBlue-500 z-40 right-3 top-3'
             onClick={handleAddWishList}
-
           />
         )
       ) : (<></>)}
-      <div className="w-full aspect-square relative mb-2">
+      <div className="w-full aspect-square relative mb-2 border">
         {product.imageUrl ? (
           <Image className='' alt='' src={product.imageUrl[0]} fill priority={true} />
         ) : (

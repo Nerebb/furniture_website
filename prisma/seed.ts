@@ -131,10 +131,39 @@ async function main() {
     console.log("Add testUser completed: password:test")
 
     //Products
-    const categories = ['cabinets', 'accessories', 'beds', 'ottomans', 'shelves', 'dining chairs', 'dining tables', 'armchairs', 'stools', 'office desks', 'sofas', 'coffee tables', 'lounge chair', 'benches', 'games', 'side tables', 'counter/bar chair']
-    const rooms = ['living room', 'bedroom', 'dining room', 'office', 'entertaining room']
-    const color = ['000000', '000080', '001B1C', '003366', '008080', '01A368']
+    const categories = ['cabinets', 'accessories', 'beds', 'ottomans', 'shelves', 'dining chairs', 'dining tables', 'armchairs', 'stools', 'office desks', 'sofas', 'coffee tables', 'lounge chair', 'benches', 'games', 'side tables', 'counter/bar chair'] as const
+    const rooms = ['living room', 'bedroom', 'dining room', 'office', 'entertaining room'] as const
+    const color = ['000000', '757575', 'D2DAE2', 'fff', '2B67C2', '57BDBB', '97C292', '825B2C', '73C7FF', 'F5E23B', '055E0A', '808080', 'EBB155'] as const
 
+    //ImageGallery
+    const images = [
+        '/images/OliverSofa_RS.jpg',
+        '/images/CoffeTable.jpg',
+        '/images/Console.jpg',
+        '/images/mirror.jpg',
+        '/images/Elena_gray.jpg',
+        '/images/Elena_green.jpg',
+        '/images/Elena_white.jpg',
+        '/images/Aurora_Blue.jpg',
+        '/images/Aurora_Brown.jpg',
+        '/images/Aurora_White.jpg',
+        '/images/Davis_Brown.jpg',
+        '/images/London_Black.jpg',
+        '/images/Sydney_brown.jpg',
+        '/images/Bordeaux_yellow.jpg',
+        '/images/Bordeaux_green.jpg',
+        '/images/JoyStool_white.jpg',
+        '/images/Apex_black.jpg',
+        '/images/Eden_white.jpg',
+        '/images/Apex_Coffe_black.jpg',
+        '/images/Wave_sideTable_white.jpg',
+        '/images/Stetson_coffetable.jpg',
+        '/images/Alisma_coffetable.jpg',
+        '/images/Abin_coffetable.jpg',
+        '/images/LazySac.jpg',
+        '/images/Elegant_coffetable.jpg',
+        '/images/Olivia_sofa.jpg',
+    ] as const
 
     //Category
     const cateDb: Category[] = categories.map((i, idx) => ({ id: idx + 1, label: i }))
@@ -161,8 +190,6 @@ async function main() {
 
     console.log("Colors created")
 
-    //ImageGallery
-    const images = ['/images/OliverSofa_RS.jpg', '/images/CoffeTable.jpg', '/images/Console.jpg', '/images/mirror.jpg']
     const mediaDb: MediaGallery[] = images.map((i, idx) => (
         {
             id: idx + 1,
@@ -182,52 +209,191 @@ async function main() {
     const cateDbById = cateDb.map(i => { return { id: i.id } })
     const status = Object.values(Status)
 
-    const generatedDescription = [
-        'Looking for a comfortable place to sit? Check out our versatile and stylish Sofa! With a variety of seating options, this piece will have you feeling at home in no time. Whether you\'re watching TV or relaxing with a good book, our Sofa is perfect for any occasion. Plus, its classic style will complement any room in your home.',
-        'Mirror is the perfect way to make your bedroom, study or any other space look bigger and more open. With its frameless design and thin profile, it can be mounted on virtually any wall. The elegant silver finish will match any decor, while the simple yet sophisticated design allows you to add personality to your space without taking away from it.',
-        'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.'
-    ]
-
     const generatedProductCmt = [
         'Very useful', 'Life changer', 'Such detail!!!', 'You should have one!!!', 'etc.....'
     ]
 
-    const productDb: Product[] = [];
-    for (let i = 0; i < 100; i++) {
-        let name = 'testProduct' + generateString(5)
-        while (productDb.some(i => i.name === name)) {
-            name = 'testProduct' + generateString(6)
-        }
-        const testProduct =
-        {
-            id: uuidv4(),
-            name,
-            description: generatedDescription[randomNum(generatedDescription.length - 1)],
-            creatorId: admin.id,
-            price: Price + (randomNum(Price) * 1000),
-            available: randomNum(100, true),
-
-            //JsonArray
-            JsonColor: randomField("hex", colorDb, true),
-        }
-        const prom = await prisma.product.create({
-            data: {
-                ...testProduct,
-                isFeatureProduct: randomNum() > 8,
-                cateIds: {
-                    connect: randomField("id", cateDbById, true, randomNum(cateDbById.length, true)).map(i => { return { id: i } }) as Prisma.CategoryWhereUniqueInput
-                },
-                imageIds: {
-                    connect: randomField("id", mediaDbById, true).map(i => { return { id: i } }) as Prisma.MediaGalleryWhereUniqueInput
-                },
-                roomIds: {
-                    connect: randomField('id', roomsDbById, true, randomNum(5, true)).map(i => { return { id: i } }) as Prisma.RoomWhereUniqueInput
-                }
-            }
-
-        })
-        productDb.push(prom)
+    type JSONproduct = {
+        name: string
+        description: string,
+        color: typeof color[number][],
+        categories: typeof categories[number][],
+        rooms: typeof rooms[number][],
+        imageUrls: typeof images[number][],
     }
+    const Products = [
+        {
+            name: "Elena sofa",
+            description: "Sofa Giường Elena Be là mẫu sofa độc đáo cho không gian hiện đại. Sofa có thiết kế gọn nhẹ, với phần khung gỗ plywood chịu lực tốt cùng lớp đệm vải tông màu be, bề mặt vải may thành những đường sọc ngang thu hút. Ghế có cấu trúc thông minh với lưng ghế có thể gập hạ, biến hóa chiếc sofa thành chiếc giường tiện lợi.",
+            color: ['2B67C2', 'fff', '97C292'],
+            categories: ['lounge chair', 'benches', 'sofas'],
+            imageUrls: ['/images/Elena_gray.jpg', '/images/Elena_green.jpg', '/images/Elena_white.jpg'],
+            rooms: ['bedroom', 'living room']
+        },
+        {
+            name: "Aurora sofa",
+            description: "Sofa Giường Aurora Xanh Dương là mẫu nội thất thông minh tiện dụng cho không gian sống. Sofa có kiểu dáng đơn giản, với khung plywood chịu lực tốt, cùng vải bọc mịn mềm tông xanh dương hiện đại. Điểm nhấn của sofa là khả năng hạ phần lưng xuống để biến sofa thành chiếc giường trong tích tắc. Sản phẩm sofa tích hợp giường siêu tiện lợi, phù hợp với mọi không gian trong nhà.",
+            color: ['fff', '73C7FF', '825B2C'],
+            categories: ['lounge chair', 'benches', 'dining chairs'],
+            imageUrls: ['/images/Aurora_Blue.jpg', '/images/Aurora_Brown.jpg', '/images/Aurora_White.jpg'],
+            rooms: ['bedroom', 'living room']
+
+        },
+        {
+            name: "Davis brown",
+            description: "Sofa Davis Nâu Nhạt là mẫu sofa tinh tế cho không gian phòng khách hiện đại. Phần chân được làm từ chất liệu kim loại chắc chắn, toàn bộ đệm ngồi, nệm lưng, nệm tay được bọc bằng chất liệu da cao cấp tông màu nâu nhạt. Chiếc sofa mang đến nét hiện đại tinh tế cho không gian.",
+            color: ['825B2C'],
+            categories: ['lounge chair', 'dining chairs'],
+            imageUrls: ['/images/Davis_Brown.jpg'],
+            rooms: ['bedroom', 'living room', 'entertaining room']
+        },
+        {
+            name: "London black",
+            description: "Sofa Da Góc Phải London Đen là mẫu sofa tinh tế cho không gian phòng khách hiện đại. Phần chân được làm từ gỗ chắc chắn, phần đệm được bọc bằng da cao cấp tông màu đen. Mẫu sofa có phần ghế góc bên phải được thiết kế mở rộng, tạo sự thoải mái cho người sử dụng.",
+            color: ['000000'],
+            categories: ['benches', 'lounge chair'],
+            imageUrls: ['/images/London_Black.jpg'],
+            rooms: ['dining room', 'living room', 'entertaining room', 'office', 'bedroom'],
+        },
+        {
+            name: "Sydney brown",
+            description: "Sofa Sydney Nâu Đậm là mẫu sofa tinh tế cho không gian phòng khách hiện đại. Phần khung và chân được làm từ chất liệu gỗ bạch dương chắc chắn, toàn bộ đệm ngồi, nệm lưng, nệm tay được bọc bằng chất liệu da cao cấp tông màu nâu đậm. Chiếc sofa mang đến nét hiện đại tinh tế cho không gian.",
+            color: ['825B2C'],
+            categories: ['armchairs', 'lounge chair'],
+            imageUrls: ['/images/Sydney_brown.jpg'],
+            rooms: ['bedroom', 'entertaining room', 'living room'],
+        },
+        {
+            name: "Bordeaux yellow",
+            description: "Sofa Bordeaux Yellow Forte-Hyde là mẫu sofa tinh tế cho không gian phòng khách hiện đại. Phần khung và chân được làm từ chất liệu gỗ thông chắc chắn, toàn bộ đệm ngồi, nệm lưng, nệm tay được bọc bằng chất liệu nhung cao cấp tông màu vàng. Chiếc sofa mang đến nét hiện đại tinh tế cho không gian.",
+            color: ['F5E23B', '055E0A'],
+            categories: ['armchairs', 'lounge chair', 'benches'],
+            imageUrls: ['/images/Bordeaux_yellow.jpg'],
+            rooms: ['dining room', 'living room', 'bedroom'],
+        },
+        {
+            name: "Joy Stool",
+            description: "Ghế Đôn Joy Xám Nhạt là mẫu ghế đơn giản mà vẫn có nét độc đáo cho phòng khách. Khung ghế làm từ gỗ thông Canada cao cấp, với lớp đệm dày dặn đàn hồi tốt được bọc vải tông màu xám nhạt hiện đại. Kiểu dáng ghế khối hộp vuông hiện đại, với điểm nhấn là miếng vải nâu được may độc đáo trên bề mặt nệm ngồi.",
+            color: ['fff'],
+            categories: ['stools', 'ottomans'],
+            imageUrls: ['/images/JoyStool_white.jpg'],
+            rooms: ['living room', 'bedroom', 'entertaining room']
+        },
+        {
+            name: "Apex black",
+            description: "Bàn Bên Apex Đen là mẫu bàn phụ độc đáo cho không gian phòng khách. Mặt bàn và mặt kệ dưới được làm từ gỗ sồi mang tông màu đen tinh tế. Khung chân bàn được làm từ kim loại với thiết kế cá tính mà chắc chắn. Mặt bàn và mặt kệ mang kiểu dáng nửa hình tròn ấn tượng. Mẫu bàn hứa hẹn mang đến nét cá tính mới lạ cho không gian trong nhà.",
+            color: ['000000'],
+            categories: ['stools', 'side tables'],
+            imageUrls: ['/images/Apex_black.jpg'],
+            rooms: ['dining room', 'living room'],
+        },
+        {
+            name: "Eden white",
+            description: "Bàn Bên Eden 55cm là mẫu bàn phụ độc đáo cho không gian phòng khách. Toàn bộ bàn được làm từ kim loại mang tông màu đồng thau. Mặt bàn hình tròn, chân bàn dáng hình chóp được thiết kế với các chi tiết ấn tượng. Mẫu bàn hứa hẹn mang đến nét cá tính mới lạ cho không gian trong nhà.",
+            color: ['fff'],
+            categories: ['side tables', 'coffee tables'],
+            imageUrls: ['/images/Eden_white.jpg'],
+            rooms: ['living room', 'dining room', 'bedroom']
+        },
+        {
+            name: "Apex coffe table",
+            description: "Bàn Cà Phê Apex Đen là mẫu bàn độc đáo cho không gian phòng khách. Mặt bàn và kệ chân bàn được làm từ gỗ sồi tông màu đen tinh tế. Chân bàn làm từ chất liệu kim loại với thiết kế tinh giản mà chắc chắn. Mẫu bàn phù hợp bày trí cho những không gian đậm cá tính.",
+            color: ['000000'],
+            categories: ['coffee tables'],
+            imageUrls: ['/images/Apex_Coffe_black.jpg'],
+            rooms: ['living room'],
+        },
+        {
+            name: "Wave side table",
+            description: "Bàn Bên Wave Bạc Xám là mẫu bàn phụ độc đáo cho không gian phòng khách. Toàn bộ bàn được làm từ bê tông cứng cáp mang tông màu bạc xám. Chân bàn hình trụ cùng mang tông màu đồng nhất với mặt bàn, với chi tiết sọc dọc sang trọng. Tông màu và kiểu dáng của bàn dễ bày phối vào không gian trong nhà.",
+            color: ['fff'],
+            categories: ['coffee tables', 'side tables'],
+            imageUrls: ['/images/Wave_sideTable_white.jpg'],
+            rooms: ['living room', 'entertaining room']
+        },
+        {
+            name: "Stetson coffetable",
+            description: "Bàn Cà Phê Stetson là mẫu bàn độc đáo cho không gian phòng khách. Toàn bộ bàn được làm từ bê tông cứng cáp tông bạc xám nguyên thủy. Chân bàn được thiết kế ghép lại từ 3 khối hình trụ tạo thành một hệ chân độc đáo. Tổng thể bàn toát ra nét thô sơ nguyên bản, phù hợp bày trí cho những không gian đậm cá tính.",
+            color: ['808080'],
+            categories: ['coffee tables', 'stools'],
+            imageUrls: ['/images/Stetson_coffetable.jpg'],
+            rooms: ['living room', 'office', 'entertaining room'],
+        },
+        {
+            name: "Alisma coffetable",
+            description: "Bàn Cafe Alisma mang phong cách hiện đại và mạnh mẽ với thiết kế dạng tròn cùng không gian đặt đồ rộng rãi. Khung kim loại hỗ trợ mặt bàn đá cẩm thạch trắng, dễ dàng để vệ sinh và duy trì độ bền được tốt hơn.",
+            color: ['000000'],
+            categories: ['coffee tables', 'side tables'],
+            imageUrls: ['/images/Alisma_coffetable.jpg'],
+            rooms: ['living room', 'office', 'entertaining room']
+        },
+        {
+            name: "Abin coffetable",
+            description: "Bàn Cafe Abin là mẫu bàn đơn giản cho không gian nhà ấm cúng. Bàn được làm từ chất liệu gỗ, với mặt bàn màu trắng cùng chân bàn nâu gỗ tự nhiên. Mặt bàn kiểu tròn cơ bản cùng phần chân chắc chắn, cùng với sự kết hợp màu trắng - nâu tạo nên nét nhẹ nhàng, ấm cúng và tinh tế cho không gian sống.",
+            color: ['000000'],
+            categories: ['coffee tables', 'side tables'],
+            imageUrls: ['/images/Abin_coffetable.jpg'],
+            rooms: ['bedroom', 'living room', 'office', 'entertaining room']
+        },
+        {
+            name: "LazySac",
+            description: "Ghế Lười LazySac Nhung Gân Màu Đỏ Đất có thể nhìn giống một chiếc ghế lười Bean bag thông thường nhưng nó ẩn chứa nhiều điều thú vị hơn rất nhiều. Ghế lười sử dụng chất liệu nhung gân màu đỏ đất, mang đến cho bạn trải nghiệm thoải mái tột cùng nhờ vào công thức tạo độ êm đặc biệt “LA-Z-FOAM” đến từ đội ngũ chuyên gia của chúng tôi sau hơn 10 năm nghiên cứu.",
+            color: ['EBB155'],
+            categories: ['ottomans'],
+            imageUrls: ['/images/LazySac.jpg'],
+            rooms: ['bedroom', 'living room', 'entertaining room', 'office']
+        },
+        {
+            name: "Elegant coffetable",
+            description: "Bàn Cafe Elegant 1 là mẫu bàn tinh tế tối giản cho không gian sống. Bàn có thiết kế đơn giản với điểm nhấn là mặt bê tông và chân sắt nhưng không kém phần cá tính.",
+            color: ['808080'],
+            categories: ['coffee tables'],
+            imageUrls: ['/images/Elegant_coffetable.jpg'],
+            rooms: ['living room', 'entertaining room']
+        },
+        {
+            name: "Olivia sofa",
+            description: "Ghế Sofa Băng Oliver Xám là mẫu sofa cá tính cho không gian hiện đại. Khung ghế làm từ gỗ dầu kiềng sắt sườn, vải bọc tông xám. Sản phẩm phù hợp để trang trí cho không gian phòng khách, sảnh căn hộ, hay không gian sảnh nhà hàng, khách sạn.",
+            color: ['825B2C', '808080'],
+            categories: ['sofas'],
+            imageUrls: ['/images/Olivia_sofa.jpg'],
+            rooms: ['living room', 'dining room', 'bedroom', 'entertaining room']
+        }
+
+    ] satisfies JSONproduct[]
+
+    const productPromise = [];
+    for (const product of Products) {
+        const cateIds = cateDb
+            .filter(cate => product.categories.some(i => i === cate.label))
+            .map(i => ({ id: i.id }))
+        const roomIds = roomsDb
+            .filter(room => product.rooms.some(i => i === room.label))
+            .map(i => ({ id: i.id }))
+        const imageIds = mediaDb
+            .filter(image => product.imageUrls.some(i => i === image.imageUrl))
+            .map(i => ({ id: i.id }))
+
+        const prom = prisma.product.create({
+            data: {
+                name: product.name,
+                price: Price + (randomNum(Price) * 1000),
+                description: product.description,
+                JsonColor: product.color,
+                available: randomNum(100),
+                creator: {
+                    connect: { id: userDb[randomNum(userDb.length)].id }
+                },
+                cateIds: { connect: cateIds },
+                roomIds: { connect: roomIds },
+                imageIds: { connect: imageIds },
+                isFeatureProduct: Math.floor(randomNum(10)) > 7,
+            }
+        })
+        productPromise.push(prom)
+    }
+
+    const productDb = await Promise.all(productPromise)
 
     console.log("Products created")
 
@@ -306,8 +472,6 @@ async function main() {
 
     console.log("Orders created")
 
-
-
     // Product comment - rating
     function generateProductCmt(): Prisma.ProductReviewCreateArgs['data'] {
         const ownerId = userDb[randomNum(userDb.length)].id
@@ -324,7 +488,7 @@ async function main() {
     }
 
     const ratingDb: Prisma.ProductReviewCreateArgs['data'][] = [];
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < (productDb.length * userDb.length); i++) {
         let fakeRating = generateProductCmt()
         while (ratingDb.some(i => i.ownerId === fakeRating.ownerId && i.productId === fakeRating.productId)) {
             fakeRating = generateProductCmt()

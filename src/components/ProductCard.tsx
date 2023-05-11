@@ -106,7 +106,6 @@ export default function ProductCard({ product, modify }: ProductCardProps) {
                                     <HeartIconOutline
                                         className='absolute w-8 h-8 text-gray-500 group-hover/wishlist:text-priBlue-500'
                                         onClick={handleAddWishList}
-
                                     />
                                 )
                             ) : (<></>)}

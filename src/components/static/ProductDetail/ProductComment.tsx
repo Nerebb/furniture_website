@@ -11,7 +11,8 @@ import { useMemo, useReducer } from 'react'
 import { toast } from 'react-toastify'
 import { StarRating } from '../StarRating'
 import CommentDropMenu from './CommentDropMenu'
-import { UpdateReview } from '@/pages/api/review/[id]'
+import { UpdateReview } from '@/pages/api/review/[reviewId]'
+import AvatarLost from '../AvatarLost'
 
 type Props = {
     review?: ResponseReview
@@ -181,7 +182,11 @@ export default function ProductComment({ viewContent = true, productId, newRevie
             {!newReview && (
                 <>
                     <div className="flex items-center mb-4 space-x-4">
-                        <Image className="w-10 h-10 rounded-full border border-priBlack-200/50" src="/docs/images/people/profile-picture-5.jpg" alt="" width={50} height={50} />
+                        {comment.avatarUrl ? (
+                            <Image className="w-10 h-10 rounded-full border border-priBlack-200/50" src={comment.avatarUrl} alt="" width={50} height={50} />
+                        ) : (
+                            <AvatarLost width={10} height={10} />
+                        )}
                         <div className="space-y-1 font-medium dark:text-white">
                             <p className='text-black first-letter:capitalize dark:text-white'>{comment.nickName ?? comment.name}</p>
                             <time
@@ -191,11 +196,11 @@ export default function ProductComment({ viewContent = true, productId, newRevie
                             </time>
                         </div>
                     </div>
-                    <div className="flex items-center mb-1">
+                    <div className="flex flex-wrap mb-1">
                         <StarRating ProductRating={comment.rating} setCurRate={(value) => updateComment({ rating: value })} isEdited={comment.isEdited} />
-                        <h3 className="ml-2 text-sm font-semibold text-gray-900 dark:text-white">{rateContent}</h3>
+                        <h3 className="ml-2 text-sm font-semibold text-gray-900 dark:text-white text-start">{rateContent}</h3>
                     </div>
-                    <footer className="mb-5 text-sm text-gray-500 dark:text-gray-400">
+                    <footer className="mb-5 text-sm text-gray-500 dark:text-gray-400 text-start">
                         <span>Reviewed in the United Kingdom on </span>
                         <time >{reviewUpdateDate}</time>
                     </footer>

@@ -21,23 +21,10 @@ type Data = {
 
 /**
  * @method GET
- * @description get one color by colorId
- * @param colorId req.query
- * @returns Color
- */
-export async function getColor(colorId: string) {
-    const data = await prismaClient.color.findUniqueOrThrow({
-        where: { hex: colorId }
-    })
-    return data
-}
-
-/**
- * @method GET
  * @description Get colors by filter/search
  * @param colorIds req.query
  * @param searchParams req.query
- * @returns Color[]
+ * @returns Color | Color[]
  */
 export async function getColors(searchParams: Partial<ColorSearch>) {
     let orderBy: Prisma.ColorOrderByWithRelationInput = {};
@@ -57,6 +44,13 @@ export async function getColors(searchParams: Partial<ColorSearch>) {
     })
 
     return { data, totalRecord }
+}
+
+export async function getColor(colorId: string) {
+    const data = await prismaClient.color.findUniqueOrThrow({
+        where: { hex: colorId }
+    })
+    return data
 }
 
 /**

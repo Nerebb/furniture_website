@@ -6,7 +6,7 @@ import { ApiMethod } from '@types';
 import { hash } from 'bcrypt';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import * as Yup from 'yup';
-import { verifyToken } from '../auth/customLogin';
+import { verifyToken } from './customLogin';
 
 type Data = {
   message: string
@@ -78,13 +78,13 @@ export default async function handler(
 
         if (token?.role === 'admin') {
           try {
-            const userInfo = await adminRegisterSchema.validate(JSON.parse(req.body))
+            const { phoneNumber, address, birthDay, deleted, userVerified, emailVerified, gender, name, nickName, role } = await adminRegisterSchema.validate(JSON.parse(req.body))
             createUserData = {
               ...createUserData,
-              ...userInfo,
-              userVerified: userInfo.userVerified ? new Date() : null,
-              emailVerified: userInfo.emailVerified ? new Date() : null,
-              deleted: userInfo.deleted ? new Date() : null,
+              phoneNumber, address, birthDay,
+              userVerified: userVerified ? new Date() : null,
+              emailVerified: emailVerified ? new Date() : null,
+              deleted: deleted ? new Date() : null,
             }
           } catch (error: any) {
             return res.status(400).json({ message: error.message || "CreateUserAsAdmin - FieldValidation error" })
@@ -95,9 +95,8 @@ export default async function handler(
           data: createUserData,
         })
 
-        return res.status(200).json({ message: 'User created', data: newUser.id })
+        return res.status(200).json({ message: 'User created' })
       } catch (error: any) {
-        console.log("🚀 ~ file: signup.ts:100 ~ error:", error)
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
           if (error.code === 'P2002') return res.status(400).send({ message: 'Email Login ID already used' });
         }

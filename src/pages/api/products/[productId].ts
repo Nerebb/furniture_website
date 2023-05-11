@@ -40,10 +40,8 @@ const ProductIncludesQuery = {
 } satisfies Prisma.ProductInclude
 
 /**
- * @method GET
+ * @method GET /api/products/:productId
  * @description Get one ProductDetail by id
- * @param id req.query as productId
- * @access login required
  * @return ProductDetail
 */
 export async function getProductById(id: string): Promise<ProductDetail> {
@@ -77,12 +75,10 @@ export async function getProductById(id: string): Promise<ProductDetail> {
 }
 
 /**
- * @method PUT
+ * @method PUT /api/products/:productId
  * @description Update product by id
- * @param id req.query as productId
- * @access login required
- * @isAdmin @allowed All
- * @isCreator only Description
+ * @body {name,description,price,available,isFeatureProduct,colors,cateIds,roomIds,imageUrls,creatorId,avgRating}
+ * @access Admin can update all fields, Creator - only update description
  * @response message
 */
 type AllowedProductField = {
@@ -169,28 +165,10 @@ export async function updateProductById({ userId, userRole, updateProduct }: upd
 }
 
 /**
- * @method DELETE
- * @description SoftDelete product by id - only Admin
- * @param id req.query as productId
- * @access login required
- * @response message
-*/
-type deleteProduct = {
-    userRole: Role
-    productId: string,
-}
-export async function deleteProductById({ userRole, productId }: deleteProduct) {
-    if (userRole !== 'admin') throw Error("Unauthorize User")
-
-    await prismaClient.product.delete({
-        where: { id: productId }
-    })
-}
-
-/**
- * @method POST
- * @description Create new product - only Admin
- * @access login required
+ * @method POST /api/products/:productId
+ * @description Create new product
+ * @body {name,description,price,available,isFeatureProduct,colors,cateIds,roomIds,imageIds,creatorId}
+ * @access admin only
  * @response message
 */
 type newProduct = {
@@ -254,6 +232,26 @@ export async function createProduct({ role, ...newProduct }: newProduct) {
         throw error
     }
 }
+
+/**
+ * @method DELETE /api/products/:productId
+ * @description SoftDelete one product by id
+ * @access admin only
+ * @response message
+*/
+type deleteProduct = {
+    userRole: Role
+    productId: string,
+}
+export async function deleteProductById({ userRole, productId }: deleteProduct) {
+    if (userRole !== 'admin') throw Error("Unauthorize User")
+
+    await prismaClient.product.delete({
+        where: { id: productId }
+    })
+}
+
+
 
 export default async function handler(
     req: NextApiRequest,

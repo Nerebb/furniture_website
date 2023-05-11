@@ -6,7 +6,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getToken } from 'next-auth/jwt';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
 
 export type stripeRes = {
     clientSecret?: string,
@@ -29,8 +29,8 @@ export default async function handler(
                 const token = await getToken({
                     req,
                     secret: process.env.SECRET
-                },)
-                if (!token?.userId || !token) return res.status(401).redirect('/login').json({ message: "Unauthorize User redirect to login page" })
+                })
+                if (!token?.userId || !token) return res.status(401).json({ message: "Unauthorize User redirect to login page" })
 
                 const orderId = await isUUID.validate(req.query.orderId)
                 const userId = token.userId

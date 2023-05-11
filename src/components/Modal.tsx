@@ -23,6 +23,7 @@ type Props = {
     isRefuse?: boolean,
     isLoading?: boolean,
     onClick?: () => void,
+    onClose?: () => void,
     acceptCallback?: (param?: any) => void
     refuseCallback?: (param?: any) => void
 }
@@ -38,6 +39,7 @@ const Modal = ({
     isLoading,
     isRefuse = true,
     onClick,
+    onClose,
     acceptCallback,
     refuseCallback,
 }: Props) => {
@@ -76,9 +78,9 @@ const Modal = ({
     }, [type])
 
     function closeModal() {
-        console.log("IS CLOSE MODAL")
         if (keepOpen) return
         setIsOpen(false)
+        if (onClose) onClose()
     }
 
     async function handleAccept() {

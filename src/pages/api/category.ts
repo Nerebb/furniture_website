@@ -13,23 +13,10 @@ type Data = {
 }
 
 /**
- * @method GET
- * @description Get one category by Id
- * @param cateId req.query
- * @returns Category
- */
-export async function getCategory(cateId: number) {
-  const data = await prismaClient.category.findUniqueOrThrow({
-    where: { id: cateId }
-  })
-  return data
-}
-
-/**
- * @method GET
+ * @method GET /api/category?id=<string>&filter=<"id"||"label">&sort=<"asc"||"desc">&limit=<number>&skip=<number>
  * @description Get categories by filter/search
- * @param searchParams req.query
- * @returns Catergoy[]
+ * @access everyone
+ * @returns Category | Category[]
  */
 export async function getCategories(searchParams: Partial<FilterSearch>) {
   let orderBy: Prisma.CategoryOrderByWithRelationInput = {};
@@ -49,12 +36,19 @@ export async function getCategories(searchParams: Partial<FilterSearch>) {
   return { data, totalRecord }
 }
 
+export async function getCategory(cateId: number) {
+  const data = await prismaClient.category.findUniqueOrThrow({
+    where: { id: cateId }
+  })
+  return data
+}
+
 /**
- * @method PUT
- * @description update one category by Id 
- * @param cate {id:number,label:string} - req.body
- * @returns Category
+ * @method PUT /api/category
+ * @description update one category by Id
+ * @body {id:number,label:string}
  * @access Admin
+ * @return Category
  */
 export async function updateCateById(cate: Required<Category>) {
   const data = await prismaClient.category.update({
@@ -111,7 +105,6 @@ export default async function handler(
           return res.status(200).json({ data, message: `Get categoryId:${validated.id} success` })
         }
 
-
         //GetMany
         const { data, totalRecord } = await getCategories(validated)
 
@@ -126,7 +119,7 @@ export default async function handler(
         token = await verifyToken(req)
         if (!token || !token.userId) throw new Error("Unauthorize user")
       } catch (error: any) {
-        return res.status(405).json({ message: error.message || error })
+        return res.status(401).json({ message: error.message || error })
       }
 
       try {
@@ -157,7 +150,7 @@ export default async function handler(
         token = await verifyToken(req)
         if (!token || !token.userId) throw new Error("Unauthorize user")
       } catch (error: any) {
-        return res.status(405).json({ message: error.message || error })
+        return res.status(401).json({ message: error.message || error })
       }
 
       try {
@@ -184,12 +177,13 @@ export default async function handler(
         if (error.code === 'P2002' && error.meta.target == 'PRIMARY') return res.status(400).json({ message: "ID already signed" })
         return res.status(400).json({ message: error.message || "Unknow error" })
       }
-    case ApiMethod.DELETE: try {
-      token = await verifyToken(req)
-      if (!token || !token.userId) throw new Error("Unauthorize user")
-    } catch (error: any) {
-      return res.status(405).json({ message: error.message || error })
-    }
+    case ApiMethod.DELETE:
+      try {
+        token = await verifyToken(req)
+        if (!token || !token.userId) throw new Error("Unauthorize user")
+      } catch (error: any) {
+        return res.status(405).json({ message: error.message || error })
+      }
 
       try {
         const schema = Yup.object(DeleteFilterSchemaValidate)

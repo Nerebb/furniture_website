@@ -12,19 +12,11 @@ const inter = Inter({ subsets: ['latin'] })
 export default function Home() {
   const browserWidth = useBrowserWidth()
   return (
-    <>
-      <Head>
-        <title>Nereb furniture hompage</title>
-        <meta name="description" content="A NextJs demo furnipture website" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <BaseLayout>
-        {browserWidth > 500 && <Banner />}
-        <TopCategory />
-        {browserWidth > 500 && <FeatureProduct />}
-        <DailyDiscover />
-      </BaseLayout>
-    </>
+    <BaseLayout tabTitle='Nereb furniture homepage'>
+      {browserWidth > 500 && <Banner />}
+      <TopCategory />
+      {browserWidth > 500 && <FeatureProduct />}
+      <DailyDiscover />
+    </BaseLayout>
   )
 }

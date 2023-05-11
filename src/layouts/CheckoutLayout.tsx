@@ -1,10 +1,9 @@
+import CheckoutProvider from '@/contexts/checkoutContext'
 import Head from 'next/head'
-import React, { Fragment, ReactNode } from 'react'
+import { ReactNode } from 'react'
 import CheckoutHeader from './CheckoutHeader'
 import Container from './Container'
 import MainFooter from './MainFooter'
-import MainHeader from './MainHeader'
-import CheckoutProvider from '@/contexts/checkoutContext'
 
 type Props = {
     tabTitle: string,

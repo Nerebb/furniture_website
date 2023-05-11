@@ -6,7 +6,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { JWT, getToken } from 'next-auth/jwt'
 import * as Yup from 'yup'
 import { SignedUserData, verifyToken } from '../auth/customLogin'
-import { Role, User } from '@prisma/client'
+import { Prisma, Role, User } from '@prisma/client'
 type Data = {
     data?: UserProfile | User
     message?: any
@@ -33,11 +33,10 @@ function responseUserProfile(role: Role, data: User): UserProfile | User {
 }
 
 /**
- * @method GET
+ * @method GET /api/user/:userId
  * @description Get one user profile
- * @param role JWT token
- * @param userId JWT token - if admin -> userId from req.query
- * @response UserProfile
+ * @access Only admin can access userId in req.query - others get userId from JWT token
+ * @return UserProfile
  */
 async function getUser(role: Role, userId: string): Promise<User | UserProfile> {
     const data = await prismaClient.user.findFirstOrThrow({
@@ -48,13 +47,12 @@ async function getUser(role: Role, userId: string): Promise<User | UserProfile> 
 }
 
 /**
- * @method POST
+ * @method PUT /api/user/:id
  * @description Update login user profile only
- * @param role JWT token
- * @param userId JWT token - if admin -> userId from req.query
- * @param data req.body - updated data
- * @access login required
- * @response res.body message:"Update complete"
+ * @body everyone - {name,nickName,address,email,gender,phoneNumber,birthDay}
+ *       Admin -    {emailVerified,userVerified,deleted}
+ * @access Only admin can access id in req.query - others get id from JWT token
+ * @return res.body message:"Update complete"
 */
 async function updateUser(role: Role, userId: string, data: Partial<Omit<UserProfile, 'id'>>): Promise<UserProfile | User> {
     try {
@@ -86,7 +84,6 @@ async function updateUser(role: Role, userId: string, data: Partial<Omit<UserPro
                         address: data.address,
                         email: data.email,
                         gender: data.gender,
-                        role: data.role,
                         phoneNumber: data.phoneNumber,
                         birthDay: data.birthDay ? new Date(data.birthDay) : undefined,
                     }
@@ -95,16 +92,15 @@ async function updateUser(role: Role, userId: string, data: Partial<Omit<UserPro
                 return responseUserProfile(role, updateOwnerProfile)
         }
     } catch (error: any) {
-        console.log("🚀 ~ file: [id].ts:98 ~ updateUser ~ error:", error)
         throw error
     }
 }
 
 /**
- * @method DELETE soft delete a user
- * @description using middleware mutate prismaClient.delete to .update (@/libs/prismadb)
- * @param userId JWT token - if admin -> userId from req.query
- * @response message
+ * @method DELETE
+ * @description soft delete owned account
+ * @access Login user only
+ * @return message
 */
 async function deleteUser(userId: string) {
     await prismaClient.user.delete({
@@ -130,7 +126,6 @@ export default async function handler(
         }
         role = token.role
     } catch (error: any) {
-        console.log("🚀 ~ file: [id].ts:132 ~ error:", error)
         return res.status(401).json({ message: error.message || error })
     }
 

@@ -7,6 +7,7 @@ import ProductReview from '@/components/static/ProductDetail/ProductReview';
 import ProductSimilar from '@/components/static/ProductDetail/ProductSimilar';
 import { StarRating } from '@/components/static/StarRating';
 import SwiperContainer from '@/components/Swiper/SwiperContainer';
+import useBrowserWidth from '@/hooks/useBrowserWidth';
 import BaseLayout from '@/layouts/BaseLayout';
 import Section from '@/layouts/Section';
 import axios from '@/libs/axiosApi';
@@ -21,46 +22,66 @@ import { useRouter } from 'next/router';
 import { Fragment, useEffect, useMemo, useReducer, useState } from 'react';
 import { toast } from 'react-toastify';
 
-type Props = {
+type ProductReducer = {
+    selectedColor: string
+    selectedQty: number
+    createCmt: boolean
+    isWishlist: boolean
+    loadReview: boolean
+    error: string,
 }
 
-export default function ProductDetailPage({ }: Props) {
+
+
+const initProductState = {
+    error: "",
+    selectedColor: '',
+    selectedQty: 0,
+    createCmt: false,
+    isWishlist: false,
+    loadReview: false,
+} satisfies ProductReducer
+
+export default function ProductDetailPage() {
     const { data: session } = useSession()
     const router = useRouter();
     const productId = router.query.productId as string;
-    const [error, setError] = useState<string>()
     const queryClient = useQueryClient()
+    const browserWidth = useBrowserWidth()
 
-    //AddToCart
-    const [selectedColor, setSelectedColor] = useState<string>()
-    const [selectedQty, setSelectedQty] = useState<string | number>(1)
+    const [productState, setProductState] = useReducer(
+        (prev: ProductReducer, next: Partial<ProductReducer>) => ({ ...prev, ...next }),
+        initProductState
+    )
 
-    //NewCmt
-    const [createCmt, setCreateCmt] = useState<boolean>(false)
+    // const [error, setError] = useState<string>()
+    // //AddToCart
+    // const [selectedColor, setSelectedColor] = useState<string>()
+    // const [selectedQty, setSelectedQty] = useState<string | number>(1)
 
-    //AddToWishlist
-    const [isWishlist, setIsWishlist] = useState<boolean>(false)
+    // //NewCmt
+    // const [createCmt, setCreateCmt] = useState<boolean>(false)
 
-    //FetchProductReview
-    const [loadReview, setLoadReview] = useState<boolean>(false)
+    // //AddToWishlist
+
+    // //FetchProductReview
+    // const [loadReview, setLoadReview] = useState<boolean>(false)
 
     const userWishist = useQuery({
         queryKey: ['UserWishlist'],
         queryFn: () => axios.getWishList(),
-        enabled: !!session?.id
+        enabled: !!session?.id,
+        onSuccess: (data) => {
+            if (data.some(i => i.id === productId)) return setProductState({ isWishlist: true })
+        }
     })
-
-    useEffect(() => {
-        if (!userWishist.data) return setIsWishlist(false)
-        if (userWishist.data.some(i => i.id === productId)) return setIsWishlist(true)
-    }, [userWishist.data, productId])
 
     const { mutate: mutateAddToWishlist } = useMutation({
         mutationKey: ['UserWishlist'],
         mutationFn: (productId: string) => axios.addToWishList(productId),
         onSuccess: (data) => {
             toast.success(data.message)
-            setIsWishlist(true)
+            setProductState({ isWishlist: true })
         },
         onError: (data: any) => {
             toast.error(data)
@@ -75,7 +96,7 @@ export default function ProductDetailPage({ }: Props) {
         },
         onSuccess: (data) => {
             toast.info(data.message)
-            setIsWishlist(false)
+            setProductState({ isWishlist: false })
         }
     })
 
@@ -85,6 +106,11 @@ export default function ProductDetailPage({ }: Props) {
         onSuccess: () => {
             queryClient.invalidateQueries()
         }
+    })
+
+    const { data: isOrdered } = useQuery({
+        queryKey: ['isOrdered', productId],
+        queryFn: () => axios.checkIsOrdered(productId),
     })
 
     const { data: product, isLoading, isError } = useQuery({
@@ -123,18 +149,19 @@ export default function ProductDetailPage({ }: Props) {
     if (isError) toast.error("Something went wrong!, please refesh the page")
 
     function handleQtyOnChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setSelectedQty(e.target.value)
+        setProductState({ selectedQty: Number(e.target.value) })
     }
 
 
     function handleAddToCart() {
-        setError("")
-        const curQty = typeof selectedQty !== 'number' ? parseInt(selectedQty) : selectedQty
-        if (!selectedColor) return setError("Please select provided color")
-        if (!curQty || curQty < 0) return setError("Quantities is missing")
-        if (product?.available && curQty > product?.available) return setError("Product stock not meet requirements")
+        setProductState({ error: '' })
+        if (!session) return router.push('/login')
+        const curQty = productState.selectedQty
+        if (!productState.selectedColor) return setProductState({ error: "Please select provided color" })
+        if (!productState.selectedQty || productState.selectedQty < 0) return setProductState({ error: "Quantities is missing" })
+        if (product?.available && curQty > product?.available) return setProductState({ error: "Product stock not meet requirements" })
 
-        mutateShoppingCart({ color: selectedColor, quantities: curQty }, {
+        mutateShoppingCart({ color: productState.selectedColor, quantities: productState.selectedQty }, {
             onError: (error: any) => {
                 toast.error(error)
             },
@@ -142,21 +169,23 @@ export default function ProductDetailPage({ }: Props) {
                 toast.success(res.message)
 
                 //Reset
-                setSelectedQty(1)
-                setError(undefined)
-                setSelectedColor(undefined)
+                setProductState({ selectedColor: '', selectedQty: 0, error: "" })
             }
         })
     }
 
     async function updateUserWishlist() {
+        if (!session) return router.push('/login')
         if (!productId || typeof productId !== 'string') return toast.error("Invalid Product")
-        if (!isWishlist) return mutateAddToWishlist(productId)
-        if (isWishlist) return mutateRemoveFromWishlist(productId)
+        if (!productState.isWishlist) return mutateAddToWishlist(productId)
+        if (productState.isWishlist) return mutateRemoveFromWishlist(productId)
     }
 
     return (
-        <BaseLayout whiteSpace={false}>
+        <BaseLayout
+            tabTitle={product?.name || "Product detail"}
+            whiteSpace={false}
+        >
             {isLoading &&
                 <div className='flex-grow flex-center'>
                     <Loading />
@@ -177,10 +206,10 @@ export default function ProductDetailPage({ }: Props) {
                         <div className='flex items-center justify-between'>
                             <h1 className="text-[32px] font-bold first-letter:capitalize dark:text-white">{product.name}</h1>
                             <div onClick={updateUserWishlist}>
-                                {isWishlist ? (
-                                    <HeartIconSolid className='w-12 h-12 text-priBlue-300 hover:text-priBlack-50' />
+                                {productState.isWishlist ? (
+                                    <HeartIconSolid className='w-10 h-10 xl:w-12 xl:h-12 text-priBlue-300 hover:text-priBlack-50' />
                                 ) : (
-                                    <HeartIconOutline className='w-12 h-12 text-priBlack-50 hover:text-priBlue-300' />
+                                    <HeartIconOutline className='w-10 h-10 xl:w-12 xl:h-12 text-priBlack-50 hover:text-priBlue-300' />
                                 )}
                             </div>
                         </div>
@@ -211,8 +240,8 @@ export default function ProductDetailPage({ }: Props) {
                                             label={GetColorName(color)}
                                             modify="text-base px-4 py-1 mr-4"
                                             color={color}
-                                            onClick={() => { setSelectedColor(color) }}
-                                            selected={color === selectedColor}
+                                            onClick={() => { setProductState({ selectedColor: color }) }}
+                                            selected={color === productState.selectedColor}
                                         />
                                     </Fragment>
                                 ))}
@@ -225,7 +254,7 @@ export default function ProductDetailPage({ }: Props) {
                             >
                                 Quantity:
                                 <input
-                                    value={selectedQty}
+                                    value={productState.selectedQty}
                                     className='rounded-md max-w-[80px] ml-2 border-none ring-none hover:ring-1 hover:ring-priBlue-500 focus:ring-priBlue-500 dark:bg-priBlack-400'
                                     type='number'
                                     min={1}
@@ -233,8 +262,8 @@ export default function ProductDetailPage({ }: Props) {
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleQtyOnChange(e)}
                                 />
                             </label>
-                            {error &&
-                                <span className='text-red-500 first-letter:capitalize font-semibold ml-2'>{error}</span>
+                            {productState.error &&
+                                <span className='text-red-500 first-letter:capitalize font-semibold ml-2'>{productState.error}</span>
                             }
                         </div>
 
@@ -256,16 +285,16 @@ export default function ProductDetailPage({ }: Props) {
                                     </div>
                                 }
                             </Button>
-                            <Button
-                                text={createCmt ? "Close" : "Add review"}
+                            {isOrdered && <Button
+                                text={productState.createCmt ? "Close" : "Add review"}
                                 variant='outline'
                                 modifier='w-[150px] py-1.5 font-semibold dark:text-white'
-                                onClick={() => setCreateCmt(prev => !prev)}
-                            />
+                                onClick={() => setProductState({ createCmt: !productState.createCmt })}
+                            />}
                         </div>
 
                         <Transition
-                            show={createCmt}
+                            show={productState.createCmt}
                             as='div'
                             className='space-y-3'
                             enter="transition-all duration-700"
@@ -275,36 +304,38 @@ export default function ProductDetailPage({ }: Props) {
                             <ProductComment productId={productId} newReview={true} />
                         </Transition>
 
-                        <Transition
-                            show={!createCmt}
-                            as='div'
-                            className='space-y-3'
-                            enter="transition-all duration-700"
-                            enterFrom='opacity-0'
-                            enterTo='opacity-100'
-                        >
-                            {topReviews.data && topReviews.data.map(review => (
-                                <button
-                                    key={`top-${review.id}`}
-                                    onClick={() => setLoadReview(true)}
-                                    className='w-full'
-                                >
-                                    <ProductComment productId={productId} viewContent={false} review={review} />
-                                </button>
-                            ))}
-                        </Transition>
+                        {browserWidth > 1024 && (
+                            <Transition
+                                show={!productState.createCmt}
+                                as='div'
+                                className='space-y-3'
+                                enter="transition-all duration-700"
+                                enterFrom='opacity-0'
+                                enterTo='opacity-100'
+                            >
+                                {topReviews.data && topReviews.data.map(review => (
+                                    <button
+                                        key={`top-${review.id}`}
+                                        onClick={() => setProductState({ loadReview: true })}
+                                        className='w-full'
+                                    >
+                                        <ProductComment productId={productId} viewContent={false} review={review} />
+                                    </button>
+                                ))}
+                            </Transition>
+                        )}
                     </aside>
                 </article>
             }
 
             {/* ProductReview */}
             <Transition
-                show={loadReview}
+                show={productState.loadReview || browserWidth < 1025}
                 enter="transition-all duration-700"
                 enterFrom='opacity-0 translate-y-5 h-0'
                 enterTo='opacity-100 translate-y-0 h-full'
             >
-                <ProductReview productId={productId} loadReview={loadReview} />
+                <ProductReview productId={productId} loadReview={productState.loadReview || browserWidth < 1025} />
             </Transition>
 
 

@@ -2,14 +2,21 @@ import classNames from 'classnames'
 import React from 'react'
 
 type Props = {
-    className?: string
+    height?: number
+    width?: number
 }
 
-export default function AvatarLost({ className }: Props) {
+export default function AvatarLost({ height = 14, width = 14 }: Props) {
     return (
-        <div className="relative w-14 h-14 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600">
+        <div className={classNames(
+            "relative overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600",
+            `w-${width} h-${height}`
+        )}>
             <svg
-                className="absolute w-16 h-16 text-gray-400 -left-1"
+                className={classNames(
+                    "absolute text-gray-400 -left-1",
+                    `w-${width + 2} h-${height + 2}`
+                )}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg">

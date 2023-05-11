@@ -11,7 +11,7 @@ export const AllowedProductFilters: Array<keyof Omit<ProductCard, 'totalProduct'
     'description', 'id', 'name', 'price', 'totalRating', 'updatedAt'
 ]
 export const AllowedProductReviewFilters: Array<keyof ProductReview> = [
-    'content', 'createdDate', 'id', 'ownerId', 'productId', 'rating', 'totalLike', 'updatedAt'
+    'content', 'createdDate', 'id', 'ownerId', 'productId', 'rating', 'totalLike', 'updatedAt', 'isPending'
 ]
 export const AllowedOrderFilters: Array<keyof Order> = [
     'billingAddress', 'createdDate', 'id', 'ownerId', 'shippingAddress', 'shippingFee', 'status', 'subTotal', 'total', 'updatedAt'
@@ -202,6 +202,13 @@ export const NewOrderSchemaValidate = {
     shippingAddress: Yup.string().max(255).required(),
 }
 
+export const UpdateOrderSchemaValidate = {
+    shippingFee: Yup.number().integer().min(0),
+    subTotal: Yup.number().integer().min(0),
+    total: Yup.number().integer().min(0),
+    status: Yup.string().oneOf(Object.values(Status))
+}
+
 export const CheckoutFormSchemaValidate = {
     name: UserSchemaValidate.name,
     phoneNumber: UserSchemaValidate.phoneNumber,
@@ -220,6 +227,7 @@ export const GetProductReviewSchemaValidate = {
 }
 
 export const CreateProductReviewSchemaValidate = {
+    userId: Yup.string().uuid(),
     productId: Yup.string().uuid("Invalid productId").required(),
     content: Yup.string().max(255).required(),
     rating: Yup.number().integer().moreThan(-1).max(5).required(),
@@ -243,7 +251,7 @@ export const SearchFilterSchemaValidate = {
     }),
     filter: Yup.string().lowercase().oneOf(['id', 'label']),
     sort: Yup.string().lowercase().oneOf(['asc', 'desc']),
-    limit: Yup.number().min(1).max(50),
+    limit: Yup.number().min(1),
     skip: Yup.number().moreThan(-1),
 }
 
@@ -319,7 +327,7 @@ export const SearchProductReviewSchemaValidate = {
     updatedAt: Yup.date(),
     filter: Yup.string().oneOf(AllowedProductReviewFilters),
     sort: Yup.string().lowercase().oneOf(['asc', 'desc']),
-    limit: Yup.number().integer().min(0).max(100),
+    limit: Yup.number().integer().min(0),
     skip: Yup.number().moreThan(-1),
     isPending: Yup.boolean(),
 }
@@ -328,7 +336,7 @@ export const DeleteProductReviewSchemaValidate = {
     id: Yup.lazy(value => {
         switch (typeof value) {
             case 'object':
-                return Yup.array().of(Yup.string().uuid().required())
+                return Yup.array().of(Yup.string().uuid().required()).required()
             default:
                 return Yup.string().uuid().required()
         }
