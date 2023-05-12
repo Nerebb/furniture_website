@@ -1,6 +1,8 @@
 import { ResponseOrder } from "@/pages/api/order";
 import { ProductCard, ProductSearch } from "@/pages/api/products";
 import { CheckoutStage } from "@/pages/checkout";
+import { Color, Room } from "@prisma/client";
+import { Category } from "@types";
 import { createContext, Dispatch, SetStateAction } from "react";
 
 //Passing SearchParams to route: /products to execute search method

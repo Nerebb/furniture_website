@@ -3,11 +3,11 @@ import { ProductCard, ProductSearch } from "@/pages/api/products"
 import { ProductDetail } from "@/pages/api/products/[productId]"
 import { UserShoppingCart } from "@/pages/api/user/shoppingCart"
 import { Gender, Status } from "@prisma/client"
-import { UserProfile } from "@types"
+import { Register, UserProfile } from "@types"
 import axiosClient from "./axiosClient"
 import { buildQuery } from "./utils/buildQuery"
 import { NewReviewProps, ResponseReview, ReviewSearch } from "@/pages/api/review"
-import { UpdateReview } from "@/pages/api/review/[id]"
+import { UpdateReview } from "@/pages/api/review/[reviewId]"
 import { NewOrder, ResponseOrder } from "@/pages/api/order"
 
 
@@ -22,6 +22,9 @@ export type allowedField = Omit<UserProfile,
 export const allowedFilter = ['category', 'color', 'room'] as const
 
 type AxiosApi = {
+    //SignUp
+    signUp: (props: Register) => Promise<{ message: string }>,
+
     //User
     getUser: (id?: string) => Promise<UserProfile | undefined>,
     updateUser: (id: string, data: allowedField) => Promise<{ message: string }>,
@@ -47,10 +50,11 @@ type AxiosApi = {
     addToWishList: (productId: string) => Promise<{ message: string }>,
     deleteWishlistProduct: (productId: string) => Promise<{ message: String }>,
 
-    // //Orders
+    //Orders
     getUserOrders: (skip?: number, status?: Status) => Promise<ResponseOrder[]>,
     getOrderedProducts: (orderId: string) => Promise<ResponseOrder>,
-    createNewOrder: ({ ...params }: NewOrder) => Promise<ResponseOrder>
+    createNewOrder: ({ ...params }: NewOrder) => Promise<ResponseOrder>,
+    checkIsOrdered: (productId: string) => Promise<boolean>,
     cancelUserOrder: (orderId: string) => Promise<{ message: string }>,
 
 
@@ -69,6 +73,17 @@ const API_CHECKOUT = 'api/checkout'
 const API_PRODUCT_REVIEW = `/api/review`
 
 const axios: AxiosApi = {
+    //Auth
+    signUp: async (values) => {
+        try {
+            const res: { message: string } = await axiosClient.post('api/auth/customSignup', values)
+            return { message: res.message }
+        } catch (error: any) {
+            console.log("Axios-CustomSignUp", error)
+            throw error.message
+        }
+    },
+
     //User
     getUser: async (id) => {
         try {
@@ -213,6 +228,16 @@ const axios: AxiosApi = {
         }
     },
 
+    checkIsOrdered: async (productId) => {
+        try {
+            const res = await axiosClient.get(`${API_USER_ORDER}/checkOrder?productId=${productId}`)
+            return res.data
+        } catch (error: any) {
+            console.log("Axios-checkIsOrdered", error)
+            throw error.message
+        }
+    },
+
     //UserShoppingCart
     getShoppingCart: async () => {
         try {
@@ -226,8 +251,7 @@ const axios: AxiosApi = {
 
     addToShoppingCart: async (productId, color, quantities) => {
         try {
-            const query = buildQuery(API_USER_SHOPPINGCART, { productId, color, quantities })
-            const res: { message: string } = await axiosClient.post(query)
+            const res: { message: string } = await axiosClient.post(API_USER_SHOPPINGCART, { productId, color, quantities })
             return { message: res.message }
         } catch (error: any) {
             console.log("Axios-addToShoppingCart", error)
@@ -237,8 +261,7 @@ const axios: AxiosApi = {
 
     updateShoppingCart: async (cartItemId, color, quantities) => {
         try {
-            const query = buildQuery(API_USER_SHOPPINGCART, { cartItemId, color, quantities })
-            const res: { message: string } = await axiosClient.put(query)
+            const res: { message: string } = await axiosClient.put(API_USER_SHOPPINGCART, { cartItemId, color, quantities })
             return { message: res.message }
         } catch (error: any) {
             console.log("Axios-updateShoppingCart", error)

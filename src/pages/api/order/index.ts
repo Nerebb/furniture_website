@@ -133,11 +133,9 @@ export async function santinizeOrder(data: Order & OrderInclude, getDetail: bool
 }
 
 /**
- * @method GET
- * @description Get owned orders - if admin then get orders from specific users
- * @param role from JWT token
- * @param userId from JWT token - if admin => userId from req.body
- * @param searchParams req.body
+ * @method GET /api/order?id=<string|string[]>&subTotal=<number>&billingAddress=<string>&status=<enum>&ownerId=<userId>&limit=<number>&filter=<keyof Order table>&sort=<'asc'|'desc'>&skip=<number>&createdDate=<Date>&updatedAt=<Date>
+ * @description Get owned orders with search params and filtered
+ * @access Only admin can search with id, others will use token.userId as id field in search
  * @returns ResponseOrders[]
  */
 export async function getOrders(role: Role, userId: string, searchParams: OrderSearch) {
@@ -185,10 +183,10 @@ export async function getOrders(role: Role, userId: string, searchParams: OrderS
 }
 
 /**
- * @method PUT
+ * @method POST /api/order
  * @description Create new order
- * @param userId from JWT token - if admin => userId from req.body
- * @param order req.body
+ * @body {products,billingAddress,shippingAddress}
+ * @access Admin only
  * @return ResponseOrder
  */
 

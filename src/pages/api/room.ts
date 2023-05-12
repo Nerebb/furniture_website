@@ -12,24 +12,12 @@ type Data = {
 }
 
 /**
- * @method GET
- * @description Get one room by Id
- * @param roomId req.query
- * @returns Room
+ * @method GET /api/room?id=<string>&filter=<"id"||"label">&sort=<"asc"||"desc">&limit=<number>&skip=<number>
+ * @description Get categories by filter/search
+ * @access everyone
+ * @return Room | Room[]
  */
-export async function getRoom(roomId: number) {
-    const data = await prismaClient.room.findUniqueOrThrow({
-        where: { id: roomId }
-    })
-    return data
-}
 
-/**
- * @method GET
- * @description Get rooms by filter/search
- * @param searchParams req.query
- * @returns Room[]
- */
 export async function getRooms(searchParams: Partial<FilterSearch>) {
     let orderBy: Prisma.CategoryOrderByWithRelationInput = {};
     if (searchParams.filter && searchParams.sort) orderBy[searchParams.filter] = searchParams.sort
@@ -48,12 +36,19 @@ export async function getRooms(searchParams: Partial<FilterSearch>) {
     return { data, totalRecord }
 }
 
+export async function getRoom(roomId: number) {
+    const data = await prismaClient.room.findUniqueOrThrow({
+        where: { id: roomId }
+    })
+    return data
+}
+
 /**
- * @method PUT
- * @description update one Room by Id 
- * @param room {id:number,label:string} - req.body
- * @returns Room
+ * @method PUT /api/room
+ * @description update one room by Id
+ * @body {id:number,label:string}
  * @access Admin
+ * @return room
  */
 export async function updateRoomById(room: Required<Room>) {
     const data = await prismaClient.room.update({
@@ -65,11 +60,11 @@ export async function updateRoomById(room: Required<Room>) {
 }
 
 /**
- * @method POST
- * @description create category
- * @param room {id:number,label:string} - req.body
- * @returns Room
+ * @method POST /api/room
+ * @description create room
+ * @body {id:number,label:string}
  * @access Admin
+ * @return room
  */
 export async function createRoom(room: { id?: number, label: string }) {
     const data = await prismaClient.room.create({
@@ -80,11 +75,10 @@ export async function createRoom(room: { id?: number, label: string }) {
 }
 
 /**
- * @method DELETE
- * @description pernament delete category
- * @param cateIds Array id of category
- * @returns message
+ * @method DELETE /api/room?id=<string>
+ * @description pernament delete room
  * @access Admin
+ * @return message
  */
 export async function deleteRooms(roomIds: number | number[]) {
     const data = await prismaClient.room.deleteMany(

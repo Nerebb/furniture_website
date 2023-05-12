@@ -1,10 +1,10 @@
 import axios from '@/libs/axiosApi';
 import { Menu, Transition } from '@headlessui/react';
-import { ArrowRightOnRectangleIcon, Bars3Icon, FlagIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { ArrowRightOnRectangleIcon, Bars3Icon, PencilSquareIcon } from '@heroicons/react/24/outline';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import classNames from 'classnames';
-import { signOut, useSession } from 'next-auth/react';
-import { Dispatch, Fragment, SetStateAction } from 'react';
+import { useSession } from 'next-auth/react';
+import { Dispatch, Fragment } from 'react';
 import { toast } from 'react-toastify';
 
 type Props = {
@@ -29,6 +29,7 @@ export default function CommentDropMenu({ ownerId, reviewId, isEdited, setIsEdit
             toast.error(error)
         }
     })
+    if (!isOwned) return <></>
     return (
         <Menu as="div" className="relative">
             <Menu.Button className={'rounded-full hover:ring-2 flex-center'}>
@@ -83,7 +84,7 @@ export default function CommentDropMenu({ ownerId, reviewId, isEdited, setIsEdit
                                     )}
                                 </Menu.Item>
                             ))}
-                        {!isOwned && <Menu.Item>
+                        {/* {!isOwned && <Menu.Item>
                             {({ active }) => (
                                 <div
                                     className={classNames(
@@ -97,7 +98,7 @@ export default function CommentDropMenu({ ownerId, reviewId, isEdited, setIsEdit
                                     <p>Report</p>
                                 </div>
                             )}
-                        </Menu.Item>}
+                        </Menu.Item>} */}
                     </div>
                     {isOwned && <Menu.Item>
                         {({ active }) => (

@@ -8,6 +8,8 @@ import { Gender, Prisma, Role, User } from '@prisma/client'
 import { ApiMethod } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import * as Yup from 'yup'
+import { verifyToken } from '../auth/customLogin'
+import { JWT } from 'next-auth/jwt'
 
 type Data = {
     data?: User | User[]
@@ -48,11 +50,10 @@ type UserFilter = {
 }
 
 /**
- * @method GET
- * @description get users by filter/search 
- * @param props req.query - searchUser
- * @returns User[]
- * @access admin only
+ * @method GET /api/user?id=<string>&name=<string>&nickName=<string>&address=<string>&email=<string>&gender=<Gender>&role=<Role>&phoneNumber=<string>&birthDay=<Date>&createdDate=<Date>&updatedAt=<Date>&userVerified=<Date>&emailVerified=<Date>&deleted=<Date>
+ * @description get users by filter/search
+ * @access Only admin
+ * @return User[]
  */
 export async function getUsers({ ...props }: UserSearch & UserFilter) {
     let orderBy: Prisma.UserOrderByWithRelationInput = {};
@@ -88,7 +89,12 @@ export async function getUsers({ ...props }: UserSearch & UserFilter) {
     return data
 }
 
-
+/**
+ * @method DELETE /api/user?id=<string|string[]>
+ * @description soft delete user
+ * @access Only admin
+ * @return message
+ */
 export async function deleteUsers(ids: string | string[]) {
     const data = await prismaClient.user.deleteMany({
         where: { id: { in: ids } }
@@ -101,6 +107,8 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
+    const token = await verifyToken(req)
+    if (!token || !token.userId || token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
     switch (req.method) {
         case ApiMethod.GET:
             try {

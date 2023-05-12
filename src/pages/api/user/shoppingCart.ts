@@ -7,6 +7,13 @@ import * as Yup from 'yup'
 import { getProductById } from '../products/[productId]'
 import { Prisma } from '@prisma/client'
 import { NewOrderItem } from '../order'
+import { verifyToken } from '../auth/customLogin'
+
+type ShoppingItem = {
+    productId: string
+    color: string
+    quantities: number
+}
 
 type UpdateShoppingItem = {
     cartItemId: string,
@@ -36,7 +43,7 @@ export type UserShoppingCart = {
 }
 
 type Data = {
-    data?: UserShoppingCart
+    data?: UserShoppingCart | []
     message?: string
 }
 
@@ -65,16 +72,16 @@ const shoppingCartIncludes = {
 } satisfies Prisma.ShoppingCartInclude
 
 /**
- * @method GET
- * @param userId from JWT Token
- * @returns type UserShoppingCart
+ * @method GET /api/user/shoppingCart
+ * @access Login user
+ * @return  UserShoppingCart
  */
 export async function getShoppingCart(userId: string) {
-    const data = await prismaClient.shoppingCart.findUniqueOrThrow({
+    const data = await prismaClient.shoppingCart.findUnique({
         where: { ownerId: userId },
         include: shoppingCartIncludes
     })
-
+    if (!data) return
     //SantinizeData
     const shoppingCartItem: ShoppingCartItem[] = data.shoppingCartItem.map(i => ({
         id: i.id,
@@ -99,17 +106,13 @@ export async function getShoppingCart(userId: string) {
 }
 
 /**
- * @method PUT
- * @description create new Shoppingcart
- * @param userId from JWT Token
+ * @method PUT /api/user/shoppingCart
+ * @description add new product to owned Shoppingcart
  * @param req client request {productId,color,quantities} in query params
+ * @access Login user
  * @returns message
  */
-export async function createShoppingCart(userId: string, req: NextApiRequest) {
-    //Validate request data: productId,color,quantities
-    const schema = Yup.object(ShoppingCartCreateSchemaValidate)
-    const { productId, color, quantities } = await schema.validate(req.query)
-
+export async function addShoppingCartItem(userId: string, { productId, color, quantities }: ShoppingItem) {
     //Check productId
     const chosenItem = await getProductById(productId)
     if (!chosenItem) throw new Error("Product not found")
@@ -172,6 +175,7 @@ export async function createShoppingCart(userId: string, req: NextApiRequest) {
 export async function updateShoppingCart(userId: string, { cartItemId, color, quantities }: UpdateShoppingItem) {
     //Santinize request
     const curCart = await getShoppingCart(userId)
+    if (!curCart) throw new Error("ShoppingCart not found")
 
     const chosenItem = curCart.shoppingCartItem.find(cartItem => cartItem.id === cartItemId)
     if (!chosenItem) throw new Error("Product not found")
@@ -207,9 +211,8 @@ export async function updateShoppingCart(userId: string, { cartItemId, color, qu
 }
 
 /**
- * @method DELETE - PERNAMENT
- * @param userId from JWT Token
- * @param cartItemId req.query
+ * @method DELETE /api/user/shoppingCart?cartItemId=<string>
+ * @description Delete one item in owned shopping cart by CartItemId
  * @returns message
  */
 export async function deleteShoppingCartItem(userId: string, cartItemId: string) {
@@ -246,26 +249,27 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const token = await getToken({
-        req,
-        secret: process.env.SECRET
-    },)
+    const token = await verifyToken(req)
 
-    if (!token?.userId || !token) return res.status(400).json({ message: "Invalid user" }) //Already check in middleware - this just for userId is specified - no undefined
+    if (!token?.userId || !token) return res.status(401).json({ message: "Invalid user" })
 
     const userId = token.userId
 
     switch (req.method) {
         case ApiMethod.GET:
             try {
-                const data = await getShoppingCart(userId as string)
+                const data = await getShoppingCart(userId)
                 return res.status(200).json({ data, message: "Get shoppingcart product success" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.POST:
             try {
-                await createShoppingCart(userId as string, req)
+                //Validate request data: productId,color,quantities
+                const schema = Yup.object(ShoppingCartCreateSchemaValidate)
+                const validated = await schema.validate(req.body)
+
+                await addShoppingCartItem(userId, validated)
                 return res.status(200).json({ message: "Create/Add to cart success" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
@@ -274,8 +278,8 @@ export default async function handler(
             try {
                 //Santinize request
                 const schema = Yup.object(ShoppingCartUpdateSchemaValidate)
-                const validated = await schema.validate(req.query)
-                await updateShoppingCart(userId as string, validated)
+                const validated = await schema.validate(req.body)
+                await updateShoppingCart(userId, validated)
                 return res.status(200).json({ message: "Update product completed" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
@@ -285,7 +289,7 @@ export default async function handler(
                 const schema = Yup.object(ShoppingCartDeleteSchemaValidate)
                 const { cartItemId } = await schema.validate(req.query)
 
-                await deleteShoppingCartItem(userId as string, cartItemId)
+                await deleteShoppingCartItem(userId, cartItemId)
                 return res.status(200).json({ message: "Product has been removed from cart" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })

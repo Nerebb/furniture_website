@@ -34,17 +34,10 @@ function ProductSideModal({ modifier }: { modifier: string }) {
     )
 }
 
-function Test({ keepOpen }: { keepOpen?: string }) {
-    return (<Modal
-    />)
-}
-
 export default function NavMenu({ }: Props) {
     const router = useRouter()
-
     return (
         <div className='text-left'>
-            <Test />
             <Menu as="div" className="relative">
                 <Menu.Button
                     className={'p-1 flex-center rounded-full flex-center'}

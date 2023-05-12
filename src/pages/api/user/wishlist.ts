@@ -9,19 +9,20 @@ import jwt from 'jsonwebtoken'
 import { verifyToken } from '../auth/customLogin'
 
 type Data = {
-    data?: ProductCard[]
+    data?: ProductCard[] | boolean
     message?: string
 }
 
 
 /**
- * @method GET
- * @param loginId Get from cookies JWT
+ * @method GET /api/user/wishlist
+ * @description Get owned wishlist product
+ * @access Login user
  * @returns ProductCard[]
  */
-export async function getWishList(loginId: string) {
+export async function getWishList(userId: string) {
     const data = await prismaClient.wishlist.findFirst({
-        where: { ownerId: { equals: loginId } },
+        where: { ownerId: userId },
         include: {
             products: {
                 include: {
@@ -40,11 +41,11 @@ export async function getWishList(loginId: string) {
             }
         }
     })
+    if (!data) return []
 
     const totalProduct = await prismaClient.wishlist.count({
-        where: { ownerId: { equals: loginId } },
+        where: { ownerId: userId },
     })
-    if (!data) return []
     let responseData = data.products.map(product => {
         return {
             id: product.id,
@@ -70,11 +71,29 @@ export async function getWishList(loginId: string) {
 }
 
 /**
- * @method POST
- * @description Add ONE product to wishlist
- * @param loginId Get from cookies JWT
- * @param productId req.query
- * @returns Message: "Add product comepleted"
+ * @method PUT /api/user/wishlist?productId=<string>
+ * @description Check if product already in wishlist
+ * @access Login user
+ * @return boolean
+ */
+export async function checkWishlist(userId: string, productId: string) {
+    const data = await prismaClient.wishlist.findFirst({
+        where: {
+            ownerId: userId,
+            products: {
+                some: { id: productId }
+            }
+        }
+    })
+    if (!data) return false
+    return true
+}
+
+/**
+ * @method POST /api/user/wishlist?productId=<string>
+ * @description upsert productId to wishlist
+ * @access Login user
+ * @return message
  */
 export async function addToWishlist(userId: string, productId: string) {
     await prismaClient.wishlist.upsert({
@@ -96,11 +115,10 @@ export async function addToWishlist(userId: string, productId: string) {
 }
 
 /**
- * @method DELETE //Pernament
- * @description Remove ONE product from owned wishlist
- * @param loginId Get from cookies JWT
- * @param productId req.query
- * @retuns Message
+ * @method DELETE /api/user/wishlist?productId=<string>
+ * @description Remove ONE product from owned wishlist - PERNAMENT
+ * @access Login user
+ * @return message
  */
 
 export async function deleteWishlistProduct(userId: string, productId: string) {
@@ -124,7 +142,7 @@ export default async function handler(
         if (!token || !token.userId) throw new Error("Unauthorize user")
         userId = token.userId
     } catch (error: any) {
-        return res.status(400).json({ message: error.message })
+        return res.status(401).json({ message: error.message })
     }
 
     let productId;
@@ -137,18 +155,25 @@ export default async function handler(
     switch (req.method) {
         case ApiMethod.GET:
             try {
-                const data = await getWishList(userId as string)
+                const data = await getWishList(userId)
                 return res.status(200).json({ data, message: "Get User wishlist success" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.PUT:
+            try {
+                if (!productId) throw new Error("Invalid productId")
+                const isWishlist = await checkWishlist(userId, productId)
+                return res.status(200).json({ data: isWishlist })
+            } catch (error: any) {
+                return res.status(400).json({ message: error.message || "Unknown error" })
+            }
         case ApiMethod.POST:
             try {
-                await addToWishlist(userId, productId as string)
+                if (!productId) throw new Error("Invalid productId")
+                await addToWishlist(userId, productId)
                 return res.status(200).json({ message: "Add selected product to wishlist success" })
             } catch (error: any) {
-                console.log("🚀 ~ file: wishlist.ts:152 ~ error:", error)
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.DELETE:

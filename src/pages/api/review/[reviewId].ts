@@ -15,11 +15,9 @@ type Data = {
 }
 
 /**
- * @method GET
+ * @method GET /api/review/:reviewId
  * @description Get one productReview by reviewId
- * @param role JWT token 
- * @param reviewId req.query
- * @param userId  JWT token
+ * @access everyone
  * @returns ResponseReview
  */
 export async function getProductReviewById(role: Role, reviewId: string, userId?: string) {
@@ -31,37 +29,17 @@ export async function getProductReviewById(role: Role, reviewId: string, userId?
 }
 
 /**
- * @description delete pernament product review by reviewId
- * @param role JWT token
- * @param reviewId req.query
- * @param userId JWT token - if role === admin => userId from req.body
- * @access login required
- */
-export async function deleteProductReviewById(role: Role, reviewId: string, userId?: string) {
-    let deleteReviewParam: Prisma.ProductReviewWhereInput = {
-        id: reviewId
-    }
-
-    if (role !== 'admin') deleteReviewParam.ownerId = userId
-
-    const data = await prismaClient.productReview.deleteMany({
-        where: deleteReviewParam
-    })
-
-    if (!data.count) throw new Error("Product review not found")
-}
-
-/**
- * @method PUT
- * @description update owned product review - if admin => userId as req.query
- * @param review {id,ownerId,productId,content,rating}
- * @access login required
+ * @method PUT /api/review/:reviewId?userId
+ * @description Update likes of product review Or update content of owned productReview
+ * @param body {likedUser} || {id,ownerId,productId,content,rating}
+ * @access login required - Only admin can access userId from req.query which replace ownerId
  * @return message
  */
 export type UpdateReview = {
     id?: string
-    content?: string,
+    content?: string
     rating?: number
+    isPending?: boolean
 }
 export async function updateProductReview(role: Role, review: UpdateReview, userId?: string) {
     let prevRating;
@@ -76,7 +54,8 @@ export async function updateProductReview(role: Role, review: UpdateReview, user
         where: { id: review.id },
         data: {
             content: review.content,
-            rating: review.rating
+            rating: review.rating,
+            isPending: role === 'admin' ? review.isPending : undefined
         },
         include: productReviewIncludes
     })
@@ -99,14 +78,6 @@ export async function updateProductReview(role: Role, review: UpdateReview, user
     return santinizeReview(role, data, userId)
 }
 
-/**
- * @method POST
- * @description update review Like
- * @param reviewId req.query
- * @param likeUser JWT token
- * @access login required
- * @return message
- */
 export async function updateReviewLike(reviewId: string, likeUser?: string) {
     if (!likeUser) throw new Error("Something went wrong - try to login again!")
     const review = await prismaClient.productReview.findUniqueOrThrow({
@@ -143,6 +114,28 @@ export async function updateReviewLike(reviewId: string, likeUser?: string) {
     }
 }
 
+/**
+ * @description delete pernament product review by reviewId
+ * @param role JWT token
+ * @param reviewId req.query
+ * @param userId JWT token - if role === admin => userId from req.body
+ * @access login required
+ */
+export async function deleteProductReviewById(role: Role, reviewId: string, userId?: string) {
+    let deleteReviewParam: Prisma.ProductReviewWhereInput = {
+        id: reviewId
+    }
+
+    if (role !== 'admin') deleteReviewParam.ownerId = userId
+
+    console.log("🚀 ~ file: [reviewId].ts:128 ~ deleteProductReviewById ~ deleteReviewParam:", deleteReviewParam)
+    const data = await prismaClient.productReview.deleteMany({
+        where: deleteReviewParam
+    })
+
+    if (!data.count) throw new Error("Product review not found")
+}
+
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
@@ -158,12 +151,12 @@ export default async function handler(
             provider: "",
         }
     }
-    const { id } = await Yup.object({ id: isUUID }).validate(req.query)
+    const { reviewId } = await Yup.object({ reviewId: isUUID }).validate(req.query)
 
     switch (req.method) {
         case ApiMethod.GET:
             try {
-                const data = await getProductReviewById(token.role, id, token.userId)
+                const data = await getProductReviewById(token.role, reviewId, token.userId)
                 return res.status(200).json({ data, message: "Get ProductReviewById success" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "GetProductReviewById: Unknown error" })
@@ -173,7 +166,7 @@ export default async function handler(
                 //Update user like the review or update user that owned the review
                 let data;
                 if (req.body.likedUser) {
-                    await updateReviewLike(id, token.userId)
+                    await updateReviewLike(reviewId, token.userId)
                 } else {
                     const schema = Yup.object(UpdateProductReviewSchemaValidate)
                     const validateSchema = async () => {
@@ -199,7 +192,7 @@ export default async function handler(
             }
         case ApiMethod.DELETE:
             try {
-                await deleteProductReviewById(token.role, id, token.userId)
+                await deleteProductReviewById(token.role, reviewId, token.userId)
                 return res.status(200).json({ message: "Delete selected Product review success" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "GetProductReviewById: Unknown error" })

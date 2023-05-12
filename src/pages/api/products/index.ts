@@ -54,7 +54,7 @@ type Data = {
     message: string,
 }
 /**
- * @method GET
+ * @method GET /api/products?id=<productId>&id=<productId>&limit=<number>&skip=<number>&rating=<number>&fromPrice=<number>&toPrice=<number>&available=<boolean>&name=<string>&cateId=<number|number[]>&colorHex=<string[]>&roomId=<number|number[]>&createdDate=<Date>&isFeaturedProduct=<boolean>&filter=keyof ProductTable&sort=<'asc' | 'desc'>
  * @description get Products witch filter/search params
  * @param role JWT token
  * @param props searchParams of product
@@ -176,10 +176,10 @@ export async function getProducts(role: Role, props: ProductSearch): Promise<Pro
 }
 
 /**
- * @method DELETE
- * @description SoftDelete products
- * @param ids req.query as Array of productId
+ * @method DELETE /api/product?id=<productId>&id=<productId>&id=<productId>
+ * @description SoftDelete manyProducts depends on productId
  * @return message
+ * @access role === 'admin'
  */
 
 export async function deleteProducts(ids: string[]) {
@@ -225,6 +225,7 @@ export default async function handler(
             }
         case ApiMethod.DELETE:
             try {
+                if (token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
                 const schema = Yup.object({ id: Yup.array().of(Yup.string().uuid().required()).required() }).typeError("Request query must be Array type")
 
                 const { id } = await schema.validate(req.query)
