@@ -6,7 +6,6 @@ import classNames from 'classnames';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { Fragment } from 'react';
-import ShoppingCart from '../ShoppingCart';
 import SwitchTheme from '../SwitchTheme';
 
 type Props = {
@@ -57,17 +56,6 @@ export default function AccDropMenu({ }: Props) {
                                 )}
                             </Menu.Item>
                         ))}
-                        <Menu.Item>
-                            {({ active }) => (
-                                <ShoppingCart
-                                    btnText
-                                    modifier={classNames(
-                                        'first-letter:capitalize w-full flex px-2 py-1.5 space-x-2',
-                                        'hover:bg-priBlue-200/70 rounded-none',
-                                    )}
-                                />
-                            )}
-                        </Menu.Item>
                         <Menu.Item >
                             {() => (
                                 <SwitchTheme

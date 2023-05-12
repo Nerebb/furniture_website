@@ -128,7 +128,6 @@ export async function deleteProductReviewById(role: Role, reviewId: string, user
 
     if (role !== 'admin') deleteReviewParam.ownerId = userId
 
-    console.log("🚀 ~ file: [reviewId].ts:128 ~ deleteProductReviewById ~ deleteReviewParam:", deleteReviewParam)
     const data = await prismaClient.productReview.deleteMany({
         where: deleteReviewParam
     })

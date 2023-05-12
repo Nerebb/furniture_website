@@ -2,17 +2,22 @@
 import { ApiMethod } from '@types';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { stripe } from './checkout';
+import nodemailer from 'nodemailer'
+import prismaClient from '@/libs/prismaClient';
 
 type Data = {
     message?: string
 }
 const endpointSecret = process.env.SECRET
+export const transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+        user: "nereb.furniture@gmail.com",
+        pass: process.env.GOOGLE_PASS
+    }
+})
 
-export async function nodeMailer() {
-
-}
-
-export default function handler(
+export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
@@ -38,6 +43,27 @@ export default function handler(
 
                 switch (event.type) {
                     case 'payment_intent.succeeded':
+                        const { userId, orderId } = req.body.metadata
+                        if (!userId) return res.status(500).json({ message: `PaymentId:${req.body.id} userId not found` })
+                        const user = await prismaClient.user.findFirstOrThrow({
+                            where: { id: userId }
+                        })
+                        if (!user.email) return res.status(400).json({ message: `User-${userId}: Dont have registered email` })
+
+                        const mainOptions = {
+                            from: "Nereb furniture",
+                            to: user.email,
+                            subject: "Thank you for your purchased",
+                            html: `<p>Payment success OrderID:${orderId} - amount ${req.body.amount} VND </p>`
+                        }
+
+                        transporter.sendMail(mainOptions, function (err, info) {
+                            if (err) {
+                                console.log("NodeMailer-Send", err);
+                                throw err
+                            }
+                        })
+
                         return res.status(200).json({ message: "Payment intent success" })
                     default:
                         throw new Error("Unhandled payments event")
