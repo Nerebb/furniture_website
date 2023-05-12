@@ -54,6 +54,7 @@ export default function ProductGrid({
             rating: pageParam.rating,
             roomId: pageParam.roomId,
         }),
+        enabled: !!browserWidth
     })
 
     function handleLoadMore() {

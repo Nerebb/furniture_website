@@ -21,6 +21,7 @@ namespace NodeJS {
         TWITTER_SECRET: string
 
         //CustomEnv
+        GOOGLE_PASS: string
         DATABASE_URL: string
         NEXT_PUBLIC_BASE_URL: string
         NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: string
