@@ -133,7 +133,7 @@ async function main() {
     //Products
     const categories = ['cabinets', 'accessories', 'beds', 'ottomans', 'shelves', 'dining chairs', 'dining tables', 'armchairs', 'stools', 'office desks', 'sofas', 'coffee tables', 'lounge chair', 'benches', 'games', 'side tables', 'counter/bar chair'] as const
     const rooms = ['living room', 'bedroom', 'dining room', 'office', 'entertaining room'] as const
-    const color = ['000000', '757575', 'D2DAE2', 'fff', '2B67C2', '57BDBB', '97C292', '825B2C', '73C7FF', 'F5E23B', '055E0A', '808080', 'EBB155'] as const
+    const color = ['000000', '757575', 'D2DAE2', 'fff', '2B67C2', '57BDBB', '97C292', '825B2C', '73C7FF', 'F5E23B', '055E0A', '808080', 'EBB155', "63524C", "D6A279", 'B7A388'] as const
 
     //ImageGallery
     const images = [
@@ -163,6 +163,16 @@ async function main() {
         '/images/LazySac.jpg',
         '/images/Elegant_coffetable.jpg',
         '/images/Olivia_sofa.jpg',
+        '/images/Manchester.jpg',
+        '/images/Manchester_1.jpg',
+        '/images/Hano_storage.jpg',
+        '/images/Hano_storage_1.jpg',
+        '/images/Storage_wood.jpg',
+        '/images/Storage_wood_1.jpg',
+        '/images/Marte_cabinet.jpg',
+        '/images/Storage_wood_3.jpg',
+        '/images/KeDungDo_Large.jpg',
+        '/images/TissueBox.jpg',
     ] as const
 
     //Category
@@ -358,8 +368,63 @@ async function main() {
             categories: ['sofas'],
             imageUrls: ['/images/Olivia_sofa.jpg'],
             rooms: ['living room', 'dining room', 'bedroom', 'entertaining room']
+        },
+        {
+            name: "Manchester",
+            description: "Tủ Trang Trí Manchester là mẫu tủ lưu trữ cá tính cho không gian sống. Mặt tủ được phủ bê tông với tông trắng tinh khiết. Thân tủ làm từ chất liệu gỗ sồi với veneer sồi tự nhiên. Sự kết hợp của chất liệu bê tông và gỗ tạo nên tổng thể độc đáo, dễ bày phối vào nhiều không gian trong căn hộ.",
+            color: ['63524C'],
+            categories: ['cabinets'],
+            imageUrls: ['/images/Manchester.jpg', '/images/Manchester_1.jpg'],
+            rooms: ['bedroom', 'living room', 'entertaining room']
+        },
+        {
+            name: "Hano storage",
+            description: "Tủ Lưu Trữ Hano là mẫu tủ đa dụng cho không gian hiện đại. Thiết kế của tủ đơn giản, được làm từ gỗ MFC phủ Melamine tông nâu đậm với đường vân tinh tế, đi cùng chân thép sơn tĩnh điện đen chắc chắn. Tủ gồm nhiều không gian lưu trữ khác nhau. Gồm 3 hộc chứa mở phía trên và 4 ngăn tủ phía dưới, với tay kéo tinh gọn. Kiểu dáng vuông vức đơn giản, giúp dễ dàng kê tủ vào góc phòng, tiết kiệm không gian.",
+            color: ['000000'],
+            categories: ['cabinets'],
+            imageUrls: ['/images/Hano_storage.jpg', '/images/Hano_storage_1.jpg'],
+            rooms: ['bedroom', 'living room', 'office'],
+        },
+        {
+            name: "Storage wood",
+            description: "Kệ Lò Vi Sóng 2 Tầng Nâu là mẫu kệ gọn gàng cho mọi không gian sống. Kệ được làm từ gỗ thông cực kỳ bền và nhẹ, thân thiện với môi trường, tông nâu gỗ tinh tế, sơn PU 3 lớp hạn chế tối đa chống thấm, mối mọt.",
+            color: ['D6A279'],
+            categories: ['cabinets'],
+            imageUrls: ['/images/Storage_wood.jpg', '/images/Storage_wood_1.jpg'],
+            rooms: ['bedroom', 'entertaining room', 'office']
+        },
+        {
+            name: "Marte cabinet",
+            description: "Tủ Marte là mẫu tủ tiện dụng cho không gian sống. Tủ có thiết kế đơn giản, với cánh tủ kéo ngang giúp việc sắp xếp đồ dùng được gọn gàng hơn. Sản phẩm được làm từ chất liệu gỗ cao cấp từ đầu đến chân, mang lại cảm giác đồng nhất cho tổng thể. Tông nâu tự nhiên nhẹ nhàng của tủ dễ dàng phối hợp với những sản phẩm nội thất khác trong không gian nhà.",
+            color: ['B7A388'],
+            categories: ['cabinets'],
+            imageUrls: ['/images/Marte_cabinet.jpg'],
+            rooms: ['entertaining room', 'living room']
+        },
+        {
+            name: "Oven racks",
+            description: "Kệ Lò Vi Sóng 2 Tầng Nâu là sản phẩm tiện dụng giúp gian bếp trở nên gọn gàng hơn. Thiết kế của chiếc kệ đơn giản mà chắc chắn, phần khung thon gọn nhưng đủ vững chắc, diện tích bề mặt vừa đủ cho một chiếc lò vi sóng. Người dùng có thể thoải mái sắp xếp lên chiếc kệ các loại dụng cụ nhà bếp hay vật dụng trang trí khác. Toàn bộ sản phẩm được làm từ gỗ thông nhập khẩu New Zealand có chất lượng tốt và độ bền cao.",
+            color: ['D6A279'],
+            categories: ['cabinets'],
+            imageUrls: ['/images/Storage_wood_3.jpg'],
+            rooms: ['bedroom', 'entertaining room', 'office']
+        },
+        {
+            name: "Storage minimalist",
+            description: "Kệ Đựng Đồ Mini Loại Lớn là mẫu kệ đa năng cho không gian sống hiện đại. Kệ được thiết kế theo phong cách đơn giản, hiện đại với gam màu chủ đạo là trắng. Kệ có 3 lựa chọn kiểu ngăn kéo: 1 ngăn, 2 ngăn, 3 ngăn, với ngăn kệ trong suốt mang phong cách hiện đại. Bạn có thể xếp chồng các kệ lên nhau để tạo thành 1 tủ đựng đồ mini. Ngoài việc lưu trữ các vật dụng, giấy tờ ngăn nắp gọn gàng thì kệ còn là đồ trang trí cho góc làm việc thêm xinh xắn.",
+            color: ['fff'],
+            categories: ['accessories', 'office desks'],
+            imageUrls: ['/images/KeDungDo_Large.jpg'],
+            rooms: ['office', 'bedroom', 'living room']
+        },
+        {
+            name: "Tissue box",
+            description: 'Hộp Đựng Giấy Ăn Đa Năng Xanh Trắng là mẫu hộp đựng để bàn đa năng cho không gian sống. Hộp được làm bằng chất liệu nhựa cứng cao cấp, bền đẹp, phối phần nắp xanh dương cùng phần thân trắng hiện đại. Hộp đựng khăn giấy đa năng 2 trong 1, với các ngăn trên giúp bạn đựng điều khiển, bút vở cá nhân, xếp đồ gọn gàng, cùng vị trí rút giấy ở cạnh trước giúp thao tác lấy giấy được thuận tiện hơn rất nhiều. Với thiết kế hiện đại, xinh xắn, hộp đựng giấy còn có rất nhiều công năng khác như: trang trí decor nhà cửa, trang trí quán cafe, quán ăn, nhà hàng, khách sạn,...',
+            color: ['fff'],
+            categories: ['accessories'],
+            imageUrls: ['/images/TissueBox.jpg'],
+            rooms: ['bedroom', 'living room', 'office']
         }
-
     ] satisfies JSONproduct[]
 
     const productPromise = [];

@@ -1,4 +1,5 @@
-import axiosClient from '@/libs/axiosClient';
+import useBrowserWidth from '@/hooks/useBrowserWidth';
+import axios from '@/libs/axiosApi';
 import { LoginSchemaValidate, RegisterSchemaValidate, UserSchemaValidate } from '@/libs/schemaValitdate';
 import { Dialog } from '@headlessui/react';
 import { CubeIcon } from '@heroicons/react/24/outline';
@@ -6,17 +7,15 @@ import { Gender } from '@prisma/client';
 import { FormRow, Login, Register, UserProfile } from '@types';
 import classNames from 'classnames';
 import { Form, Formik, FormikHelpers } from 'formik';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import * as Yup from 'yup';
 import Button, { ButtonProps } from '../Button';
 import Modal from '../Modal';
 import NotFoundPage from '../static/NotFoundPage';
 import FormikField from './FormikField';
-import useBrowserWidth from '@/hooks/useBrowserWidth';
-import axios from '@/libs/axiosApi';
 
 export type TFormProps = {
     type:
@@ -76,7 +75,7 @@ const AssignForm = ({ type, btnProps, keepOpen }: TFormProps) => {
     }
 
     function handleSignIn(auth: string) {
-        const callbackUrl = router.asPath
+        const callbackUrl = '/'
         signIn(auth, { callbackUrl })
     }
 

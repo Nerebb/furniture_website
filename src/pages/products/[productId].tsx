@@ -54,19 +54,6 @@ export default function ProductDetailPage() {
         initProductState
     )
 
-    // const [error, setError] = useState<string>()
-    // //AddToCart
-    // const [selectedColor, setSelectedColor] = useState<string>()
-    // const [selectedQty, setSelectedQty] = useState<string | number>(1)
-
-    // //NewCmt
-    // const [createCmt, setCreateCmt] = useState<boolean>(false)
-
-    // //AddToWishlist
-
-    // //FetchProductReview
-    // const [loadReview, setLoadReview] = useState<boolean>(false)
-
     const userWishist = useQuery({
         queryKey: ['UserWishlist'],
         queryFn: () => axios.getWishList(),
@@ -111,6 +98,7 @@ export default function ProductDetailPage() {
     const { data: isOrdered } = useQuery({
         queryKey: ['isOrdered', productId],
         queryFn: () => axios.checkIsOrdered(productId),
+        enabled: Boolean(productId),
     })
 
     const { data: product, isLoading, isError } = useQuery({
