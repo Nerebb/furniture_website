@@ -19,34 +19,7 @@ type Data = {
  * @param req body: {loginId, password, email}
  * @param res message
  */
-export async function generateGuest(loginId: string) {
-  const provider = `guest`
-  const providerAccountId = loginId
-  const password = `guest-${loginId}`
-  let guestUser = await prismaClient.user.findFirst({
-    where: { accounts: { some: { loginId, provider, providerAccountId, password } } },
-    include: { accounts: true }
-  })
-  if (!guestUser) {
-    guestUser = await prismaClient.user.create({
-      data: {
-        role: 'guest',
-        accounts: {
-          create: {
-            loginId,
-            password,
-            provider,
-            providerAccountId,
-            type: 'credentials',
-          }
-        }
-      },
-      include: { accounts: true }
-    })
-  }
 
-  return guestUser
-}
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
