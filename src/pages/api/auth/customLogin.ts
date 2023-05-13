@@ -72,7 +72,7 @@ export async function verifyToken(req: NextApiRequest): Promise<JWT | SignedUser
             if (!ip || typeof ip !== 'string') throw new Error("Invalid client IP")
             const user = await generateGuest(ip)
             token = {
-                provider: user.accounts[0].provider,
+                provider: `guest`,
                 role: user.role,
                 userId: user.id,
             } satisfies SignedUserData
