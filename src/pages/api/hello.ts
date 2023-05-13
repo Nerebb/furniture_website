@@ -1,9 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-type Data = {
-  name: string
-}
+type Data = any
 
 export async function test() {
   return console.log("testRunning")
@@ -13,5 +11,6 @@ export default function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  res.status(200).json({ name: 'John Doe' })
+  const ip = req.headers["x-real-ip"] || req.connection.remoteAddress;
+  res.status(200).json({ ip })
 }

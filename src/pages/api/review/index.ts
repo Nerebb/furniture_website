@@ -213,17 +213,8 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let token: JWT | SignedUserData | null;
-    try {
-        token = await verifyToken(req)
-        if (!token || !token.userId) throw new Error("Switch to catch")
-    } catch (error: any) {
-        token = {
-            userId: '',
-            role: 'customer',
-            provider: "",
-        }
-    }
+    const token = await verifyToken(req)
+    if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
 
     switch (req.method) {
         case ApiMethod.GET:
@@ -237,22 +228,11 @@ export default async function handler(
                 return res.status(400).json({ message: error.message || "Unknown GetReviews error" })
             }
         case ApiMethod.POST:
+            if (token.role === 'guest') return res.status(401).json({ message: "Invalid user" })
             try {
                 const schema = Yup.object(CreateProductReviewSchemaValidate)
-                const validateSchema = async () => {
-                    try {
-                        const validated = await schema.validate(req.body)
-                        return validated
-                    } catch (error) {
-                        try {
-                            const validated = await schema.validate(JSON.parse(req.body))
-                            return validated
-                        } catch (error) {
-                            throw error
-                        }
-                    }
-                }
-                const validated = await validateSchema()
+                const requestData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+                const validated = await schema.validate(requestData)
 
                 if (token.role === 'admin') token.userId = validated.userId
 
@@ -262,8 +242,8 @@ export default async function handler(
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
         case ApiMethod.DELETE:
+            if (token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
             try {
-                if (token.role !== 'admin') return res.status(405).json({ message: "Unauthorize user" })
                 const schema = Yup.object(DeleteProductReviewSchemaValidate)
                 const { id } = await schema.validate(req.query)
 

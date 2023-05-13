@@ -8,6 +8,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getToken } from 'next-auth/jwt'
 import * as Yup from 'yup'
 import { ProductCard } from '.'
+import { verifyToken } from '../auth/customLogin'
 
 type Data = {
     data?: ProductDetail
@@ -65,6 +66,7 @@ export async function getProductById(id: string): Promise<ProductDetail> {
         creatorId: data.creatorId,
         image: data.imageIds,
         avgRating: data.avgRating,
+        isFeatureProduct: data.isFeatureProduct,
         totalRating: data.totalRating,
         totalSale: data.totalSale,
         createdDate: data.createdDate.toString(),
@@ -135,6 +137,7 @@ export async function updateProductById({ userId, userRole, updateProduct }: upd
                     creatorId: data.creatorId,
                     image: data.imageIds,
                     avgRating: data.avgRating,
+                    isFeatureProduct: data.isFeatureProduct,
                     totalRating: data.totalRating,
                     totalSale: data.totalSale,
                     createdDate: data.createdDate.toString(),
@@ -180,7 +183,7 @@ type newProduct = {
     colors: string[],
     cateIds: number[],
     roomIds: number[],
-    imageIds: number[],
+    imageIds?: number[],
     creatorId: string
 } & { role: Role }
 
@@ -195,16 +198,16 @@ export async function createProduct({ role, ...newProduct }: newProduct) {
                 available: newProduct.available,
                 price: newProduct.price,
                 creatorId: newProduct.creatorId,
-                JsonColor: newProduct.colors?.map(id => ({ hex: id, label: GetColorName(id) })),
+                JsonColor: newProduct.colors,
                 cateIds: {
                     connect: newProduct.cateIds.map(i => ({ id: i })),
                 },
                 roomIds: {
                     connect: newProduct.roomIds.map(i => ({ id: i })),
                 },
-                imageIds: {
-                    connect: newProduct.imageIds.map(i => ({ id: i }))
-                }
+                // imageIds: {
+                //     connect: newProduct.imageIds.map(i => ({ id: i }))
+                // }
             },
             include: ProductIncludesQuery
         })
@@ -214,19 +217,19 @@ export async function createProduct({ role, ...newProduct }: newProduct) {
             available: data.available,
             price: data.price,
             description: data.description ?? undefined,
-            commentIds: data.reviews.map(i => ({ id: i.id })),
             totalComments: data.totalComments,
             colors: data.JsonColor as string[],
             cateIds: data.cateIds.map(i => i.id),
             roomIds: data.roomIds.map(i => i.id),
             creatorId: data.creatorId,
-            image: data.imageIds,
             avgRating: data.avgRating,
+            isFeatureProduct: data.isFeatureProduct,
             totalRating: data.totalRating,
             totalSale: data.totalSale,
             createdDate: data.createdDate.toString(),
             updatedAt: data.updatedAt.toString(),
-        }
+            totalProduct: 1,
+        } satisfies ProductCard
         return response
     } catch (error) {
         throw error
@@ -257,15 +260,15 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
+    const token = await verifyToken(req)
+    if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
+
     let productId;
     try {
         productId = await isUUID.validate(req.query.productId)
     } catch (error: any) {
         return res.status(400).json({ message: error.message || "Invalid Product Id" })
     }
-    const token = await getToken({ req, secret: process.env.SECRET })
-    const userRole = token?.role ?? 'customer'
-    const userId = token?.userId
 
     switch (req.method) {
         case ApiMethod.GET:
@@ -278,52 +281,18 @@ export default async function handler(
         case ApiMethod.PUT:
             try {
                 const schema = Yup.object(ProductUpdateSchemaValidate)
-                const validateSchema = async () => {
-                    try {
-                        const validated = await schema.validate(req.body)
-                        return validated
-                    } catch (err) {
-                        try {
-                            const validated = await schema.validate(JSON.parse(req.body))
-                            return validated
-                        } catch (error) {
-                            throw error
-                        }
-                    }
-                }
-                const allowedField = await validateSchema()
-                const data = await updateProductById({ userRole: 'admin', userId, updateProduct: { ...allowedField, id: productId } })
+                const requestData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+                const allowedField = await schema.validate(requestData)
+
+                const data = await updateProductById({ userRole: token.role, userId: token.userId, updateProduct: { ...allowedField, id: productId } })
 
                 return res.status(200).json({ data, message: 'Product has been updated' })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
-        case ApiMethod.POST:
-            try {
-                const schema = Yup.object(ProductCreateSchemaValidate)
-                const validateSchema = async () => {
-                    try {
-                        const validated = await schema.validate(req.body)
-                        return validated
-                    } catch (err) {
-                        try {
-                            const validated = await schema.validate(JSON.parse(req.body))
-                            return validated
-                        } catch (error) {
-                            throw error
-                        }
-                    }
-                }
-                const validated = await validateSchema()
-                const data = await createProduct({ role: userRole, ...validated })
-
-                return res.status(200).json({ data, message: "Product created" })
-            } catch (error: any) {
-                return res.status(400).json({ message: error.message || "Unknown error" })
-            }
         case ApiMethod.DELETE:
             try {
-                await deleteProductById({ userRole, productId })
+                await deleteProductById({ userRole: token.role, productId })
                 return res.status(200).json({ message: 'Product has been deleted' })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })

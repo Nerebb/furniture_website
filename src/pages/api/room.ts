@@ -5,6 +5,7 @@ import { Prisma, Room } from '@prisma/client'
 import { ApiMethod, FilterSearch } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import * as Yup from 'yup'
+import { verifyToken } from './auth/customLogin'
 
 type Data = {
     data?: Room | Room[]
@@ -23,7 +24,10 @@ export async function getRooms(searchParams: Partial<FilterSearch>) {
     if (searchParams.filter && searchParams.sort) orderBy[searchParams.filter] = searchParams.sort
 
     const data = await prismaClient.room.findMany({
-        where: { id: { in: searchParams.id } },
+        where: {
+            id: { in: searchParams.id },
+            label: { contains: searchParams.label }
+        },
         orderBy,
         skip: searchParams.skip,
         take: searchParams.limit || 10,
@@ -91,6 +95,9 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
+    const token = await verifyToken(req)
+    if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
+
     switch (req.method) {
         case ApiMethod.GET:
             try {
@@ -115,22 +122,11 @@ export default async function handler(
                 return res.status(400).json({ message: error.message || "Unknow error" })
             }
         case ApiMethod.PUT:
+            if (token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
             try {
                 const schema = Yup.object(UpdateFilterSchemaValidate).typeError("Invalid Object")
-                const validateSchema = async () => {
-                    try {
-                        const validated = await schema.validate(req.body)
-                        return validated
-                    } catch (err) {
-                        try {
-                            const validated = await schema.validate(JSON.parse(req.body))
-                            return validated
-                        } catch (error) {
-                            throw error
-                        }
-                    }
-                }
-                const validated = await validateSchema()
+                const requestData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+                const validated = await schema.validate(requestData)
 
                 const data = await updateRoomById(validated)
                 return res.status(200).json({ data, message: "Room updated" })
@@ -138,22 +134,13 @@ export default async function handler(
                 return res.status(400).json({ message: error.message || "Unknow error" })
             }
         case ApiMethod.POST:
+            if (token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
+
             try {
                 const schema = Yup.object(CreateFilterSchemaValidate).typeError("Invalid Object")
-                const validateSchema = async () => {
-                    try {
-                        const validated = await schema.validate(req.body)
-                        return validated
-                    } catch (err) {
-                        try {
-                            const validated = await schema.validate(JSON.parse(req.body))
-                            return validated
-                        } catch (error) {
-                            throw error
-                        }
-                    }
-                }
-                const validated = await validateSchema()
+                const requestData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+                const validated = await schema.validate(requestData)
+
                 const data = await createRoom(validated)
                 return res.status(200).json({ data, message: "Room created" })
             } catch (error: any) {
@@ -161,6 +148,8 @@ export default async function handler(
                 return res.status(400).json({ message: error.message || "Unknow error" })
             }
         case ApiMethod.DELETE:
+            if (token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
+
             try {
                 const schema = Yup.object(DeleteFilterSchemaValidate)
                 const { id } = await schema.validate(req.query)

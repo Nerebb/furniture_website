@@ -139,7 +139,7 @@ export const ProductCreateSchemaValidate = {
     colors: ProductUpdateSchemaValidate.colors.required('Color must be array type'),
     roomIds: ProductUpdateSchemaValidate.roomIds.required(),
     cateIds: ProductUpdateSchemaValidate.cateIds.required(),
-    imageIds: ProductUpdateSchemaValidate.imageIds.required(),
+    imageIds: ProductUpdateSchemaValidate.imageIds,
 }
 
 export const ShoppingCartUpdateSchemaValidate = {
@@ -249,6 +249,7 @@ export const SearchFilterSchemaValidate = {
                 return Yup.number().min(1)
         }
     }),
+    label: Yup.string(),
     filter: Yup.string().lowercase().oneOf(['id', 'label']),
     sort: Yup.string().lowercase().oneOf(['asc', 'desc']),
     limit: Yup.number().min(1),

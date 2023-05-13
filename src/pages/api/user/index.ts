@@ -109,6 +109,7 @@ export default async function handler(
 ) {
     const token = await verifyToken(req)
     if (!token || !token.userId || token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
+
     switch (req.method) {
         case ApiMethod.GET:
             try {

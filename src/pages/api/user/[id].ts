@@ -113,26 +113,23 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let token: JWT | SignedUserData | null;
-    let id: string;
-    let role: Role = 'customer';
-    try {
-        token = await verifyToken(req)
-        if (!token || !token.userId) throw new Error("Unauthorize user")
-        if (token.role === 'admin') {
-            id = await isUUID.validate(req.query.id)
-        } else {
-            id = token.userId
+    const token = await verifyToken(req)
+    console.log("🚀 ~ file: [id].ts:117 ~ token:", token)
+    if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
+
+    let userId = token.userId;
+    if (token.role === 'admin') {
+        try {
+            userId = await isUUID.validate(req.query.id)
+        } catch (error: any) {
+            return res.status(400).json({ message: "AdminGetUser: Invalid userId" })
         }
-        role = token.role
-    } catch (error: any) {
-        return res.status(401).json({ message: error.message || error })
     }
 
     switch (req.method) {
         case ApiMethod.GET:
             try {
-                const data = await getUser(role, id)
+                const data = await getUser(token.role, userId)
                 return res.status(200).json({ message: "Get user success", data })
             } catch (error: any) {
                 return res.status(400).json({ message: error.name })
@@ -140,30 +137,18 @@ export default async function handler(
         case ApiMethod.PUT:
             try {
                 const schema = Yup.object(UserSchemaValidate)
-                const validateSchema = async () => {
-                    try {
-                        const validated = await schema.validate(req.body)
-                        return validated
-                    } catch (error: any) {
-                        try {
-                            const validated = await schema.validate(JSON.parse(req.body))
-                            return validated
-                        } catch (err) {
-                            console.log(err)
-                        }
-                        return res.status(401).json({ message: error.message || "Unauthorize user" })
-                    }
-                }
-                const validatedField = await validateSchema()
+                const requestData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+                const validated = await schema.validate(requestData)
 
-                const data = await updateUser(role, id, { ...validatedField, birthDay: req.body.birthDay })
+                const data = await updateUser(token.role, userId, { ...validated, birthDay: req.body.birthDay })
                 return res.status(200).json({ data, message: "Update user success" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message })
             }
         case ApiMethod.DELETE:
             try {
-                await deleteUser(id)
+                if (token.role === 'guest') return res.status(401).json({ message: "Invalid user" })
+                await deleteUser(userId)
                 return res.status(200).json({ message: "Delete User successful" })
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })

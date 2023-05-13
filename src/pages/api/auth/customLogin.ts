@@ -8,7 +8,9 @@ import jwt from 'jsonwebtoken'
 import { JwtPayload } from 'jsonwebtoken'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { JWT, getToken } from 'next-auth/jwt'
+import { NextRequest } from 'next/server'
 import * as Yup from 'yup'
+import { generateGuest } from './customSignup'
 
 type Data = {
     role?: Role,
@@ -60,39 +62,40 @@ export function generateToken(user: SignedUserData) {
 export async function verifyToken(req: NextApiRequest): Promise<JWT | SignedUserData | null> {
     let token: JWT | SignedUserData | null
     try {
+        // Next-Auth
         token = await getToken({ req, secret: process.env.SECRET })
         if (token) return token
-        if (!req.headers.authorization) return null
-        const access_token = JSON.parse(req.headers.authorization.toString().replace("Bearer ", "")) as string;
-        try {
-            const decode = jwt.verify(access_token, process.env.SECRET) as SignedUserData
-            token = decode
-        } catch (err: any) {
-            if (err.name === "TokenExpiredError") {
-                throw new Error("Token expired, please login again")
-            } else {
-                throw err
+
+        // Guest account if dont have JWT Bearer
+        if (!req.headers.authorization) {
+            const ip = req.headers["x-real-ip"] || req.connection.remoteAddress;
+            if (!ip || typeof ip !== 'string') throw new Error("Invalid client IP")
+            const user = await generateGuest(ip)
+            token = {
+                provider: user.accounts[0].provider,
+                role: user.role,
+                userId: user.id,
+            } satisfies SignedUserData
+        } else {
+            // JWT Bearer
+            const access_token = JSON.parse(req.headers.authorization.toString().replace("Bearer ", "")) as string;
+            try {
+                const decode = jwt.verify(access_token, process.env.SECRET) as SignedUserData
+                token = decode
+            } catch (err: any) {
+                if (err.name === "TokenExpiredError") {
+                    throw new Error("Token expired, please login again")
+                } else {
+                    throw err
+                }
             }
         }
+
         return token
     } catch (error) {
         throw error
     }
 }
-
-// export async function verifySchema(value: any, options?: ValidateOptions<TContext>): Promise<ResolveFlags<TType, TFlags, TDefault>> {
-//     try {
-//         const validated = await schema.validate(value)
-//         return validated
-//     } catch (error) {
-//         try {
-//             const validated = await schema.validate(JSON.parse(value))
-//             return validated
-//         } catch (error) {
-//             throw error
-//         }
-//     }
-// }
 
 export default async function handler(
     req: NextApiRequest,

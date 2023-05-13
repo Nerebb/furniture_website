@@ -26,7 +26,7 @@ export default function ShoppingCart({ keepOpen = false, btnText, modifier, fetc
   const { data: Cart, isLoading, isError, isFetching } = useQuery({
     queryKey: ['ShoppingCart'],
     queryFn: () => axios.getShoppingCart(),
-    enabled: Boolean(session) && fetching
+    enabled: fetching
   })
 
   const subTotal = Cart?.subTotal ? fCurrency(parseInt(Cart?.subTotal)) : "None"

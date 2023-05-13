@@ -116,14 +116,16 @@ export default function ProductCard({ product, modify }: ProductCardProps) {
                             <span className='text-priBlue-700'>{price}</span>
                         </div>
                         <div>
-                            {product.colors?.length && product.colors?.map(i => (
-                                <Chip
-                                    key={i}
-                                    label={GetColorName(i)}
-                                    modify={modify?.chip}
-                                    color={i}
-                                />
-                            ))}
+                            {product.colors?.length && product.colors?.map(i => {
+                                return (
+                                    <Chip
+                                        key={i}
+                                        label={GetColorName(i) ?? "Unknown"}
+                                        modify={modify?.chip}
+                                        color={i}
+                                    />
+                                )
+                            })}
                         </div>
                     </div>
                 </Link>

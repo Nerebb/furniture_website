@@ -1,13 +1,11 @@
 import prismaClient from '@/libs/prismaClient'
 import { ShoppingCartCreateSchemaValidate, ShoppingCartDeleteSchemaValidate, ShoppingCartUpdateSchemaValidate } from '@/libs/schemaValitdate'
+import { Prisma } from '@prisma/client'
 import { ApiMethod } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getToken } from 'next-auth/jwt'
 import * as Yup from 'yup'
-import { getProductById } from '../products/[productId]'
-import { Prisma } from '@prisma/client'
-import { NewOrderItem } from '../order'
 import { verifyToken } from '../auth/customLogin'
+import { getProductById } from '../products/[productId]'
 
 type ShoppingItem = {
     productId: string
@@ -250,7 +248,6 @@ export default async function handler(
     res: NextApiResponse<Data>
 ) {
     const token = await verifyToken(req)
-
     if (!token?.userId || !token) return res.status(401).json({ message: "Invalid user" })
 
     const userId = token.userId

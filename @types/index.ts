@@ -66,6 +66,7 @@ export interface JsonColor { id: string, quantities: number }
 
 export interface FilterSearch {
     id: number | number[],
+    label: string,
     filter: 'id' | 'label',
     sort: 'asc' | 'desc',
     limit: number,

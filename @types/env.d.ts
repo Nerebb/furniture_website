@@ -21,6 +21,7 @@ namespace NodeJS {
         TWITTER_SECRET: string
 
         //CustomEnv
+        STRIPE_SECRET_WEBHOOK: string
         GOOGLE_PASS: string
         DATABASE_URL: string
         NEXT_PUBLIC_BASE_URL: string

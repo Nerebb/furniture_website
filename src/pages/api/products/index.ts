@@ -1,12 +1,13 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
-import { ProductSearchSchemaValidate } from '@/libs/schemaValitdate'
+import { ProductCreateSchemaValidate, ProductSearchSchemaValidate } from '@/libs/schemaValitdate'
 import { MediaGallery, Prisma, Product, Role, Status } from '@prisma/client'
 import { ApiMethod } from '@types'
 import * as Yup from 'yup'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { SignedUserData, verifyToken } from '../auth/customLogin'
 import { JWT } from 'next-auth/jwt'
+import { createProduct } from './[productId]'
 
 export type ProductCard = {
     id: string,
@@ -20,6 +21,7 @@ export type ProductCard = {
     avgRating: number,
     creatorId: string,
     imageUrl?: MediaGallery['imageUrl'][],
+    isFeatureProduct: boolean,
 
     createdDate: string,
     updatedAt: string,
@@ -154,21 +156,13 @@ export async function getProducts(role: Role, props: ProductSearch): Promise<Pro
                 createdDate: product.createdDate.toString(),
                 updatedAt: product.updatedAt.toString(),
                 avgRating: product.avgRating,
+                isFeatureProduct: product.isFeatureProduct,
                 totalRating: product.totalRating,
                 totalSale: product.totalSale,
                 totalProduct,
                 totalComments: product.totalComments
             }
         })
-
-        // //Categories
-        // if (props.cateId?.length) {
-        //     responseData = responseData.filter(product => props.cateId?.every(i => product.cateIds?.includes(i)))
-        // }
-        // if (props.roomId?.length) {
-        //     responseData = responseData.filter(product => props.roomId?.every(i => product.roomIds?.includes(i)))
-        // }
-
         return responseData
     } catch (error) {
         throw error
@@ -194,17 +188,8 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let token: JWT | SignedUserData | null;
-    try {
-        token = await verifyToken(req)
-        if (!token || !token.userId) throw new Error("Unauthorize user")
-    } catch (error: any) {
-        token = {
-            userId: '',
-            role: 'customer',
-            provider: "",
-        }
-    }
+    const token = await verifyToken(req)
+    if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
 
     switch (req.method) {
         case ApiMethod.GET:
@@ -223,9 +208,22 @@ export default async function handler(
             } catch (error: any) {
                 return res.status(400).json({ message: error.message || "Unknown error" })
             }
-        case ApiMethod.DELETE:
+        case ApiMethod.POST:
+            if (token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
             try {
-                if (token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
+                const schema = Yup.object(ProductCreateSchemaValidate)
+                const requestData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+                const validated = await schema.validate(requestData)
+
+                const data = await createProduct({ role: token.role, ...validated })
+
+                return res.status(200).json({ data, message: "Product created" })
+            } catch (error: any) {
+                return res.status(400).json({ message: error.message || "Unknown error" })
+            }
+        case ApiMethod.DELETE:
+            if (token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
+            try {
                 const schema = Yup.object({ id: Yup.array().of(Yup.string().uuid().required()).required() }).typeError("Request query must be Array type")
 
                 const { id } = await schema.validate(req.query)

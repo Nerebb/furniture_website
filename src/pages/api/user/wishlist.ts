@@ -61,6 +61,7 @@ export async function getWishList(userId: string) {
             createdDate: product.createdDate.toString(),
             updatedAt: product.updatedAt.toString(),
             avgRating: product.avgRating,
+            isFeatureProduct: product.isFeatureProduct,
             totalRating: product.totalRating,
             totalSale: product.totalSale,
             totalComments: product.totalComments,
@@ -136,20 +137,15 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let userId: string;
-    try {
-        const token = await verifyToken(req)
-        if (!token || !token.userId) throw new Error("Unauthorize user")
-        userId = token.userId
-    } catch (error: any) {
-        return res.status(401).json({ message: error.message })
-    }
+    const token = await verifyToken(req)
+    if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
+    const userId = token.userId;
 
     let productId;
     try {
         productId = await isUUID.notRequired().validate(req.query.productId)
     } catch (error: any) {
-        return res.status(401).json({ message: error.message })
+        return res.status(400).json({ message: error.message || "Invalid ProductId" })
     }
 
     switch (req.method) {
