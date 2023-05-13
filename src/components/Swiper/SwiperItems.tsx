@@ -89,6 +89,7 @@ const SwiperItems: React.FC<SwiperItemsProps> = ({
             className='rounded-xl md:rounded-3xl'
             alt=''
             src={product.imageUrl[0]}
+            sizes="(max-width:1000px): 100vw"
             fill
             priority={true}
           />
@@ -119,7 +120,14 @@ const SwiperItems: React.FC<SwiperItemsProps> = ({
       ) : (<></>)}
       <div className="w-full aspect-square relative mb-2 border">
         {product.imageUrl ? (
-          <Image className='' alt='' src={product.imageUrl[0]} fill priority={true} />
+          <Image
+            className=''
+            alt=''
+            src={product.imageUrl[0]}
+            sizes="(max-width:1000px): 100vw"
+            fill
+            priority={true}
+          />
         ) : (
           <ImageLost />
         )}

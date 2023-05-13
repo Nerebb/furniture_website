@@ -26,9 +26,9 @@ type AxiosApi = {
     signUp: (props: Register) => Promise<{ message: string }>,
 
     //User
-    getUser: (id?: string) => Promise<UserProfile | undefined>,
-    updateUser: (id: string, data: allowedField) => Promise<{ message: string }>,
-    deleteUser: (id: string) => Promise<{ message: string }>
+    getUser: () => Promise<UserProfile | undefined>,
+    updateUser: (data: allowedField) => Promise<{ message: string }>,
+    deleteUser: () => Promise<{ message: string }>
 
     //ShoppingCart
     getShoppingCart: () => Promise<UserShoppingCart>
@@ -85,9 +85,9 @@ const axios: AxiosApi = {
     },
 
     //User
-    getUser: async (id) => {
+    getUser: async () => {
         try {
-            const res = await axiosClient.get(`${API_USER}/${id}`)
+            const res = await axiosClient.get(`${API_USER}/123`)
             return res.data
         } catch (error: any) {
             console.log('Axios-GetUser', error)
@@ -95,9 +95,9 @@ const axios: AxiosApi = {
         }
     },
 
-    updateUser: async (id, data) => {
+    updateUser: async (data) => {
         try {
-            const res = await axiosClient.put(`${API_USER}/${id}`, data)
+            const res = await axiosClient.put(`${API_USER}/123`, data)
             return res.data
         } catch (error: any) {
             console.log('Axios-UpdateUser', error)
@@ -105,9 +105,9 @@ const axios: AxiosApi = {
         }
     },
 
-    deleteUser: async (id) => {
+    deleteUser: async () => {
         try {
-            const res: { message: string } = await axiosClient.delete(`${API_USER}/${id}`)
+            const res: { message: string } = await axiosClient.delete(`${API_USER}/123`)
             return { message: res.message }
         } catch (error: any) {
             console.log("Axios-deleteUser", error)

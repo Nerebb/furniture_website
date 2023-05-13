@@ -19,8 +19,33 @@ type Data = {
  * @param req body: {loginId, password, email}
  * @param res message
  */
-export async function clientRegister(req: NextApiRequest) {
+export async function generateGuest(loginId: string) {
+  const provider = `guest`
+  const providerAccountId = loginId
+  const password = `guest-${loginId}`
+  let guestUser = await prismaClient.user.findFirst({
+    where: { accounts: { some: { loginId, provider, providerAccountId, password } } },
+    include: { accounts: true }
+  })
+  if (!guestUser) {
+    guestUser = await prismaClient.user.create({
+      data: {
+        role: 'guest',
+        accounts: {
+          create: {
+            loginId,
+            password,
+            provider,
+            providerAccountId,
+            type: 'credentials',
+          }
+        }
+      },
+      include: { accounts: true }
+    })
+  }
 
+  return guestUser
 }
 export default async function handler(
   req: NextApiRequest,
@@ -55,7 +80,6 @@ export default async function handler(
       if (checkUser?.accounts.some(i => i.loginId === loginId)) return res.status(400).json({ message: 'loginID already taken' })
       if (checkUser) return res.status(400).json({ message: 'Email used, please register others' })
 
-
       //Create prismaClient.User -credential type
       const hashPassword = await hash(password, 12)
       const randomString = generateString(5)
@@ -81,7 +105,7 @@ export default async function handler(
             const { phoneNumber, address, birthDay, deleted, userVerified, emailVerified, gender, name, nickName, role } = await adminRegisterSchema.validate(JSON.parse(req.body))
             createUserData = {
               ...createUserData,
-              phoneNumber, address, birthDay,
+              phoneNumber, address, birthDay, gender, name, nickName, role,
               userVerified: userVerified ? new Date() : null,
               emailVerified: emailVerified ? new Date() : null,
               deleted: deleted ? new Date() : null,
@@ -102,7 +126,6 @@ export default async function handler(
         }
         return res.status(400).send({ message: error.message || "Unknown error" })
       }
-
     default:
       return res.status(405).json({ message: "Invalid method" })
   }

@@ -8,7 +8,7 @@ import prismaClient from '@/libs/prismaClient';
 type Data = {
     message?: string
 }
-const endpointSecret = process.env.SECRET
+const endpointSecret = process.env.STRIPE_SECRET_WEBHOOK
 export const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
@@ -44,6 +44,12 @@ export default async function handler(
                 switch (event.type) {
                     case 'payment_intent.succeeded':
                         const { userId, orderId } = req.body.metadata
+
+                        await prismaClient.order.update({
+                            where: { id: orderId },
+                            data: { status: 'shipping' }
+                        })
+
                         if (!userId) return res.status(500).json({ message: `PaymentId:${req.body.id} userId not found` })
                         const user = await prismaClient.user.findFirstOrThrow({
                             where: { id: userId }

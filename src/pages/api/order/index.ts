@@ -262,13 +262,8 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let token: JWT | SignedUserData | null;
-    try {
-        token = await verifyToken(req)
-        if (!token || !token.userId) throw new Error
-    } catch (error: any) {
-        return res.status(404).json({ message: error.message || "Unauthorize user" })
-    }
+    const token = await verifyToken(req)
+    if (!token || !token.userId) return res.status(401).send({ message: "Invalid user" })
     let userId = token.userId
 
     switch (req.method) {
@@ -286,22 +281,9 @@ export default async function handler(
             try {
                 //Validattion
                 const schema = Yup.object(NewOrderSchemaValidate)
+                const requestData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
 
-                const validateSchema = async () => {
-                    try {
-                        const validated = await schema.validate(req.body)
-                        return validated
-                    } catch (error) {
-                        try {
-                            const validated = await schema.validate(JSON.parse(req.body))
-                            return validated
-                        } catch (error) {
-                            throw error
-                        }
-                    }
-                }
-
-                const newOrder = await validateSchema()
+                const newOrder = await schema.validate(requestData)
 
                 const data = await createOrder(userId, newOrder)
                 return res.status(200).json({ data, message: "New order created" })

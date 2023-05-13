@@ -21,6 +21,7 @@ enum Role {
   creator
   customer
   shiper
+  guest
 }
 
 enum Status {

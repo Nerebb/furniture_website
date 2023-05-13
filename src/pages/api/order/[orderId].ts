@@ -96,13 +96,8 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let token: JWT | SignedUserData | null;
-    try {
-        token = await verifyToken(req)
-        if (!token || !token.userId) throw new Error("Unauthorize user")
-    } catch (error: any) {
-        return res.status(401).json({ message: error.message || error })
-    }
+    const token = await verifyToken(req)
+    if (!token || !token.userId) return res.status(401).send({ message: "Invalid user" })
 
     let orderId;
     let userId = token.userId;

@@ -46,7 +46,7 @@ export default function OrderPlacementForm({ }: Props) {
 
     const { mutate: axiosUpdateUser } = useMutation({
         mutationKey: ['userProfile', session?.id],
-        mutationFn: (data: allowedField): Promise<{ message: String }> => axios.updateUser(session!.id as string, data),
+        mutationFn: (data: allowedField): Promise<{ message: String }> => axios.updateUser(data),
         onSuccess: () => {
             queryClient.invalidateQueries()
             toast.success('Update profile completed', { toastId: session?.id })
@@ -69,7 +69,7 @@ export default function OrderPlacementForm({ }: Props) {
 
     const UserProfile = useQuery({
         queryKey: ['userProfile', session?.id],
-        queryFn: () => axios.getUser(session!.id as string),
+        queryFn: () => axios.getUser(),
         enabled: !!session?.id,
     })
 

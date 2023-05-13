@@ -19,7 +19,7 @@ export default async function handler(
     res: NextApiResponse<Data>
 ) {
     const token = await verifyToken(req)
-    if (!token || !token.userId) return res.status(200).json({ data: false, message: "Invalid user" })
+    if (!token || !token.userId || token.role === 'guest') return res.status(200).json({ data: false, message: "Invalid user" })
 
     switch (req.method) {
         case ApiMethod.GET:

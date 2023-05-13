@@ -2,9 +2,11 @@
 import prismaClient from '@/libs/prismaClient';
 import { isUUID } from '@/libs/schemaValitdate';
 import { ApiMethod } from '@types';
+import { verify } from 'crypto';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getToken } from 'next-auth/jwt';
 import Stripe from 'stripe';
+import { verifyToken } from '../auth/customLogin';
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
 
@@ -26,11 +28,8 @@ export default async function handler(
     switch (req.method) {
         case ApiMethod.POST:
             try {
-                const token = await getToken({
-                    req,
-                    secret: process.env.SECRET
-                })
-                if (!token?.userId || !token) return res.status(401).json({ message: "Unauthorize User redirect to login page" })
+                const token = await verifyToken(req)
+                if (!token || !token?.userId) return res.status(401).json({ message: "Unauthorize User" })
 
                 const orderId = await isUUID.validate(req.query.orderId)
                 const userId = token.userId

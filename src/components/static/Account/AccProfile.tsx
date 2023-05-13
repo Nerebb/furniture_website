@@ -15,12 +15,12 @@ export default function AccProfile({ }: Props) {
     const router = useRouter()
     const { mutate } = useMutation({
         mutationKey: ['userProfile', session?.id],
-        mutationFn: (id: string) => axios.deleteUser(id),
+        mutationFn: () => axios.deleteUser(),
     })
 
     function handleDeleteUser() {
         if (!session?.id) return router.push('/login')
-        mutate(session.id)
+        mutate()
         signOut({ callbackUrl: process.env.NEXT_PUBLIC_BASE_URL })
     }
     return (

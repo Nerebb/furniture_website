@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
-import { CreateProductReviewSchemaValidate, UpdateProductReviewSchemaValidate, isUUID } from '@/libs/schemaValitdate'
-import { Prisma, ProductReview, Role } from '@prisma/client'
+import { UpdateProductReviewSchemaValidate, isUUID } from '@/libs/schemaValitdate'
+import { Prisma, Role } from '@prisma/client'
 import { ApiMethod } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { JWT } from 'next-auth/jwt'
@@ -139,17 +139,8 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let token: JWT | SignedUserData | null;
-    try {
-        token = await verifyToken(req)
-        if (!token || !token.userId) throw new Error("Unauthorize user")
-    } catch (error: any) {
-        token = {
-            userId: '',
-            role: 'customer',
-            provider: "",
-        }
-    }
+    const token = await verifyToken(req)
+    if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
     const { reviewId } = await Yup.object({ reviewId: isUUID }).validate(req.query)
 
     switch (req.method) {
@@ -168,20 +159,9 @@ export default async function handler(
                     await updateReviewLike(reviewId, token.userId)
                 } else {
                     const schema = Yup.object(UpdateProductReviewSchemaValidate)
-                    const validateSchema = async () => {
-                        try {
-                            const validated = await schema.validate(req.body)
-                            return validated
-                        } catch (error) {
-                            try {
-                                const validated = await schema.validate(JSON.parse(req.body))
-                                return validated
-                            } catch (error) {
-                                throw error
-                            }
-                        }
-                    }
-                    const validated = await validateSchema()
+                    const requestData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+                    const validated = await schema.validate(requestData)
+
                     data = await updateProductReview(token.role, validated, token.userId)
                 }
 

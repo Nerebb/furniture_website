@@ -143,7 +143,7 @@ export default function ProductDetailPage() {
 
     function handleAddToCart() {
         setProductState({ error: '' })
-        if (!session) return router.push('/login')
+        // if (!session) return router.push('/login')
         const curQty = productState.selectedQty
         if (!productState.selectedColor) return setProductState({ error: "Please select provided color" })
         if (!productState.selectedQty || productState.selectedQty < 0) return setProductState({ error: "Quantities is missing" })

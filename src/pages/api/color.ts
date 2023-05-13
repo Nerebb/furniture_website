@@ -1,8 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
-import { CreateColorSchemaValidate, DeleteColorsSchemaValidate, ProductSearchSchemaValidate, SearchColorSchemaValidate, SearchFilterSchemaValidate } from '@/libs/schemaValitdate'
+import { CreateColorSchemaValidate, DeleteColorsSchemaValidate, SearchColorSchemaValidate } from '@/libs/schemaValitdate'
 import { Prisma } from '@prisma/client'
-import { ApiMethod, ColorSearch, FilterSearch } from '@types'
+import { ApiMethod, ColorSearch } from '@types'
 import { GetColorName } from 'hex-color-to-color-name'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { JWT } from 'next-auth/jwt'
@@ -31,7 +31,10 @@ export async function getColors(searchParams: Partial<ColorSearch>) {
     if (searchParams.filter && searchParams.sort) orderBy[searchParams.filter] = searchParams.sort
 
     const data = await prismaClient.color.findMany({
-        where: { hex: { in: searchParams.id } },
+        where: {
+            hex: { in: searchParams.id },
+            label: { contains: searchParams.label },
+        },
         orderBy,
         skip: searchParams.skip,
         take: searchParams.limit || 10,
@@ -63,8 +66,8 @@ export async function getColor(colorId: string) {
 export async function upsertColor(color: Color) {
     const data = await prismaClient.color.upsert({
         where: { hex: color.id },
-        update: { label: color.label ?? GetColorName(color.id) },
-        create: { hex: color.id, label: color.label ?? GetColorName(color.id) },
+        update: { label: color.label ? color.label : GetColorName(color.id) },
+        create: { hex: color.id, label: color.label ? color.label : GetColorName(color.id) },
     })
     return data
 }
@@ -87,7 +90,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    let token: JWT | SignedUserData | null;
+    const token = await verifyToken(req)
 
     switch (req.method) {
         case ApiMethod.GET:
@@ -113,29 +116,11 @@ export default async function handler(
             }
         case ApiMethod.POST:
         case ApiMethod.PUT:
-            try {
-                token = await verifyToken(req)
-                if (!token || !token.userId) throw new Error("Unauthorize user")
-            } catch (error: any) {
-                return res.status(405).json({ message: error.message || error })
-            }
-
+            if (!token || token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
             try {
                 const schema = Yup.object(CreateColorSchemaValidate).typeError("Invalid Object")
-                const validateSchema = async () => {
-                    try {
-                        const validated = await schema.validate(req.body)
-                        return validated
-                    } catch (error) {
-                        try {
-                            const validated = await schema.validate(JSON.parse(req.body))
-                            return validated
-                        } catch (error) {
-                            throw error
-                        }
-                    }
-                }
-                const validated = await validateSchema()
+                const requestData = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+                const validated = await schema.validate(requestData)
 
                 const data = await upsertColor(validated)
 
@@ -145,14 +130,7 @@ export default async function handler(
                 return res.status(400).json({ message: error.message || "Unknow error" })
             }
         case ApiMethod.DELETE:
-
-            try {
-                token = await verifyToken(req)
-                if (!token || !token.userId) throw new Error("Unauthorize user")
-            } catch (error: any) {
-                return res.status(405).json({ message: error.message || error })
-            }
-
+            if (!token || token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
             try {
                 const schema = Yup.object(DeleteColorsSchemaValidate)
                 const { id } = await schema.validate(req.query)

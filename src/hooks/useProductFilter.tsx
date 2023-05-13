@@ -1,6 +1,6 @@
 import axios, { allowedFilter } from '@/libs/axiosApi'
 import { useQuery, UseQueryResult } from '@tanstack/react-query'
-import React from 'react'
+import React, { useEffect } from 'react'
 
 type Props = {
     filter: typeof allowedFilter[number]
