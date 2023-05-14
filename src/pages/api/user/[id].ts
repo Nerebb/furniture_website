@@ -114,7 +114,6 @@ export default async function handler(
     res: NextApiResponse<Data>
 ) {
     const token = await verifyToken(req)
-    console.log("🚀 ~ file: [id].ts:117 ~ token:", token)
     if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
 
     let userId = token.userId;

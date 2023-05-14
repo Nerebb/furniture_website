@@ -250,6 +250,7 @@ export async function createOrder(userId: string, order: NewOrder) {
         include: orderIncludesParams
     })
 
+    // console.log("🚀 ~ file: index.ts:254 ~ createOrder ~ newOrder:", newOrder)
     // if (newOrder) await prismaClient.shoppingCart.delete({
     //     where: { ownerId: userId }
     // })
