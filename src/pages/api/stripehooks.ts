@@ -43,7 +43,7 @@ export default async function handler(
 
                 switch (event.type) {
                     case 'payment_intent.succeeded':
-                        const { userId, orderId } = req.body.metadata
+                        const { userId, orderId } = event.data.object.metadata
 
                         await prismaClient.order.update({
                             where: { id: orderId },

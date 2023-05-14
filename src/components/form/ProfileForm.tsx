@@ -80,7 +80,7 @@ function ProfileForm() {
 
     const { isLoading, isError, data: userProfile } = useQuery({
         queryKey: ['userProfile', session?.id],
-        queryFn: () => axios.getUser(),
+        queryFn: () => axios.getUser(session?.id),
         enabled: !!session?.id,
     })
 

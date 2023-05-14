@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { ReactNode } from 'react'
 import AvatarLost from '../AvatarLost'
+import { useSession } from 'next-auth/react'
 
 export type AccSideMenuNav = {
     id: number,
@@ -21,9 +22,10 @@ type Props = {
 
 export default function AccSideMenu({ data }: Props) {
     const router = useRouter()
+    const { data: session } = useSession()
     const { isLoading, isError, data: userProfile } = useQuery({
         queryKey: ['userProfile'],
-        queryFn: () => axios.getUser(),
+        queryFn: () => axios.getUser(session?.id),
     })
     return (
         <section className='min-w-[400px] bg-white dark:bg-priBlack-700'>

@@ -44,9 +44,9 @@ export default function OrderPlacementForm({ }: Props) {
     const browserWidth = useBrowserWidth()
     const queryClient = useQueryClient()
 
-    const { mutate: axiosUpdateUser } = useMutation({
+    const mutateUpdateUser = useMutation({
         mutationKey: ['userProfile', session?.id],
-        mutationFn: (data: allowedField): Promise<{ message: String }> => axios.updateUser(data),
+        mutationFn: (data: allowedField): Promise<{ message: String }> => axios.updateUser(data, session?.id),
         onSuccess: () => {
             queryClient.invalidateQueries()
             toast.success('Update profile completed', { toastId: session?.id })
@@ -69,7 +69,7 @@ export default function OrderPlacementForm({ }: Props) {
 
     const UserProfile = useQuery({
         queryKey: ['userProfile', session?.id],
-        queryFn: () => axios.getUser(),
+        queryFn: () => axios.getUser(session?.id),
         enabled: !!session?.id,
     })
 
@@ -105,11 +105,11 @@ export default function OrderPlacementForm({ }: Props) {
 
     async function updateUser(values: NewOrderForm, props: FormikHelpers<NewOrderForm>) {
         //Update User profile
-        axiosUpdateUser({ name: values.name, phoneNumber: values.phoneNumber, email: values.email, address: values.billingAddress })
+        mutateUpdateUser.mutate({ name: values.name, phoneNumber: values.phoneNumber, email: values.email, address: values.billingAddress })
         await new Promise(r => setTimeout(r, 2000)); // Debounce
 
         //CreateOrder
-        handleOnSubmit(values, props)
+        if (mutateUpdateUser.isError || !mutateUpdateUser.isLoading) handleOnSubmit(values, props)
     }
 
     return (

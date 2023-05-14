@@ -1,12 +1,11 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
 import { ProductCreateSchemaValidate, ProductSearchSchemaValidate } from '@/libs/schemaValitdate'
-import { MediaGallery, Prisma, Product, Role, Status } from '@prisma/client'
+import { MediaGallery, Prisma, Product, Role } from '@prisma/client'
 import { ApiMethod } from '@types'
-import * as Yup from 'yup'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { SignedUserData, verifyToken } from '../auth/customLogin'
-import { JWT } from 'next-auth/jwt'
+import * as Yup from 'yup'
+import { verifyToken } from '../auth/customLogin'
 import { createProduct } from './[productId]'
 
 export type ProductCard = {
