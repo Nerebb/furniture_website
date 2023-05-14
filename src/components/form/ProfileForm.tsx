@@ -86,7 +86,7 @@ function ProfileForm() {
 
     const { mutate } = useMutation({
         mutationKey: ['updateProfile', session?.id],
-        mutationFn: (data: allowedField): Promise<{ message: String }> => axios.updateUser(data),
+        mutationFn: (data: allowedField): Promise<{ message: String }> => axios.updateUser(data, session?.id),
         onSuccess: () => {
             queryClient.invalidateQueries(['userProfile', session?.id])
             toast.success('Update profile completed')
