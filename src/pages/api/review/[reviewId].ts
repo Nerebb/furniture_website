@@ -79,7 +79,7 @@ export async function updateProductReview(role: Role, review: UpdateReview, user
 }
 
 export async function updateReviewLike(reviewId: string, likeUser?: string) {
-    if (!likeUser) throw new Error("Something went wrong - try to login again!")
+    if (!likeUser) throw new Error("Invalid user")
     const review = await prismaClient.productReview.findUniqueOrThrow({
         where: { id: reviewId },
         include: {

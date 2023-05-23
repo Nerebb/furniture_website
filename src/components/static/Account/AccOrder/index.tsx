@@ -17,7 +17,7 @@ export default function AccOrder({ }: Props) {
         queryFn: ({ pageParam = { skip: 0 } }) => axios.getUserOrders(pageParam.skip),
     })
 
-    if (isError) toast.error("Something went wrong - please refresh the page")
+    if (isError) toast.error("Something went wrong - please refresh the page", { toastId: "Something" })
 
     function handleLoadMore() {
         fetchNextPage({ pageParam: { skip: loadMore + 5 } })

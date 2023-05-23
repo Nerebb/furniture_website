@@ -3,13 +3,12 @@
 
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
-import { AllowedUserRelationFilter, AllowedUserSearch, SearchUserSchemaValidate, isUUID } from '@/libs/schemaValitdate'
+import { AllowedUserRelationFilter, AllowedUserSearch, SearchUserSchemaValidate } from '@/libs/schemaValitdate'
 import { Gender, Prisma, Role, User } from '@prisma/client'
 import { ApiMethod } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import * as Yup from 'yup'
 import { verifyToken } from '../auth/customLogin'
-import { JWT } from 'next-auth/jwt'
 
 type Data = {
     data?: User | User[]
@@ -47,6 +46,7 @@ type UserFilter = {
     filter?: string
     sort?: "asc" | "desc"
     limit?: number
+    skip?: number
 }
 
 /**
@@ -83,7 +83,8 @@ export async function getUsers({ ...props }: UserSearch & UserFilter) {
     const data = await prismaClient.user.findMany({
         where: userSearchParams,
         orderBy,
-        take: props.limit
+        skip: props.skip,
+        take: props.limit,
     })
 
     return data

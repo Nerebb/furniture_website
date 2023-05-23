@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 enum Gender {
@@ -88,6 +89,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
   @@map("account")
 }
 
@@ -146,6 +148,7 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("session")
 }
 
@@ -185,6 +188,7 @@ model Product {
   shoppingCartItems ShoppingCartItem[]
   wishlists         Wishlist[]
 
+  @@index([creatorId])
   @@map("product")
 }
 
@@ -207,6 +211,8 @@ model ProductReview {
   updatedAt   DateTime @updatedAt
 
   @@unique([ownerId, productId])
+  @@index([ownerId])
+  @@index([productId])
   @@map("productreview")
 }
 
@@ -218,6 +224,7 @@ model Wishlist {
   user     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   products Product[]
 
+  @@index([ownerId])
   @@map("wishlist")
 }
 
@@ -229,6 +236,7 @@ model ShoppingCart {
   //relation
   shoppingCartItem ShoppingCartItem[]
 
+  @@index([ownerId])
   @@map("shoppingcart")
 }
 
@@ -243,6 +251,8 @@ model ShoppingCartItem {
   product   Product @relation(fields: [productId], references: [id])
   productId String
 
+  @@index([productId])
+  @@index([ShoppingCartId])
   @@map("shoppingcartitem")
 }
 
@@ -266,6 +276,7 @@ model Order {
   createdDate DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([ownerId])
   @@map("order")
 }
 
@@ -287,5 +298,7 @@ model OrderItem {
   createdDate DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([productId])
+  @@index([orderId])
   @@map("orderitem")
 }
