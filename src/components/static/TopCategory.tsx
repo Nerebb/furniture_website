@@ -12,7 +12,7 @@ const TopCategory = () => {
     queryFn: () => axios.getProducts({ limit: 16, rating: 2 })
   })
   const browserWidth = useBrowserWidth()
-  if (isError) toast.error("Something went wrong! Please refresh the page for the best experience")
+  if (isError) toast.error("Something went wrong! Please refresh the page for the best experience", { toastId: "Something" })
 
   return (
     <Section title='TopCategory'>

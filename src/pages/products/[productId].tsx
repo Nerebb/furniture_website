@@ -134,7 +134,7 @@ export default function ProductDetailPage() {
         sameRoomProducts?.data?.filter(i => i.id !== productId) || []
         , [sameRoomProducts, productId])
 
-    if (isError) toast.error("Something went wrong!, please refesh the page")
+    if (isError) toast.error("Something went wrong!, please refesh the page", { toastId: "Something" })
 
     function handleQtyOnChange(e: React.ChangeEvent<HTMLInputElement>) {
         setProductState({ selectedQty: Number(e.target.value) })

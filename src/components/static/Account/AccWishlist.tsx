@@ -12,7 +12,7 @@ export default function AccWishlist({ }: Props) {
         queryFn: () => axios.getWishList()
     })
 
-    if (isError) toast.error('Something went wrong - please refresh the page')
+    if (isError) toast.error('Something went wrong - please refresh the page', { toastId: "Something" })
     return (
         <article className='space-y-6'>
             {

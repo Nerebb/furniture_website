@@ -60,7 +60,7 @@ export default async function handler(
                             from: "Nereb furniture",
                             to: user.email,
                             subject: "Thank you for your purchased",
-                            html: `<p>Payment success OrderID:${orderId} - amount ${req.body.amount} VND </p>`
+                            html: `<p>Payment success OrderID:${orderId} - amount ${event.data.object.amount} VND </p>`
                         }
 
                         transporter.sendMail(mainOptions, function (err, info) {

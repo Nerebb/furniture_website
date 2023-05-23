@@ -280,7 +280,6 @@ export const SearchColorSchemaValidate = {
 }
 
 export const SearchUserSchemaValidate = {
-    //SearchParams
     id: Yup.lazy((value) => {
         switch (typeof value) {
             case 'string':
@@ -306,7 +305,8 @@ export const SearchUserSchemaValidate = {
     //FilterParams
     filter: Yup.string().oneOf([...AllowedUserSearch, ...AllowedUserRelationFilter]),
     sort: Yup.string().lowercase().oneOf(['asc', 'desc']),
-    limit: Yup.number().integer().min(0)
+    limit: Yup.number().integer().min(0),
+    skip: Yup.number().integer().min(0)
 }
 
 export const SearchProductReviewSchemaValidate = {

@@ -4,11 +4,9 @@ import { LoginSchemaValidate } from '@/libs/schemaValitdate'
 import { Role } from '@prisma/client'
 import { ApiMethod, Login } from '@types'
 import { compare } from 'bcrypt'
-import jwt from 'jsonwebtoken'
-import { JwtPayload } from 'jsonwebtoken'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { JWT, getToken } from 'next-auth/jwt'
-import { NextRequest } from 'next/server'
 import * as Yup from 'yup'
 
 type Data = {
