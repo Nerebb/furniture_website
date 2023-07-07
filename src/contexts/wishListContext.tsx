@@ -1,42 +1,52 @@
 import React, { ReactNode, useContext, useMemo, useState } from 'react'
 import { WishlistContext } from '.'
 import { ProductCard } from '@/pages/api/products'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import axios from '@/libs/axiosApi'
 import { toast } from 'react-toastify'
+import { useSession } from 'next-auth/react'
 
 type Props = {
     children: ReactNode
 }
 
 export default function WishListProvider({ children }: Props) {
-    const [wishlistContext, setWishlistContext] = useState<ProductCard[]>([])
     const queryClient = useQueryClient()
+    const { data: session } = useSession()
+    const userWishlist = useQuery({
+        queryKey: ['UserWishlist'],
+        queryFn: () => axios.getWishList(),
+        enabled: Boolean(session)
+    })
 
     const { mutate: addToWishList } = useMutation({
         mutationKey: ['UserWishlist'],
         mutationFn: (productId: string) => axios.addToWishList(productId),
-        onSuccess: (data) => {
-            toast.success(data.message)
-            queryClient.invalidateQueries()
+        onSuccess: () => {
+            toast.success("Product added to wishlist")
+            queryClient.invalidateQueries({ queryKey: ['UserWishlist'] })
         },
-        onError: (error: any) => toast.error(error)
+        onError: (error: any) => {
+            toast.error("Cannot add product to wishlist - please try again")
+        }
     })
 
     const { mutate: removeFromWishlist } = useMutation({
         mutationKey: ['UserWishlist'],
         mutationFn: (productId: string) => axios.deleteWishlistProduct(productId),
-        onSuccess: (data) => {
-            toast.success(data.message)
-            queryClient.invalidateQueries()
+        onSuccess: () => {
+            toast.info("Product removed from wishlist")
+            queryClient.invalidateQueries({ queryKey: ['UserWishlist'] })
         },
-        onError: (error: any) => toast.error(error)
+        onError: (error: any) => {
+            toast.error("Cannot remove product from wishlist - please try again")
+        }
     })
 
-    const wishlist = useMemo(() => ({ wishlistContext, setWishlistContext }), [wishlistContext, setWishlistContext])
+
     return (
-        <WishlistContext.Provider value={{ ...wishlist }}>
+        <WishlistContext.Provider value={{ userWishlist: userWishlist.data, addToWishList, removeFromWishlist }}>
             {children}
         </WishlistContext.Provider>
     )

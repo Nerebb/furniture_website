@@ -5,9 +5,8 @@ import { Prisma } from '@prisma/client'
 import { ApiMethod, ColorSearch } from '@types'
 import { GetColorName } from 'hex-color-to-color-name'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { JWT } from 'next-auth/jwt'
 import * as Yup from 'yup'
-import { SignedUserData, verifyToken } from './auth/customLogin'
+import { verifyToken } from './auth/customLogin'
 
 type Color = {
     id: string,
@@ -90,7 +89,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const token = await verifyToken(req)
+    const token = await verifyToken(req, res)
 
     switch (req.method) {
         case ApiMethod.GET:

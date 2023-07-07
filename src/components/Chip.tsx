@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { useTheme } from 'next-themes'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 type Props = {
     type?:
@@ -17,13 +17,14 @@ export default function Chip({ type = 'pill', color, label, onClick, modify, sel
         if (color === 'fff' && theme === 'light') return '0000000'
         return color
     })
-    const chipStyle: React.CSSProperties = {
+
+    const chipStyle: React.CSSProperties = useMemo(() => ({
         backgroundColor: curColor ? `#${curColor}20` : "#D2E1EE80",
         border: `0.5px solid`,
         borderColor: curColor ? `#${curColor}` : "#D2E1EE",
         color: curColor ? `#${curColor}` : "#D2E1EE",
         backdropFilter: "blur(4px)"
-    }
+    }), [curColor])
 
     const displayLabel = label.match(/[^\s]+/) //Getall letters until first space
 

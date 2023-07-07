@@ -27,7 +27,7 @@ export default async function handler(
   switch (req.method) {
     case ApiMethod.POST:
       //Req data
-      const token = await verifyToken(req)
+      const token = await verifyToken(req, res)
 
       const clientSchema = Yup.object(RegisterSchemaValidate)
       const adminRegisterSchema = Yup.object(RegisterByAdminSchemaValidate)

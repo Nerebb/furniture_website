@@ -7,6 +7,7 @@ import ProductReview from '@/components/static/ProductDetail/ProductReview';
 import ProductSimilar from '@/components/static/ProductDetail/ProductSimilar';
 import { StarRating } from '@/components/static/StarRating';
 import SwiperContainer from '@/components/Swiper/SwiperContainer';
+import { useWishlistContext } from '@/contexts/wishListContext';
 import useBrowserWidth from '@/hooks/useBrowserWidth';
 import BaseLayout from '@/layouts/BaseLayout';
 import Section from '@/layouts/Section';
@@ -17,9 +18,8 @@ import { HeartIcon as HeartIconOutline } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { GetColorName } from 'hex-color-to-color-name';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { Fragment, useEffect, useMemo, useReducer, useState } from 'react';
+import { Fragment, useEffect, useMemo, useReducer } from 'react';
 import { toast } from 'react-toastify';
 
 type ProductReducer = {
@@ -31,68 +31,34 @@ type ProductReducer = {
     error: string,
 }
 
-
-
 const initProductState = {
     error: "",
     selectedColor: '',
-    selectedQty: 0,
+    selectedQty: 1,
     createCmt: false,
     isWishlist: false,
     loadReview: false,
 } satisfies ProductReducer
 
 export default function ProductDetailPage() {
-    const { data: session } = useSession()
     const router = useRouter();
     const productId = router.query.productId as string;
     const queryClient = useQueryClient()
     const browserWidth = useBrowserWidth()
+    const { userWishlist, addToWishList, removeFromWishlist } = useWishlistContext()
 
-    const [productState, setProductState] = useReducer(
-        (prev: ProductReducer, next: Partial<ProductReducer>) => ({ ...prev, ...next }),
-        initProductState
-    )
-
-    const userWishist = useQuery({
-        queryKey: ['UserWishlist'],
-        queryFn: () => axios.getWishList(),
-        enabled: !!session?.id,
-        onSuccess: (data) => {
-            if (data.some(i => i.id === productId)) return setProductState({ isWishlist: true })
-        }
-    })
-
-    const { mutate: mutateAddToWishlist } = useMutation({
-        mutationKey: ['UserWishlist'],
-        mutationFn: (productId: string) => axios.addToWishList(productId),
-        onSuccess: (data) => {
-            toast.success(data.message)
-            setProductState({ isWishlist: true })
-        },
-        onError: (data: any) => {
-            toast.error(data)
-        }
-    })
-
-    const { mutate: mutateRemoveFromWishlist } = useMutation({
-        mutationKey: ['UserWishlist'],
-        mutationFn: (productId: string) => axios.deleteWishlistProduct(productId),
-        onError: (error: any) => {
-            toast.error(error.message)
-        },
-        onSuccess: (data) => {
-            toast.info(data.message)
-            setProductState({ isWishlist: false })
-        }
-    })
-
-    const { mutate: mutateShoppingCart, isLoading: isLoadingShoppingCart } = useMutation({
+    const { mutate: addToShoppingCart, isLoading: isLoadingShoppingCart } = useMutation({
         mutationKey: ['ShoppingCart'],
         mutationFn: ({ color, quantities }: { color: string, quantities?: number }) => axios.addToShoppingCart(productId as string, color, quantities),
-        onSuccess: () => {
+        onSuccess: (res) => {
             queryClient.invalidateQueries()
-        }
+            toast.success(res.message)
+            //Reset
+            setProductState({ selectedColor: '', selectedQty: 0, error: "" })
+        },
+        onError: (error: any) => {
+            toast.error(error)
+        },
     })
 
     const { data: isOrdered } = useQuery({
@@ -125,6 +91,17 @@ export default function ProductDetailPage() {
         enabled: Boolean(productId),
     })
 
+    const [productState, setProductState] = useReducer(
+        (prev: ProductReducer, next: Partial<ProductReducer>) => ({ ...prev, ...next }),
+        initProductState
+    )
+
+    //ResetState to initState when RouteChanged
+    useEffect(() => {
+        setProductState(initProductState)
+    }, [router.asPath])
+
+
     //Controlling DisplayedData on client
     const MayLikesProduct = useMemo(() =>
         sameCateProducts?.data?.filter(i => i.id !== productId) || []
@@ -137,36 +114,19 @@ export default function ProductDetailPage() {
     if (isError) toast.error("Something went wrong!, please refesh the page", { toastId: "Something" })
 
     function handleQtyOnChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setProductState({ selectedQty: Number(e.target.value) })
-    }
-
-
-    function handleAddToCart() {
-        setProductState({ error: '' })
-        // if (!session) return router.push('/login')
-        const curQty = productState.selectedQty
-        if (!productState.selectedColor) return setProductState({ error: "Please select provided color" })
-        if (!productState.selectedQty || productState.selectedQty < 0) return setProductState({ error: "Quantities is missing" })
-        if (product?.available && curQty > product?.available) return setProductState({ error: "Product stock not meet requirements" })
-
-        mutateShoppingCart({ color: productState.selectedColor, quantities: productState.selectedQty }, {
-            onError: (error: any) => {
-                toast.error(error)
-            },
-            onSuccess: (res) => {
-                toast.success(res.message)
-
-                //Reset
-                setProductState({ selectedColor: '', selectedQty: 0, error: "" })
-            }
+        const selectedQty = Number(e.target.value)
+        setProductState({
+            selectedQty,
+            error: (product?.available && selectedQty > product?.available) ? "Product stock not meet requirements" : ""
         })
     }
 
-    async function updateUserWishlist() {
-        if (!session) return router.push('/login')
-        if (!productId || typeof productId !== 'string') return toast.error("Invalid Product")
-        if (!productState.isWishlist) return mutateAddToWishlist(productId)
-        if (productState.isWishlist) return mutateRemoveFromWishlist(productId)
+    function handleAddToCart() {
+        setProductState({ error: '' })
+        if (!productState.selectedColor) return setProductState({ error: "Please select provided color" })
+        if (!productState.selectedQty || productState.selectedQty < 0) return setProductState({ error: "Quantities is missing" })
+        if (product?.available && productState.selectedQty > product?.available) return setProductState({ error: "Product stock not meet requirements" })
+        addToShoppingCart({ color: productState.selectedColor, quantities: productState.selectedQty })
     }
 
     return (
@@ -193,13 +153,17 @@ export default function ProductDetailPage() {
                     <aside className='flex flex-col w-1/2 pl-5 py-5 border-l space-y-8'>
                         <div className='flex items-center justify-between'>
                             <h1 className="text-[32px] font-bold first-letter:capitalize dark:text-white">{product.name}</h1>
-                            <div onClick={updateUserWishlist}>
-                                {productState.isWishlist ? (
-                                    <HeartIconSolid className='w-10 h-10 xl:w-12 xl:h-12 text-priBlue-300 hover:text-priBlack-50' />
-                                ) : (
-                                    <HeartIconOutline className='w-10 h-10 xl:w-12 xl:h-12 text-priBlack-50 hover:text-priBlue-300' />
-                                )}
-                            </div>
+                            {userWishlist && userWishlist.some(i => i.id === product.id) ? (
+                                <HeartIconSolid
+                                    className='w-10 h-10 xl:w-12 xl:h-12 text-priBlue-300 hover:text-priBlack-50'
+                                    onClick={() => removeFromWishlist(productId)}
+                                />
+                            ) : (
+                                <HeartIconOutline
+                                    className='w-10 h-10 xl:w-12 xl:h-12 text-priBlack-50 hover:text-priBlue-300'
+                                    onClick={() => addToWishList(productId)}
+                                />
+                            )}
                         </div>
 
                         {/* Description */}

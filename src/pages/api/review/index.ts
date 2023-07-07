@@ -1,12 +1,11 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient';
-import { CreateProductReviewSchemaValidate, DeleteProductReviewSchemaValidate, SearchProductReviewSchemaValidate, isUUID } from '@/libs/schemaValitdate';
+import { CreateProductReviewSchemaValidate, DeleteProductReviewSchemaValidate, SearchProductReviewSchemaValidate } from '@/libs/schemaValitdate';
 import { Prisma, ProductReview, Role } from '@prisma/client';
 import { ApiMethod } from '@types';
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { JWT } from 'next-auth/jwt';
-import * as Yup from 'yup'
-import { SignedUserData, verifyToken } from '../auth/customLogin';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import * as Yup from 'yup';
+import { verifyToken } from '../auth/customLogin';
 
 export type ResponseReview = ProductReview & {
     name: string,
@@ -151,12 +150,14 @@ export type NewReviewProps = Omit<ProductReview, 'id' | 'totalLike' | 'createdDa
 export async function createProductReview(role: Role, review: NewReviewProps, userId?: string) {
     try {
         if (!userId) throw new Error("Unauthorize User")
+
         const orderItem = await prismaClient.orderItem.findMany({
             where: {
                 productId: review.productId,
                 order: { ownerId: userId }
             }
         })
+
         if ((!orderItem || orderItem.length <= 0) && role !== 'admin') throw new Error("User haven't purchased product")
 
         const data = await prismaClient.productReview.create({
@@ -213,7 +214,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const token = await verifyToken(req)
+    const token = await verifyToken(req, res)
     if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
 
     switch (req.method) {

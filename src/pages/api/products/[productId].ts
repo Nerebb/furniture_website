@@ -260,7 +260,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const token = await verifyToken(req)
+    const token = await verifyToken(req, res)
     if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
 
     let productId;

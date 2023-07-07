@@ -19,6 +19,7 @@ type userField = {
     isEdit: boolean,
 } & FormRow
 
+// switch renderHTML Sever || => JS => render 
 function UserField({ type = 'text', isEdit, ...props }: userField) {
     const [field, meta] = useField(props.name);
 

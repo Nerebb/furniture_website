@@ -77,7 +77,7 @@ async function main() {
     console.log("Adding AdminUser")
 
     //user
-    const AllowedRole = Object.values(Role).filter(i => i != Role.admin)
+    const AllowedRole = Object.values(Role).filter(i => i != Role.admin && i != Role.guest)
     const AllowedGender = Object.values(Gender)
     const userName = ['robin', 'enstein', 'gorrila', 'elbert', 'Jk', 'brypt', 'mona', 'daisy', 'john', 'dat']
     const nameSuffix = ['-personal', '-shopping', '-work', '-supper', '-random']

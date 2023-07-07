@@ -1,26 +1,20 @@
 import { useCheckoutContext } from '@/contexts/checkoutContext'
-import axios from '@/libs/axiosApi'
 import { fCurrency } from '@/libs/utils/numberal'
-import { useQuery } from '@tanstack/react-query'
+import { UserShoppingCart } from '@/pages/api/user/shoppingCart'
+import { UseQueryResult } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import Card from '../../Card'
 import Loading from '../Loading'
 import ShoppingItem from '../ShoppingItem'
 
 type Props = {
-}
+} & UseQueryResult<UserShoppingCart>
 
 export const defaultShippingPrice = 20000
 
-export default function CheckoutItem({ }: Props) {
+export default function CheckoutItem({ data: Cart, isLoading, isError, isFetching }: Props) {
     const router = useRouter()
     const { checkoutContext, setCheckoutContext } = useCheckoutContext()
-
-    const { data: Cart, isLoading, isError, isFetching } = useQuery({
-        queryKey: ['ShoppingCart'],
-        queryFn: () => axios.getShoppingCart(),
-        enabled: checkoutContext.checkoutStage === 0,
-    })
 
     const subTotal = Cart?.subTotal ? fCurrency(parseInt(Cart?.subTotal)) : "None"
     const shippingPrice = fCurrency(defaultShippingPrice)

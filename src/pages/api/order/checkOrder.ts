@@ -10,15 +10,11 @@ type Data = {
     message?: string
 }
 
-export async function test() {
-    return console.log("testRunning")
-}
-
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const token = await verifyToken(req)
+    const token = await verifyToken(req, res)
     if (!token || !token.userId || token.role === 'guest') return res.status(200).json({ data: false, message: "Invalid user" })
 
     switch (req.method) {

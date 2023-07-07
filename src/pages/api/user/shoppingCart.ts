@@ -1,5 +1,5 @@
 import prismaClient from '@/libs/prismaClient'
-import { ShoppingCartCreateSchemaValidate, ShoppingCartDeleteSchemaValidate, ShoppingCartUpdateSchemaValidate } from '@/libs/schemaValitdate'
+import { ShoppingCartCreateSchemaValidate, ShoppingCartDeleteSchemaValidate, ShoppingCartUpdateSchemaValidate, isUUID } from '@/libs/schemaValitdate'
 import { Prisma } from '@prisma/client'
 import { ApiMethod } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
@@ -70,16 +70,16 @@ const shoppingCartIncludes = {
 } satisfies Prisma.ShoppingCartInclude
 
 /**
- * @method GET /api/user/shoppingCart
+ * @method GET /api/shoppingCart
  * @access Login user
  * @return  UserShoppingCart
  */
 export async function getShoppingCart(userId: string) {
-    const data = await prismaClient.shoppingCart.findUnique({
+    const data = await prismaClient.shoppingCart.findFirst({
         where: { ownerId: userId },
         include: shoppingCartIncludes
     })
-    if (!data) return
+    if (!data) throw new Error("Cart not found")
     //SantinizeData
     const shoppingCartItem: ShoppingCartItem[] = data.shoppingCartItem.map(i => ({
         id: i.id,
@@ -247,7 +247,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const token = await verifyToken(req)
+    const token = await verifyToken(req, res)
     if (!token?.userId || !token) return res.status(401).json({ message: "Invalid user" })
 
     const userId = token.userId

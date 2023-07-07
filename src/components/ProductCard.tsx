@@ -15,6 +15,7 @@ import { toast } from 'react-toastify'
 import Card from './Card'
 import Chip from './Chip'
 import Loading from './static/Loading'
+import { useWishlistContext } from '@/contexts/wishListContext'
 
 export type ProductCardProps = {
     type?:
@@ -32,44 +33,18 @@ export type ProductCardProps = {
 
 export default function ProductCard({ product, modify }: ProductCardProps) {
     const { data: session } = useSession()
-    const queryClient = useQueryClient()
     const categories = useProductFilter({ filter: 'category' })
     const price = fCurrency(product?.price as number)
-
-    const { data: userWishlist, isLoading, isError } = useQuery({
-        queryKey: ['UserWishlist'],
-        queryFn: () => axios.getWishList(),
-        enabled: !!session?.id
-    })
-
-    const { mutate: addToWishList } = useMutation({
-        mutationKey: ['UserWishlist'],
-        mutationFn: () => axios.addToWishList(product.id),
-        onSuccess: (data) => {
-            toast.success(data.message)
-            queryClient.invalidateQueries()
-        },
-        onError: (error: any) => toast.error(error)
-    })
-
-    const { mutate: removeFromWishlist } = useMutation({
-        mutationKey: ['UserWishlist'],
-        mutationFn: () => axios.deleteWishlistProduct(product.id),
-        onSuccess: (data) => {
-            toast.success(data.message)
-            queryClient.invalidateQueries()
-        },
-        onError: (error: any) => toast.error(error)
-    })
+    const { userWishlist, addToWishList, removeFromWishlist } = useWishlistContext()
 
     function handleAddWishList(e: React.MouseEvent<SVGSVGElement, MouseEvent>) {
         e.preventDefault()
-        addToWishList()
+        addToWishList(product.id)
     }
 
     function handleRemoveFromWishlist(e: React.MouseEvent<SVGSVGElement, MouseEvent>) {
         e.preventDefault()
-        removeFromWishlist()
+        removeFromWishlist(product.id)
     }
 
     return product && (
@@ -116,16 +91,14 @@ export default function ProductCard({ product, modify }: ProductCardProps) {
                             <span className='text-priBlue-700'>{price}</span>
                         </div>
                         <div>
-                            {product.colors?.length && product.colors?.map(i => {
-                                return (
-                                    <Chip
-                                        key={i}
-                                        label={GetColorName(i) ?? "Unknown"}
-                                        modify={modify?.chip}
-                                        color={i}
-                                    />
-                                )
-                            })}
+                            {product.colors?.length && product.colors?.map(i =>
+                                <Chip
+                                    key={i}
+                                    label={GetColorName(i) ?? "Unknown"}
+                                    modify={modify?.chip}
+                                    color={i}
+                                />
+                            )}
                         </div>
                     </div>
                 </Link>

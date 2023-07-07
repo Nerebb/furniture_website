@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import React, { ButtonHTMLAttributes } from 'react'
+import React, { ButtonHTMLAttributes, useEffect, useState } from 'react'
 
 export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'> & {
     type?: 'submit' | 'reset' | 'button' | undefined
@@ -20,6 +20,7 @@ export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'classNa
 
 const Button: React.FC<ButtonProps> = ({ type = 'button', text, modifier, children, variant = 'fill', glowEffect = true, glowModify, ...buttonAtt }) => {
     if (buttonAtt.disabled) glowEffect = false
+
     return (
         <button
             {...buttonAtt}

@@ -1,22 +1,22 @@
-import { ChatBubbleBottomCenterTextIcon, ChevronDownIcon, HandThumbUpIcon, ShoppingCartIcon } from '@heroicons/react/24/outline'
+import { useWishlistContext } from '@/contexts/wishListContext'
+import axios from '@/libs/axiosApi'
+import { fCurrency } from '@/libs/utils/numberal'
+import { ProductCard } from '@/pages/api/products'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import classNames from 'classnames'
+import { GetColorName } from 'hex-color-to-color-name'
+import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import { useState } from 'react'
 import Button from '../Button'
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import axios from '@/libs/axiosApi'
-import Loading from './Loading'
-import { ProductCard } from '@/pages/api/products'
-import ImageLost from './ImageLost'
-import classNames from 'classnames'
-import { useSession } from 'next-auth/react'
-import { toast } from 'react-toastify'
-import { fCurrency } from '@/libs/utils/numberal'
 import Chip from '../Chip'
-import { GetColorName } from 'hex-color-to-color-name'
+import ImageLost from './ImageLost'
+import Loading from './Loading'
 
 const Banner = () => {
     const [selectedProduct, setSelectedProduct] = useState<ProductCard>()
     const { data: session } = useSession()
+    const { userWishlist, addToWishList } = useWishlistContext()
     const queryClient = useQueryClient()
     const { isLoading } = useQuery({
         queryKey: ['BannerProduct'],
@@ -32,16 +32,6 @@ const Banner = () => {
         }
     })
 
-    const { mutate: addToWishList } = useMutation({
-        mutationKey: ['UserWishlist'],
-        mutationFn: (productId: string) => axios.addToWishList(productId),
-        onSuccess: (data) => {
-            toast.success(data.message)
-            queryClient.invalidateQueries()
-        },
-        onError: (error: any) => toast.error(error)
-    })
-
     return (
         <section className="rounded-3xl relative h-[calc(100vh-80px)] w-full mb-8">
             {isLoading &&
@@ -52,7 +42,7 @@ const Banner = () => {
                 <>
                     <article className='relative h-full w-full overflow-hidden'>
                         {selectedProduct.imageUrl ? (
-                            <Image className='rounded-3xl object-fill md:object-cover h-full w-full' alt='' src={'/images/Mari.png'} width={1200} height={1024} />
+                            <Image className='rounded-3xl object-fill md:object-cover h-full w-full' alt='' src={'/images/Mari.png'} width={1200} height={1024} priority />
                         ) : (
                             <ImageLost />
                         )}
@@ -71,18 +61,17 @@ const Banner = () => {
                         </aside>
                         <aside >
                             <div className="Creator-contact flex items-center space-x-3">
-                                {/* <HandThumbUpIcon className='w-9 h-9 p-1 text-white bg-priBlue-200 rounded-full cursor-pointer' /> */}
-                                <Button
+                                {userWishlist && userWishlist.some(i => i.id === selectedProduct.id) && <Button
                                     text="Add Wishlist"
                                     variant='outline'
                                     glowModify='noAnimation'
                                     modifier='px-8 py-1 group-hover:text-white'
                                     onClick={() => addToWishList(selectedProduct.id)}
-                                />
+                                />}
                                 <Button
                                     text="Add to cart"
                                     modifier='px-8 py-1'
-                                    onClick={() => addToWishList(selectedProduct.id)}
+                                    onClick={() => addToShoppingCart({ productId: selectedProduct.id, color: selectedProduct.colors[0], quantities: 1 })}
                                 />
                             </div>
                         </aside>

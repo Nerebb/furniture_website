@@ -16,7 +16,6 @@ export const transporter = nodemailer.createTransport({
         pass: process.env.GOOGLE_PASS
     }
 })
-
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>

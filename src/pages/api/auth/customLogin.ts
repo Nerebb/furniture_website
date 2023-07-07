@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
 import { LoginSchemaValidate } from '@/libs/schemaValitdate'
-import { Role } from '@prisma/client'
+import { Account, Role, User } from '@prisma/client'
 import { ApiMethod, Login } from '@types'
 import { compare } from 'bcrypt'
 import jwt, { JwtPayload } from 'jsonwebtoken'
@@ -21,33 +21,25 @@ export interface SignedUserData extends JwtPayload {
     provider: string,
 }
 
-export async function generateGuest(loginId: string) {
+export async function generateGuest(loginId: string): Promise<User & { accounts: Account[] }> {
     const provider = `guest`
     const providerAccountId = loginId
     const password = `guest-${loginId}`
-    let guestUser = await prismaClient.user.findFirst({
-        where: { accounts: { some: { loginId, provider, providerAccountId, password } } },
-        include: { accounts: true }
+    let guestUser = await prismaClient.account.findFirst({
+        where: { loginId, provider, providerAccountId, password },
+        include: { user: true }
     })
     if (!guestUser) {
-        guestUser = await prismaClient.user.create({
+        guestUser = await prismaClient.account.create({
             data: {
-                role: 'guest',
-                accounts: {
-                    create: {
-                        loginId,
-                        password,
-                        provider,
-                        providerAccountId,
-                        type: 'credentials',
-                    }
-                }
+                loginId, password, provider, providerAccountId, type: "credentials",
+                user: { create: { role: 'guest', name: `GuestAccount-${loginId}` } }
             },
-            include: { accounts: true }
+            include: { user: true }
         })
     }
-
-    return guestUser
+    const { user, ...accounts } = guestUser
+    return { ...user, accounts: [accounts] }
 }
 
 /**
@@ -85,42 +77,39 @@ export function generateToken(user: SignedUserData) {
     return access_token
 }
 
-export async function verifyToken(req: NextApiRequest): Promise<JWT | SignedUserData | null> {
+export async function verifyToken(req: NextApiRequest, res: NextApiResponse): Promise<JWT | SignedUserData | void> {
     let token: JWT | SignedUserData | null
-    try {
-        // Next-Auth
-        token = await getToken({ req, secret: process.env.SECRET })
-        if (token) return token
+    // Next-Auth
+    token = await getToken({ req, secret: process.env.SECRET })
+    if (token) return token
 
-        // Guest account if dont have JWT Bearer
-        if (!req.headers.authorization) {
-            const ip = req.headers["x-real-ip"] || req.connection.remoteAddress;
-            if (!ip || typeof ip !== 'string') throw new Error("Invalid client IP")
-            const user = await generateGuest(ip)
-            token = {
-                provider: `guest`,
-                role: user.role,
-                userId: user.id,
-            } satisfies SignedUserData
-        } else {
-            // JWT Bearer
-            const access_token = JSON.parse(req.headers.authorization.toString().replace("Bearer ", "")) as string;
-            try {
-                const decode = jwt.verify(access_token, process.env.SECRET) as SignedUserData
-                token = decode
-            } catch (err: any) {
-                if (err.name === "TokenExpiredError") {
-                    throw new Error("Token expired, please login again")
-                } else {
-                    throw err
-                }
-            }
+    // Guest account if dont have JWT Bearer
+    if (!req.headers.authorization) {
+        const ip = req.headers["x-real-ip"] || req.connection.remoteAddress;
+        if (!ip || typeof ip !== 'string') throw new Error("Invalid client IP")
+        const user = await generateGuest(ip)
+        token = {
+            provider: `guest`,
+            role: user.role,
+            userId: user.id,
+        } satisfies SignedUserData
+    } else {
+        // JWT Bearer
+        const access_token = JSON.parse(req.headers.authorization.toString().replace("Bearer ", "")) as string;
+        try {
+            const decode = jwt.verify(access_token, process.env.SECRET) as SignedUserData
+            token = decode
+        } catch (err: any) {
+            // if (err.name === "TokenExpiredError") {
+            //     return res.status(401).json({ message: "Token expired, please login again" })
+            // } else {
+            //     return res.status(401).json({ message: err.message || "JWT-Token: Unknown error" })
+            // }
+            return err
         }
-
-        return token
-    } catch (error) {
-        throw error
     }
+
+    return token
 }
 
 export default async function handler(

@@ -1,7 +1,5 @@
 //THIS ROUTE ONLY FOR ADMIN --- WHICH WILL BE REDIRECTED OR REFUSED BY MIDDLEWEAR
 
-
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
 import { AllowedUserRelationFilter, AllowedUserSearch, SearchUserSchemaValidate } from '@/libs/schemaValitdate'
 import { Gender, Prisma, Role, User } from '@prisma/client'
@@ -72,7 +70,7 @@ export async function getUsers({ ...props }: UserSearch & UserFilter) {
         nickName: { contains: props.nickName },
         email: { contains: props.email },
         gender: props.gender,
-        role: props.role,
+        role: props.role ?? { not: 'guest' },
         createdDate: { gte: props.createdDate },
         updatedAt: { gte: props.updatedAt },
         userVerified: { gte: props.userVerified },
@@ -108,7 +106,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const token = await verifyToken(req)
+    const token = await verifyToken(req, res)
     if (!token || !token.userId || token.role !== 'admin') return res.status(401).json({ message: "Unauthorize user" })
 
     switch (req.method) {
@@ -119,6 +117,7 @@ export default async function handler(
 
                 const data = await getUsers(validated)
                 const totalRecord = await prismaClient.user.count()
+
                 res.setHeader('content-range', JSON.stringify({ totalRecord }))
                 return res.status(200).json({ data, message: "Get user success" })
             } catch (error: any) {

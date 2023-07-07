@@ -1,6 +1,5 @@
-import React, { PropsWithChildren, useContext, useMemo, useState } from 'react'
+import { PropsWithChildren, useContext, useMemo, useState } from 'react'
 import { CheckoutContext, CheckoutContextData } from '.'
-import { CheckoutStage } from '@/pages/checkout'
 
 type Props = {}
 

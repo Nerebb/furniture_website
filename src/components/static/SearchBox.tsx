@@ -1,9 +1,9 @@
-import { useSearchContext } from '@/contexts/searchProductContext'
+// import { useSearchContext } from '@/contexts/searchProductContext'
 import useBrowserWidth from '@/hooks/useBrowserWidth'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import classNames from 'classnames'
 import { useRouter } from 'next/router'
-import React, { ChangeEvent } from 'react'
+import React, { ChangeEvent, useState } from 'react'
 
 interface SearchBoxProps {
     modifier?: string,
@@ -12,13 +12,13 @@ interface SearchBoxProps {
 const SearchBox: React.FC<SearchBoxProps> = ({
     modifier,
 }) => {
-    const { searchContext, setSearchContext } = useSearchContext()
+    // const { searchContext, setSearchContext } = useSearchContext()
+    const [searchValue, setSearchValue] = useState<string>()
     const router = useRouter()
 
     async function handleOnchange(e: React.ChangeEvent<HTMLInputElement>) {
         await new Promise(r => setTimeout(r, 1000))//Debounce
-        setSearchContext({ ...searchContext, name: e.target.value })
-
+        setSearchValue(e.target.value)
     }
 
     function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -26,8 +26,10 @@ const SearchBox: React.FC<SearchBoxProps> = ({
     }
 
     function handleOnClickIcon() {
-        if (!searchContext.name) return
-        router.push('/products')
+        router.push({
+            pathname: '/products',
+            query: { name: searchValue }
+        })
     }
 
     return (
@@ -41,7 +43,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
                     //Darkmode,
                     'dark:outline-priBlack-500 dark:text-black',
                     {
-                        'w-4/5 opacity-100': searchContext.name
+                        'w-4/5 opacity-100': searchValue
                     }
                 )}
                 placeholder='Type keywords ...'

@@ -1,25 +1,24 @@
 import FormikField from '@/components/form/FormikField'
+import { useCheckoutContext } from '@/contexts/checkoutContext'
+import useBrowserWidth from '@/hooks/useBrowserWidth'
 import axios, { allowedField } from '@/libs/axiosApi'
-import { CheckoutFormSchemaValidate, UserSchemaValidate } from '@/libs/schemaValitdate'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CheckoutFormSchemaValidate, NewOrderSchemaValidate } from '@/libs/schemaValitdate'
+import { NewOrder } from '@/pages/api/order'
+import { UserShoppingCart } from '@/pages/api/user/shoppingCart'
+import { Dialog } from '@headlessui/react'
+import { UseQueryResult, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FormRow } from '@types'
 import { Form, Formik, FormikHelpers } from 'formik'
 import { useSession } from 'next-auth/react'
+import { useState } from 'react'
 import { toast } from 'react-toastify'
 import * as Yup from 'yup'
 import Button from '../Button'
 import Modal from '../Modal'
-import { Dispatch, SetStateAction, useState } from 'react'
-import { CheckoutStage } from '@/pages/checkout'
-import { useCheckoutContext } from '@/contexts/checkoutContext'
-import { NewOrder, ResponseOrder } from '@/pages/api/order'
-import { NewOrderSchemaValidate } from '@/libs/schemaValitdate'
-import { Dialog } from '@headlessui/react'
 import CheckoutItem from '../static/CreateOrder/CheckoutItem'
-import useBrowserWidth from '@/hooks/useBrowserWidth'
 
 type Props = {
-}
+} & UseQueryResult<UserShoppingCart>
 
 type NewOrderForm = Partial<NewOrder> & {
     name: string,
@@ -37,7 +36,7 @@ const userRow: FormRow[] = [
 ]
 
 
-export default function OrderPlacementForm({ }: Props) {
+export default function OrderPlacementForm({ ...cart }: Props) {
     const { data: session } = useSession()
     const [submitError, setSubmitError] = useState<string | undefined>()
     const { checkoutContext, setCheckoutContext } = useCheckoutContext()
@@ -73,19 +72,14 @@ export default function OrderPlacementForm({ }: Props) {
         enabled: !!session?.id,
     })
 
-    const ShoppingCart = useQuery({
-        queryKey: ['ShoppingCart'],
-        queryFn: () => axios.getShoppingCart(),
-    })
-
     const initValue = {
         name: UserProfile.data?.name || "",
         phoneNumber: UserProfile.data?.phoneNumber || "",
         email: UserProfile.data?.email || "",
         billingAddress: UserProfile.data?.address || "",
         shippingAddress: UserProfile.data?.address || "",
-        shoppingCartId: ShoppingCart.data?.id || "",
-        products: ShoppingCart.data?.shoppingCartItem
+        cartId: cart.data?.id || "",
+        products: cart.data?.shoppingCartItem
     }
 
     async function handleOnSubmit(values: NewOrderForm, { setSubmitting }: FormikHelpers<NewOrderForm>) {
@@ -145,13 +139,13 @@ export default function OrderPlacementForm({ }: Props) {
                                                 text: "Order detail",
                                                 glowModify: 'noAnimation',
                                                 modifier: 'w-60 py-3 dark:text-white',
-                                                disabled: props.isSubmitting || !ShoppingCart.data,
+                                                disabled: props.isSubmitting || !cart.data,
                                             }}
                                         >
                                             <Dialog.Panel
                                                 className='flex justify-start'
                                             >
-                                                <CheckoutItem />
+                                                <CheckoutItem {...cart} />
                                             </Dialog.Panel>
                                         </Modal>}
                                         <Button
@@ -159,7 +153,7 @@ export default function OrderPlacementForm({ }: Props) {
                                             glowModify='noAnimation'
                                             modifier='w-60 py-3 dark:text-white'
                                             type='submit'
-                                            disabled={props.isSubmitting || !ShoppingCart.data}
+                                            disabled={props.isSubmitting || !cart.data}
                                         />
                                     </>
                                 ) : (
@@ -168,7 +162,7 @@ export default function OrderPlacementForm({ }: Props) {
                                             text: "Update user data",
                                             glowModify: 'noAnimation',
                                             modifier: 'w-60 py-3 dark:text-white',
-                                            disabled: props.isSubmitting || !ShoppingCart.data
+                                            disabled: props.isSubmitting || !cart.data
                                         }}
                                         title='User info has been modified!'
                                         content='Do you want to update personal info'

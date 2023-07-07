@@ -1,12 +1,11 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import prismaClient from '@/libs/prismaClient'
 import { UserSchemaValidate, isUUID } from '@/libs/schemaValitdate'
+import { Role, User } from '@prisma/client'
 import { ApiMethod, UserProfile } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { JWT, getToken } from 'next-auth/jwt'
 import * as Yup from 'yup'
-import { SignedUserData, verifyToken } from '../auth/customLogin'
-import { Prisma, Role, User } from '@prisma/client'
+import { verifyToken } from '../auth/customLogin'
 type Data = {
     data?: UserProfile | User
     message?: any
@@ -113,7 +112,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const token = await verifyToken(req)
+    const token = await verifyToken(req, res)
     if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
 
     let userId = token.userId;
@@ -121,7 +120,7 @@ export default async function handler(
         try {
             userId = await isUUID.validate(req.query.id)
         } catch (error: any) {
-            return res.status(400).json({ message: "AdminGetUser: Invalid userId" })
+            return res.status(401).json({ message: "AdminGetUser: Invalid userId" })
         }
     }
 

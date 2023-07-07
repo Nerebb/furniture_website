@@ -43,7 +43,7 @@ export default function ProductGrid({
         queryFn: ({ pageParam = { cateId, skip, limit: productsPerLoad, available, colorHex, createdDate, creatorName, name, fromPrice, toPrice, rating, roomId } as ProductSearch }) => axios.getProducts({
             limit: pageParam.limit,
             skip: pageParam.skip,
-            cateId: pageParam.cateId.includes(0) ? undefined : pageParam.cateId,
+            cateId: pageParam.cateId === 0 ? undefined : pageParam.cateId,
             available: pageParam.available,
             colorHex: pageParam.colorHex,
             createdDate: pageParam.createdDate,
@@ -103,7 +103,6 @@ export default function ProductGrid({
                 </>
             )
             }
-
         </>
     )
 }

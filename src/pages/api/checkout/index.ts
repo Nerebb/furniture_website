@@ -28,7 +28,7 @@ export default async function handler(
     switch (req.method) {
         case ApiMethod.POST:
             try {
-                const token = await verifyToken(req)
+                const token = await verifyToken(req, res)
                 if (!token || !token?.userId) return res.status(401).json({ message: "Unauthorize User" })
 
                 const orderId = await isUUID.validate(req.query.orderId)

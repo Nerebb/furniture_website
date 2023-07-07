@@ -19,7 +19,6 @@ type Props = {
 }
 
 export default function ShoppingCart({ keepOpen = false, btnText, modifier, fetchData = false }: Props) {
-  const { data: session } = useSession()
   const [fetching, setFetching] = useState<boolean>(fetchData)
   const router = useRouter()
 

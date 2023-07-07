@@ -12,6 +12,7 @@
 /.next/
 /out/
 /prisma/schema.txt
+/prisma/seed.ts
 
 # production
 /build

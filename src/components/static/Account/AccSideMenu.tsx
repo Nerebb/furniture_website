@@ -24,11 +24,12 @@ export default function AccSideMenu({ data }: Props) {
     const router = useRouter()
     const { data: session } = useSession()
     const { isLoading, isError, data: userProfile } = useQuery({
-        queryKey: ['userProfile'],
+        queryKey: ['userProfile', session?.id],
         queryFn: () => axios.getUser(session?.id),
+        enabled: !!session?.id
     })
     return (
-        <section className='min-w-[400px] bg-white dark:bg-priBlack-700'>
+        <section className='min-w-[400px] bg-white dark:bg-priBlack-700 sticky top-25'>
             {userProfile && <article className='flex mb-2 space-x-5 rounded-2xl bg-priBlue-100 px-5 py-7 dark:bg-priBlack-800'>
                 <aside className='relative rounded-full w-14 h-14'>
                     {userProfile.image ? (

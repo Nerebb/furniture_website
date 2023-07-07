@@ -4,8 +4,8 @@ import { QueryClient, QueryClientProvider, Hydrate } from "@tanstack/react-query
 import { SessionProvider } from "next-auth/react";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { AppProps } from 'next/app';
-import SearchProvider from '@/contexts/searchProductContext';
 import { ThemeProvider } from 'next-themes';
+import WishListProvider from '@/contexts/wishListContext';
 const queryClient = new QueryClient();
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -14,12 +14,12 @@ export default function App({ Component, pageProps }: AppProps) {
       <ReactQueryDevtools initialIsOpen={false} />
       <Hydrate state={pageProps.dehydratedState}>
         <SessionProvider session={pageProps.session}>
-          <SearchProvider>
+          <WishListProvider>
             <ThemeProvider attribute='class'>
               <ToastAlert />
               <Component {...pageProps} />
             </ThemeProvider>
-          </SearchProvider>
+          </WishListProvider>
         </SessionProvider>
       </Hydrate>
     </QueryClientProvider >

@@ -5,7 +5,7 @@ import { useRouter } from "next/router"
 import { Fragment, useState } from "react"
 import { toast } from "react-toastify"
 import Loading from "../../Loading"
-import OrderProduct from "./OrderProduct"
+import OrderCard from "./OrderCard"
 
 type Props = {}
 
@@ -34,14 +34,11 @@ export default function AccOrder({ }: Props) {
 
             {userOrders?.pages.length ? (
                 userOrders.pages.flat().map(order => (
-                    <Fragment key={order.id}>
-                        {
-                            order && (
-                                <OrderProduct key={order.id} order={order} isLoading={isLoading} />
-                            )
-                        }
-                    </Fragment>
-                ))
+                    order && (
+                        <Fragment key={order.id}>
+                            <OrderCard key={order.id} order={order} isLoading={isLoading} />
+                        </Fragment>
+                    )))
             ) : (
                 <div className="flex-center flex-col">
                     <h1 className="font-semibold">No orders found</h1>

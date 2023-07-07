@@ -4,10 +4,9 @@ import { UpdateProductReviewSchemaValidate, isUUID } from '@/libs/schemaValitdat
 import { Prisma, Role } from '@prisma/client'
 import { ApiMethod } from '@types'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { JWT } from 'next-auth/jwt'
 import * as Yup from 'yup'
 import { ResponseReview, productReviewIncludes, santinizeReview } from '.'
-import { SignedUserData, verifyToken } from '../auth/customLogin'
+import { verifyToken } from '../auth/customLogin'
 
 type Data = {
     data?: ResponseReview | ResponseReview[]
@@ -139,7 +138,7 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<Data>
 ) {
-    const token = await verifyToken(req)
+    const token = await verifyToken(req, res)
     if (!token || !token.userId) return res.status(401).json({ message: "Invalid user" })
     const { reviewId } = await Yup.object({ reviewId: isUUID }).validate(req.query)
 

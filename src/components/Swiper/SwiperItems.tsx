@@ -1,17 +1,15 @@
+import { useWishlistContext } from '@/contexts/wishListContext';
 import { fCurrency } from '@/libs/utils/numberal';
 import { ProductCard } from '@/pages/api/products';
 import { ProductDetail } from '@/pages/api/products/[productId]';
+import { HeartIcon as HeartIconOutline } from '@heroicons/react/24/outline';
+import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 import ImageLost from '../static/ImageLost';
 import { SwiperContainerProps } from './SwiperContainer';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
-import axios from '@/libs/axiosApi';
-import { useSession } from 'next-auth/react';
-import { HeartIcon as HeartIconOutline } from '@heroicons/react/24/outline'
-import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 
 interface SwiperItemsProps {
   type: SwiperContainerProps['type'],
@@ -25,43 +23,18 @@ const SwiperItems: React.FC<SwiperItemsProps> = ({
   onClick,
 }) => {
   const { data: session } = useSession()
+  const { userWishlist, addToWishList, removeFromWishlist } = useWishlistContext()
 
-  const queryClient = useQueryClient()
 
-  const { data: userWishlist, isLoading, isError } = useQuery({
-    queryKey: ['UserWishlist'],
-    queryFn: () => axios.getWishList(),
-    enabled: !!session?.id
-  })
-
-  const { mutate: addToWishList } = useMutation({
-    mutationKey: ['UserWishlist'],
-    mutationFn: () => axios.addToWishList(product.id),
-    onSuccess: (data) => {
-      toast.success(data.message)
-      queryClient.invalidateQueries()
-    },
-    onError: (error: any) => toast.error(error)
-  })
-
-  const { mutate: removeFromWishlist } = useMutation({
-    mutationKey: ['UserWishlist'],
-    mutationFn: () => axios.deleteWishlistProduct(product.id),
-    onSuccess: (data) => {
-      toast.success(data.message)
-      queryClient.invalidateQueries()
-    },
-    onError: (error: any) => toast.error(error)
-  })
 
   function handleAddWishList(e: React.MouseEvent<SVGSVGElement, MouseEvent>) {
     e.preventDefault()
-    addToWishList()
+    addToWishList(product.id)
   }
 
   function handleRemoveFromWishlist(e: React.MouseEvent<SVGSVGElement, MouseEvent>) {
     e.preventDefault()
-    removeFromWishlist()
+    removeFromWishlist(product.id)
   }
 
   const Default =
